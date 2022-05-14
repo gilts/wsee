@@ -19,10 +19,10 @@ print('''
 
 __  _  ________ ____   ____  
 \ \/ \/ /  ___// __ \_/ __ \ 
- \	 /\___ \\  ___/\  ___/ 
+ \     /\___ \\  ___/\  ___/ 
   \/\_//____  >\___  >\___  >
-			\/	 \/	 \/					   
-							   
+            \/     \/     \/                       
+                               
 ''')
 print("	[" + colors.RED_BG + " Domain : Fronting " + colors.ENDC + "]")
 print("	 ["+colors.RED_BG+" Author " + colors.ENDC + ":" + colors.GREEN_BG + " Kiynox " + colors.ENDC + "]")
@@ -31,6 +31,7 @@ print("")
 print(" 1. Scanning File List from .txt")
 print(" 2. Scanning File List from .csv")
 print(" 3. Scanning from Subdomain Enum [HackerTarget]")
+print(" 4. Local Websocket Finder")
 print(" Q to Quit")
 opsi=input(" Choose Option :  ")
 
@@ -76,9 +77,6 @@ elif str(opsi) == "2":
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
 
-elif str(opsi) == "q":
-	exit()
-
 elif str(opsi) == "3":
 	subd = input("\nInput Domain: ")
 	subd = subd.replace("https://","").replace("http://","")
@@ -117,6 +115,47 @@ elif str(opsi) == "3":
 			exit()
 	else:
 		exit()
+
+elif str(opsi) == "4":
+	reqsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
+
+	with open("WeChatResult.txt") as f:
+		parseddom = f.read().split()
+		
+	domainlist = list(set(parseddom))
+	domainlist = list(filter(None, parseddom))
+	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
+	print("")
+	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
+	print("")
+
+	for domain in domainlist:
+			try:
+				r = requests.get("http://" + domain, headers=reqsocket, timeout=1, allow_redirects=False)
+				if r.status_code == expected_response:
+					print(colors.GREEN + " [ HIT ] " + colors.ENDC + "Domain: " + domain + " - Success - ")
+					print(domain, file=open("WeChatWebsocket.txt", "a"))
+					result_success.append(str(domain))
+				elif r.status_code != expected_response:
+					print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Status Code " + str(r.status_code) + " code")
+			except (Timeout, ReadTimeout, ConnectionError):
+				print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " TIMEOUT")
+			except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
+				print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Invalid Length")
+				pass
+			except(TooManyRedirects):
+				print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Redirects Loop")
+			except:
+				pass
+	
+	print(" Loaded : "  + colors.GREEN + str(len(result_success)) + colors.ENDC)
+	if len(result_success) >= 0:
+		print(" Successfull Result : ")
+	for result in result_success:
+		print(colors.GREEN + "  " + result + colors.ENDC)
+
+else:
+	exit()
 
 print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
 print("")
