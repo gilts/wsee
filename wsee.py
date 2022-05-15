@@ -94,17 +94,17 @@ elif str(opsi) == "3":
 				try:
 					req = requests.get(f"http://{sub}",headers=head,timeout=0.7,allow_redirects=False)
 					if req.status_code == 101:
-						print(colors.GREEN + " [ HIT ] " + colors.ENDC + " Host : " + str(sub) + "Success")
+						print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + str(sub))
 						sukses.append(str(sub))
 					else:
-						print(colors.RED + " [ FAIL ] " + colors.ENDC + sub + " Status Code: " + str(req.status_code) + " code")
+						print(" ["+colors.RED_BG+ " FAIL " + colors.ENDC + "] " + sub + colors.RED + " "+str(req.status_code)+" "+colors.ENDC)
 				except (Timeout, ReadTimeout, ConnectionError):
-					print(colors.RED + " [ FAIL ] " + colors.ENDC + sub + " TIMEOUT")
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub + colors.RED_BG+" TIMEOUT "+colors.ENDC)
 				except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-					print(colors.RED + " [ FAIL ] " + colors.ENDC + sub + " Invalid Length")
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " +sub +colors.RED_BG+" Invalid Length "+colors.ENDC)
 					pass
 				except(TooManyRedirects):
-					print(colors.RED + " [ FAIL ] " + colors.ENDC + sub + " Redirects Loop")
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub + colors.RED_BG+" Redirects Loop "+colors.ENDC)
 					pass
 				except:
 					pass
@@ -133,18 +133,18 @@ elif str(opsi) == "4":
 			try:
 				r = requests.get("http://" + domain, headers=reqsocket, timeout=1, allow_redirects=False)
 				if r.status_code == expected_response:
-					print(colors.GREEN + " [ HIT ] " + colors.ENDC + "Domain: " + domain + " - Success - ")
+					print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
 					print(domain, file=open("WeChatWebsocket.txt", "a"))
 					result_success.append(str(domain))
 				elif r.status_code != expected_response:
-					print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Status Code " + str(r.status_code) + " code")
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC)
 			except (Timeout, ReadTimeout, ConnectionError):
-				print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " TIMEOUT")
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" TIMEOUT "+colors.ENDC)
 			except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-				print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Invalid Length")
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" Invalid Length "+colors.ENDC)
 				pass
 			except(TooManyRedirects):
-				print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Redirects Loop")
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG " Redirects Loop "+colors.ENDC)
 			except:
 				pass
 	
@@ -166,18 +166,18 @@ for domain in domainlist:
 		try:
 			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
 			if r.status_code == expected_response:
-				print(colors.GREEN + " [ HIT ] " + colors.ENDC + "Domain: " + domain + " - Success - ")
+				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
 				print(domain, file=open("ServiceCFront.txt", "a"))
 				result_success.append(str(domain))
 			elif r.status_code != expected_response:
-				print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Status Code " + str(r.status_code) + " code")
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC)
 		except (Timeout, ReadTimeout, ConnectionError):
-			print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " TIMEOUT")
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG +" TIMEOUT "+colors.ENDC)
 		except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-			print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Invalid Length")
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" Invalid Length "+colors.ENDC)
 			pass
 		except(TooManyRedirects):
-			print(colors.RED + " [ FAIL ] " + colors.ENDC + domain + " Redirects Loop")
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" Redirects Loop "+colors.ENDC)
 		except:
 			pass
 
