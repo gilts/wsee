@@ -24,8 +24,8 @@ __  _  ________ ____   ____
             \/     \/     \/                       
                                
 ''')
-print("	[" + colors.RED_BG + " Domain : Fronting " + colors.ENDC + "]")
-print("	 ["+colors.RED_BG+" Author " + colors.ENDC + ":" + colors.GREEN_BG + " Kiynox " + colors.ENDC + "]")
+print("    [" + colors.RED_BG + " Domain : Fronting " + colors.ENDC + "]")
+print("     ["+colors.RED_BG+" Author " + colors.ENDC + ":" + colors.GREEN_BG + " Kiynox " + colors.ENDC + "]")
 print("")
 
 print(" 1. Scanning File List from .txt")
@@ -49,7 +49,7 @@ if not os.path.exists(hostpath):
 	os.makedirs(hostpath)
 
 if str(opsi) == "1":
-	with open("ServiceResult.txt") as f:
+	with open("RelateResult.txt") as f:
 		parseddom = f.read().split()
 		
 	domainlist = list(set(parseddom))
@@ -97,14 +97,14 @@ elif str(opsi) == "3":
 						print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + str(sub))
 						sukses.append(str(sub))
 					else:
-						print(" ["+colors.RED_BG+ " FAIL " + colors.ENDC + "] " + sub + colors.RED + " "+str(req.status_code)+" "+colors.ENDC)
+						print(" ["+colors.RED_BG+ " FAIL " + colors.ENDC + "] " + sub + " [" +colors.RED + " "+str(req.status_code)+" "+colors.ENDC+"]")
 				except (Timeout, ReadTimeout, ConnectionError):
-					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub + colors.RED_BG+" TIMEOUT "+colors.ENDC)
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub +" [" +colors.RED_BG+" TIMEOUT "+colors.ENDC+"]")
 				except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " +sub +colors.RED_BG+" Invalid Length "+colors.ENDC)
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " +sub +" [" +colors.RED_BG+" Invalid Length "+colors.ENDC+"]")
 					pass
 				except(TooManyRedirects):
-					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub + colors.RED_BG+" Redirects Loop "+colors.ENDC)
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
 					pass
 				except:
 					pass
@@ -117,9 +117,9 @@ elif str(opsi) == "3":
 		exit()
 
 elif str(opsi) == "4":
-	reqsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
+	wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
 
-	with open("WeChatResult.txt") as f:
+	with open("RelateResult.txt") as f:
 		parseddom = f.read().split()
 		
 	domainlist = list(set(parseddom))
@@ -131,20 +131,20 @@ elif str(opsi) == "4":
 
 	for domain in domainlist:
 			try:
-				r = requests.get("http://" + domain, headers=reqsocket, timeout=1, allow_redirects=False)
+				r = requests.get("http://" + domain, headers=wsocket, timeout=1, allow_redirects=False)
 				if r.status_code == expected_response:
 					print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
-					print(domain, file=open("WeChatWebsocket.txt", "a"))
+					print(domain, file=open("RelateWebsocket.txt", "a"))
 					result_success.append(str(domain))
 				elif r.status_code != expected_response:
-					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC)
+					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
 			except (Timeout, ReadTimeout, ConnectionError):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" TIMEOUT "+colors.ENDC)
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " ["+ colors.RED_BG+" TIMEOUT "+colors.ENDC+"]")
 			except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" Invalid Length "+colors.ENDC)
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid Length "+colors.ENDC+"]")
 				pass
 			except(TooManyRedirects):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG " Redirects Loop "+colors.ENDC)
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG + " Redirects Loop "+colors.ENDC+"]")
 			except:
 				pass
 	
@@ -167,17 +167,17 @@ for domain in domainlist:
 			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
 			if r.status_code == expected_response:
 				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
-				print(domain, file=open("ServiceCFront.txt", "a"))
+				print(domain, file=open("RelateCFront.txt", "a"))
 				result_success.append(str(domain))
 			elif r.status_code != expected_response:
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC)
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
 		except (Timeout, ReadTimeout, ConnectionError):
-			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG +" TIMEOUT "+colors.ENDC)
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
 		except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" Invalid Length "+colors.ENDC)
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG+" Invalid Length "+colors.ENDC + "]")
 			pass
 		except(TooManyRedirects):
-			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + colors.RED_BG+" Redirects Loop "+colors.ENDC)
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
 		except:
 			pass
 
