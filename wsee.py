@@ -5,6 +5,7 @@ from urllib3.exceptions import ProtocolError,InvalidChunkLength
 import os, fnmatch; os.system("clear")
 import csv
 from collections import defaultdict
+from os.path import abspath, dirname
 
 class colors:
 	RED = '\033[31m'
@@ -14,6 +15,8 @@ class colors:
 	BLUE = '\033[34m'
 	RED_BG = '\033[41m\033[1m'
 	GREEN_BG = '\033[42m'
+
+os.chdir(dirname(abspath(__file__)))
 
 print('''
 
