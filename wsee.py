@@ -52,7 +52,18 @@ if not os.path.exists(hostpath):
 	os.makedirs(hostpath)
 
 if str(opsi) == "1":
-	with open("RelateResult.txt") as f:
+	files = os.listdir(hostpath)
+	for f in files:
+		if fnmatch.fnmatch(f, '*.txt'):
+			print( str(num_file),str(f))
+			num_file=num_file+1
+			txtfiles.append(str(f))
+
+	fileselector = input("Choose Target Files : ")
+	print("Target Chosen : " + txtfiles[int(fileselector)-1])
+	file_hosts = str(hostpath) +"/"+ str(txtfiles[int(fileselector)-1])
+
+	with open(file_hosts) as f:
 		parseddom = f.read().split()
 		
 	domainlist = list(set(parseddom))
@@ -122,9 +133,20 @@ elif str(opsi) == "3":
 elif str(opsi) == "4":
 	wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
 
-	with open("RelateResult.txt") as f:
+files = os.listdir(hostpath)
+	for f in files:
+		if fnmatch.fnmatch(f, '*.txt'):
+			print( str(num_file),str(f))
+			num_file=num_file+1
+			txtfiles.append(str(f))
+
+	fileselector = input("Choose Target Files : ")
+	print("Target Chosen : " + txtfiles[int(fileselector)-1])
+	file_hosts = str(hostpath) +"/"+ str(txtfiles[int(fileselector)-1])
+
+	with open(file_hosts) as f:
 		parseddom = f.read().split()
-		
+
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
 	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
