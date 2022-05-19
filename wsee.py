@@ -19,7 +19,7 @@ class colors:
 class inf:
 	expected_response = 101
 	control_domain = 'd2f99r5bkcyeqq.cloudfront.net'
-	headers = { "Host": inf.control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
+	payloads = { "Host": inf.control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 	file_hosts = ""
 	result_success = []
 	num_file = 1
@@ -28,7 +28,8 @@ class inf:
 	hostpath = 'host'
 
 def text():
-	global domainlist, parseddom
+	global domainlist, headers
+	headers = inf.payloads
 	files = os.listdir(inf.hostpath)
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
@@ -45,10 +46,42 @@ def text():
 		
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
-	engine()
+
+	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
+	print("")
+	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
+	print("")
+
+	num_cpus = cpu_count()
+	processes = []
+	for process_num in range(num_cpus):
+		section = domainlist[process_num::num_cpus]
+		p = Process(target=engine, args=(section,))
+		p.start()
+		processes.append(p)
+	for p in processes:
+		p.join()
+
+	print(" Loaded : "  + colors.GREEN + str(len(diginfo.result_success)) + colors.ENDC)
+	if len(diginfo.result_success) >= 0:
+		print(" Successfull Result : ")
+	print("")
+	print("Scanning Finished!")
+	print("1. Go Back to Menu")
+	print("2. Scanning Again")
+	print("3. Quit Instead")
+	print("")
+	ans=input("Choose Option: ")
+	if ans=="2":
+		fromtext()
+	elif ans=="3":
+		exit()
+	else:
+		menu()
 
 def csv():
-	global domainlist, parseddom
+	global domainlist, headers
+	headers = inf.payloads
 	files = os.listdir(inf.hostpath)
 	for f in files:
 		if fnmatch.fnmatch(f, '*.csv'):
@@ -69,7 +102,39 @@ def csv():
 	parseddom=inf.columns[9]+inf.columns[3]
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
-	engine()
+
+	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
+	print("")
+	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
+	print("")
+
+	num_cpus = cpu_count()
+	processes = []
+	for process_num in range(num_cpus):
+		section = domainlist[process_num::num_cpus]
+		p = Process(target=engines, args=(section,))
+		p.start()
+		processes.append(p)
+	for p in processes:
+		p.join()
+
+	print(" Loaded : "  + colors.GREEN + str(len(diginfo.result_success)) + colors.ENDC)
+	if len(diginfo.result_success) >= 0:
+		print(" Successfull Result : ")
+	print("")
+	print("Scanning Finished!")
+	print("1. Go Back to Menu")
+	print("2. Scanning Again")
+	print("3. Quit Instead")
+	print("")
+	ans=input("Choose Option: ")
+	if ans=="2":
+		fromtext()
+	elif ans=="3":
+		exit()
+	else:
+		menu()
+
 
 def enum():
 	subd = input("\nInput Domain: ")
@@ -161,38 +226,25 @@ elif wsocket():
 	input("Continue..")
 	menu()
 
-def engine():
-	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
-	print("")
-	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
-	print("")
-	
+def engine(domainlist):
 	for domain in domainlist:
-			try:
-				r = requests.get("http://" + domain, inf.headers=inf.headers, timeout=0.7, allow_redirects=False)
-				if r.status_code == inf.expected_response:
-					print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
-					print(domain, file=open("RelateCFront.txt", "a"))
-					inf.result_success.append(str(domain))
-				elif r.status_code != inf.expected_response:
-					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
-			except (Timeout, ReadTimeout, ConnectionError):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
-			except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG+" Invalid Length "+colors.ENDC + "]")
-				pass
-			except(TooManyRedirects):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
-			except:
-				pass
-	
-	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
-	if len(inf.result_success) >= 0:
-		print(" Successfull Result : ")
-	for result in inf.result_success:
-		print(colors.GREEN + "  " + result + colors.ENDC)
-	input("Continue")
-	menu()
+		try:
+			r = requests.get("http://" + domain, inf.headers=inf.headers, timeout=0.7, allow_redirects=False)
+			if r.status_code == inf.expected_response:
+				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
+				print(domain, file=open("RelateCFront.txt", "a"))
+				inf.result_success.append(str(domain))
+			elif r.status_code != inf.expected_response:
+				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
+		except (Timeout, ReadTimeout, ConnectionError):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
+		except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG+" Invalid Length "+colors.ENDC + "]")
+			pass
+		except(TooManyRedirects):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
+		except:
+			pass
 
 def menu():
 	print('''
