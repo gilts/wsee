@@ -135,7 +135,6 @@ def csv():
 	else:
 		menu()
 
-
 def enum():
 	subd = input("\nInput Domain: ")
 	subd = subd.replace("https://","").replace("http://","")
@@ -176,7 +175,10 @@ def enum():
 		exit()
 
 elif wsocket():
+	global headers,domainlist
+
 	wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
+	headers = wsocket
 
 	files = os.listdir(inf.hostpath)
 	for f in files:
@@ -194,37 +196,38 @@ elif wsocket():
 
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
+
 	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
 	print("")
 	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
 	print("")
 
-	for domain in domainlist:
-			try:
-				r = requests.get("http://" + domain, inf.headers=wsocket, timeout=1, allow_redirects=False)
-				if r.status_code == inf.expected_response:
-					print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
-					print(domain, file=open("RelateWebsocket.txt", "a"))
-					inf.result_success.append(str(domain))
-				elif r.status_code != inf.expected_response:
-					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
-			except (Timeout, ReadTimeout, ConnectionError):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " ["+ colors.RED_BG+" TIMEOUT "+colors.ENDC+"]")
-			except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid Length "+colors.ENDC+"]")
-				pass
-			except(TooManyRedirects):
-				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG + " Redirects Loop "+colors.ENDC+"]")
-			except:
-				pass
-	
-	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
-	if len(inf.result_success) >= 0:
+	num_cpus = cpu_count()
+	processes = []
+	for process_num in range(num_cpus):
+		section = domainlist[process_num::num_cpus]
+		p = Process(target=engines, args=(section,))
+		p.start()
+		processes.append(p)
+	for p in processes:
+		p.join()
+
+	print(" Loaded : "  + colors.GREEN + str(len(diginfo.result_success)) + colors.ENDC)
+	if len(diginfo.result_success) >= 0:
 		print(" Successfull Result : ")
-	for result in inf.result_success:
-		print(colors.GREEN + "  " + result + colors.ENDC)
-	input("Continue..")
-	menu()
+	print("")
+	print("Scanning Finished!")
+	print("1. Go Back to Menu")
+	print("2. Scanning Again")
+	print("3. Quit Instead")
+	print("")
+	ans=input("Choose Option: ")
+	if ans=="2":
+		fromtext()
+	elif ans=="3":
+		exit()
+	else:
+		menu()
 
 def engine(domainlist):
 	for domain in domainlist:
