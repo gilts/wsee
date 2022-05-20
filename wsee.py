@@ -4,9 +4,9 @@ from requests.exceptions import ReadTimeout, Timeout, ConnectionError,ChunkedEnc
 from urllib3.exceptions import ProtocolError,InvalidChunkLength
 import os, fnmatch; os.system("clear")
 import csv
-from collections import defaultdict
+from collections import defaultdict, Counter
 from os.path import abspath, dirname
-from multiprocessing import Process, Event, cpu_count
+from multiprocessing import Process, cpu_count, Manager
 from time import sleep
 
 class colors:
@@ -59,20 +59,24 @@ def text():
 	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 
-	num_cpus = cpu_count()
-	processes = []
-	for process_num in range(num_cpus):
-		section = domainlist[process_num::num_cpus]
-		p = Process(target=engine, args=(section,))
-		p.start()
-		processes.append(p)
-	for p in processes:
-		p.join()
+	with Manager() as manager:
+		num_cpus = cpu_count()
+		processes = []
+		R = manager.list()
+		for process_num in range(num_cpus):
+			section = domainlist[process_num::num_cpus]
+			p = Process(target=engine, args=(section,R,))
+			p.start()
+			processes.append(p)
+		for p in processes:
+			p.join()
+		R = list(R)
 
-	print("")
-	print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
-	if len(inf.result_success) >= 0:
-		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
+		print("")
+		print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(R)) +" "+ colors.ENDC )
+		if len(inf.result_success) >= 0:
+			print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(R))+ " "+colors.ENDC)
+	print(R)
 
 	print("")
 	print("Scanning Finished!")
@@ -123,20 +127,22 @@ def csv():
 	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 
-	num_cpus = cpu_count()
-	processes = []
-	for process_num in range(num_cpus):
-		section = domainlist[process_num::num_cpus]
-		p = Process(target=engine, args=(section,))
-		p.start()
-		processes.append(p)
-	for p in processes:
-		p.join()
+	with Manager() as manager:
+		num_cpus = cpu_count()
+		processes = []
+		R = manager.list()
+		for process_num in range(num_cpus):
+			section = domainlist[process_num::num_cpus]
+			p = Process(target=engine, args=(section,R,))
+			p.start()
+			processes.append(p)
+		for p in processes:
+			p.join()
 
-	print("")
-	print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
-	if len(inf.result_success) >= 0:
-		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
+		print("")
+		print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
+		if len(result_success) >= 0:
+			print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
 
 	print("")
 	print("Scanning Finished!")
@@ -227,20 +233,22 @@ def wsocket():
 	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 
-	num_cpus = cpu_count()
-	processes = []
-	for process_num in range(num_cpus):
-		section = domainlist[process_num::num_cpus]
-		p = Process(target=engine, args=(section,))
-		p.start()
-		processes.append(p)
-	for p in processes:
-		p.join()
+	with Manager() as manager:
+		num_cpus = cpu_count()
+		processes = []
+		R = manager.list()
+		for process_num in range(num_cpus):
+			section = domainlist[process_num::num_cpus]
+			p = Process(target=engine, args=(section,R,))
+			p.start()
+			processes.append(p)
+		for p in processes:
+			p.join()
 
-	print("")
-	print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
-	if len(inf.result_success) >= 0:
-		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
+		print("")
+		print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
+		if len(inf.result_success) >= 0:
+			print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
 
 	print("")
 	print("Scanning Finished!")
@@ -256,14 +264,14 @@ def wsocket():
 	else:
 		menu()
 
-def engine(domainlist):
+def engine(domainlist,R):
 	for domain in domainlist:
 		try:
 			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
 			if r.status_code == inf.expected_response:
 				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
 				print(domain, file=open("RelateCFront.txt", "a"))
-				inf.result_success.append(str(domain))
+				R.append(str(domain))
 			elif r.status_code != inf.expected_response:
 				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
 		except (Timeout, ReadTimeout, ConnectionError):
@@ -278,13 +286,13 @@ def engine(domainlist):
 
 def menu():
 	print('''
-	
-	__  _  ________ ____   ____  
-	\ \/ \/ /  ___// __ \_/ __ \ 
-	 \     /\___ \\  ___/\  ___/ 
-	  \/\_//____  >\___  >\___  >
-	            \/     \/     \/                       
-	                               
+
+__  _  ________ ____   ____  
+\ \/ \/ /  ___// __ \_/ __ \ 
+ \     /\___ \\  ___/\  ___/ 
+  \/\_//____  >\___  >\___  >
+            \/     \/     \/  
+
 	''')
 	print("    [" + colors.RED_BG + " Domain : Fronting " + colors.ENDC + "]")
 	print("     ["+colors.RED_BG+" Author " + colors.ENDC + ":" + colors.GREEN_BG + " Kiynox " + colors.ENDC + "]")
