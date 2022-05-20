@@ -6,6 +6,8 @@ import os, fnmatch; os.system("clear")
 import csv
 from collections import defaultdict
 from os.path import abspath, dirname
+from multiprocessing import Process, Event, cpu_count
+from time import sleep
 
 class colors:
 	RED = '\033[31m'
@@ -19,7 +21,7 @@ class colors:
 class inf:
 	expected_response = 101
 	control_domain = 'd2f99r5bkcyeqq.cloudfront.net'
-	payloads = { "Host": inf.control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
+	payloads = { "Host": control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 	file_hosts = ""
 	result_success = []
 	num_file = 1
@@ -62,8 +64,8 @@ def text():
 	for p in processes:
 		p.join()
 
-	print(" Loaded : "  + colors.GREEN + str(len(diginfo.result_success)) + colors.ENDC)
-	if len(diginfo.result_success) >= 0:
+	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
+	if len(inf.result_success) >= 0:
 		print(" Successfull Result : ")
 	print("")
 	print("Scanning Finished!")
@@ -73,7 +75,7 @@ def text():
 	print("")
 	ans=input("Choose Option: ")
 	if ans=="2":
-		fromtext()
+		text()
 	elif ans=="3":
 		exit()
 	else:
@@ -112,14 +114,14 @@ def csv():
 	processes = []
 	for process_num in range(num_cpus):
 		section = domainlist[process_num::num_cpus]
-		p = Process(target=engines, args=(section,))
+		p = Process(target=engine, args=(section,))
 		p.start()
 		processes.append(p)
 	for p in processes:
 		p.join()
 
-	print(" Loaded : "  + colors.GREEN + str(len(diginfo.result_success)) + colors.ENDC)
-	if len(diginfo.result_success) >= 0:
+	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
+	if len(inf.result_success) >= 0:
 		print(" Successfull Result : ")
 	print("")
 	print("Scanning Finished!")
@@ -129,7 +131,7 @@ def csv():
 	print("")
 	ans=input("Choose Option: ")
 	if ans=="2":
-		fromtext()
+		csv()
 	elif ans=="3":
 		exit()
 	else:
@@ -150,12 +152,12 @@ def enum():
 			subdo = re.findall("(.*?),",r.text)
 			for sub in subdo:
 				try:
-					req = requests.get(f"http://{sub}",inf.headers=head,timeout=0.7,allow_redirects=False)
+					req = requests.get(f"http://{sub}",headers=head,timeout=0.7,allow_redirects=False)
 					if req.status_code == 101:
 						print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + str(sub))
 						sukses.append(str(sub))
 					else:
-						print(" ["+colors.RED_BG+ " FAIL " + colors.ENDC + "] " + sub + " [" +colors.RED + " "+str(req.status_code)+" "+colors.ENDC+"]")
+						print(" ["+colors.RED_BG+ " FAIL " + colors.ENDC + "] " + sub + " [" +colors.RED_BG + " "+str(req.status_code)+" "+colors.ENDC+"]")
 				except (Timeout, ReadTimeout, ConnectionError):
 					print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub +" [" +colors.RED_BG+" TIMEOUT "+colors.ENDC+"]")
 				except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
@@ -170,11 +172,12 @@ def enum():
 			print("Successfull Result: \n")
 			for res in sukses:
 				print(res)
-			exit()
+			input("Continue...")
+			menu()
 	else:
-		exit()
+		menu()
 
-elif wsocket():
+def wsocket():
 	global headers,domainlist
 
 	wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
@@ -206,14 +209,14 @@ elif wsocket():
 	processes = []
 	for process_num in range(num_cpus):
 		section = domainlist[process_num::num_cpus]
-		p = Process(target=engines, args=(section,))
+		p = Process(target=engine, args=(section,))
 		p.start()
 		processes.append(p)
 	for p in processes:
 		p.join()
 
-	print(" Loaded : "  + colors.GREEN + str(len(diginfo.result_success)) + colors.ENDC)
-	if len(diginfo.result_success) >= 0:
+	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
+	if len(inf.result_success) >= 0:
 		print(" Successfull Result : ")
 	print("")
 	print("Scanning Finished!")
@@ -223,7 +226,7 @@ elif wsocket():
 	print("")
 	ans=input("Choose Option: ")
 	if ans=="2":
-		fromtext()
+		wsocket()
 	elif ans=="3":
 		exit()
 	else:
@@ -232,7 +235,7 @@ elif wsocket():
 def engine(domainlist):
 	for domain in domainlist:
 		try:
-			r = requests.get("http://" + domain, inf.headers=inf.headers, timeout=0.7, allow_redirects=False)
+			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
 			if r.status_code == inf.expected_response:
 				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
 				print(domain, file=open("RelateCFront.txt", "a"))
