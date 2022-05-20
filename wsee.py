@@ -20,11 +20,10 @@ class colors:
 
 class inf:
 	expected_response = 101
-	control_domain = 'd2f99r5bkcyeqq.cloudfront.net'
+	control_domain = 'd22236fd6eam5f.cloudfront.net'
 	payloads = { "Host": control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 	file_hosts = ""
 	result_success = []
-	num_file = 1
 	columns = defaultdict(list)
 	txtfiles= []
 	hostpath = 'host'
@@ -32,26 +31,32 @@ class inf:
 def text():
 	global domainlist, headers
 	headers = inf.payloads
+	num_file=1
 	files = os.listdir(inf.hostpath)
+	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
-			print( str(inf.num_file),str(f))
-			inf.num_file=inf.num_file+1
+			print( str(num_file),str(f))
+			num_file=num_file+1
 			inf.txtfiles.append(str(f))
 
-	fileselector = input("Choose Target Files : ")
-	print("Target Chosen : " + inf.txtfiles[int(fileselector)-1])
-	inf.file_hosts = str(inf.hostpath) +"/"+ str(inf.txtfiles[int(fileselector)-1])
+	print("")
+	print(" M back to Menu ")
+	fileselector = input(" Choose Target Files : ")
+	if fileselector.isdigit():
+		print("")
+		print(" Target Chosen : " + colors.RED_BG + " "+inf.txtfiles[int(fileselector)-1]+" "+colors.ENDC)
+		file_hosts = str(inf.hostpath) +"/"+ str(inf.txtfiles[int(fileselector)-1])
+	else:
+		menu()
 
-	with open(inf.file_hosts) as f:
+	with open(file_hosts) as f:
 		parseddom = f.read().split()
-		
+
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
 
-	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
-	print("")
-	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
+	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 
 	num_cpus = cpu_count()
@@ -64,9 +69,11 @@ def text():
 	for p in processes:
 		p.join()
 
-	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
+	print("")
+	print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
 	if len(inf.result_success) >= 0:
-		print(" Successfull Result : ")
+		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
+
 	print("")
 	print("Scanning Finished!")
 	print("1. Go Back to Menu")
@@ -83,21 +90,29 @@ def text():
 
 def csv():
 	global domainlist, headers
+	num_file=1
 	headers = inf.payloads
 	files = os.listdir(inf.hostpath)
+	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
 	for f in files:
 		if fnmatch.fnmatch(f, '*.csv'):
-			print( str(inf.num_file),str(f))
-			inf.num_file=inf.num_file+1
+			print( str(num_file),str(f))
+			num_file=num_file+1
 			inf.txtfiles.append(str(f))
-	
-	fileselector = input("Select File : ")
-	print("File Selected : " + inf.txtfiles[int(fileselector)-1])
-	inf.file_hosts = str(inf.hostpath) +"/"+ str(inf.txtfiles[int(fileselector)-1])
-	
-	with open(inf.file_hosts,'r') as csv_file:
+
+	print("")
+	print(" M back to Menu ")
+	fileselector = input(" Choose Target Files : ")
+	if fileselector.isdigit():
+		print("")
+		print(" Target Chosen : " + colors.RED_BG + " "+inf.txtfiles[int(fileselector)-1]+" "+colors.ENDC)
+		file_hosts = str(inf.hostpath) +"/"+ str(inf.txtfiles[int(fileselector)-1])
+	else:
+		menu()
+
+	with open(file_hosts,'r') as csv_file:
 		reader = csv.reader(csv_file)
-	
+
 		for row in reader:
 			for (i,v) in enumerate(row):
 				inf.columns[i].append(v)
@@ -105,9 +120,7 @@ def csv():
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
 
-	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
-	print("")
-	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
+	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 
 	num_cpus = cpu_count()
@@ -120,9 +133,11 @@ def csv():
 	for p in processes:
 		p.join()
 
-	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
+	print("")
+	print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
 	if len(inf.result_success) >= 0:
-		print(" Successfull Result : ")
+		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
+
 	print("")
 	print("Scanning Finished!")
 	print("1. Go Back to Menu")
@@ -131,10 +146,12 @@ def csv():
 	print("")
 	ans=input("Choose Option: ")
 	if ans=="2":
+		fileselector=""
 		csv()
 	elif ans=="3":
 		exit()
 	else:
+		fileselector=""
 		menu()
 
 def enum():
@@ -179,30 +196,35 @@ def enum():
 
 def wsocket():
 	global headers,domainlist
-
 	wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
 	headers = wsocket
+	num_file=1
 
 	files = os.listdir(inf.hostpath)
+	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
-			print( str(inf.num_file),str(f))
-			inf.num_file=inf.num_file+1
+			print( str(num_file),str(f))
+			num_file=num_file+1
 			inf.txtfiles.append(str(f))
 
-	fileselector = input("Choose Target Files : ")
-	print("Target Chosen : " + inf.txtfiles[int(fileselector)-1])
-	inf.file_hosts = str(inf.hostpath) +"/"+ str(inf.txtfiles[int(fileselector)-1])
+	print("")
+	print(" M back to Menu ")
+	fileselector = input(" Choose Target Files : ")
+	if fileselector.isdigit():
+		print("")
+		print(" Target Chosen : " + colors.RED_BG + " "+inf.txtfiles[int(fileselector)-1]+" "+colors.ENDC)
+		file_hosts = str(inf.hostpath) +"/"+ str(inf.txtfiles[int(fileselector)-1])
+	else:
+		menu()
 
-	with open(inf.file_hosts) as f:
+	with open(file_hosts) as f:
 		parseddom = f.read().split()
 
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
 
-	print(" Loaded: " + colors.GREEN + str(len(domainlist)) + colors.ENDC + " Total of Unique Host: " + str(len(parseddom)) + " host")
-	print("")
-	input(colors.GREEN + "[ENTER] Start Scan ....." + colors.ENDC)
+	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 
 	num_cpus = cpu_count()
@@ -215,9 +237,11 @@ def wsocket():
 	for p in processes:
 		p.join()
 
-	print(" Loaded : "  + colors.GREEN + str(len(inf.result_success)) + colors.ENDC)
+	print("")
+	print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(inf.result_success)) +" "+ colors.ENDC)
 	if len(inf.result_success) >= 0:
-		print(" Successfull Result : ")
+		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(inf.result_success))+ " "+colors.ENDC)
+
 	print("")
 	print("Scanning Finished!")
 	print("1. Go Back to Menu")
@@ -266,12 +290,14 @@ def menu():
 	print("     ["+colors.RED_BG+" Author " + colors.ENDC + ":" + colors.GREEN_BG + " Kiynox " + colors.ENDC + "]")
 	print("")
 	
-	print(" 1. Scanning File List from .txt")
-	print(" 2. Scanning File List from .csv")
-	print(" 3. Scanning from Subdomain Enum [HackerTarget]")
-	print(" 4. Local Websocket Finder")
-	print(" Q to Quit")
+	print("1. Scanning File List from .txt")
+	print("2. Scanning File List from .csv")
+	print("3. Scanning from Subdomain Enum [HackerTarget]")
+	print("4. Local Websocket Finder")
+	print("Q to Quit")
+	print("")
 	opsi=input(" Choose Option :  ")
+	print("")
 	if str(opsi)=="1":
 		text()
 	elif str(opsi)=="2":
