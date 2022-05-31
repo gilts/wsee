@@ -76,21 +76,22 @@ __  _  ________ ____   ____
 
 		if str(opsi)=="1":
 			def text():
-				global domainlist, headers, frontdom, control_domain
-				
+				global domainlist, headers, control_domain
 				print("1. Insert custom fronting domain")
 				print("2. Leave it as default")
 				print("")
 				ansi=input(" Choose Option : ")
 				if str(ansi)=="1":
 					print("")
-					control_domain=input(" Domain : ")
-					print(colors.GREEN_BG + " " + f"{control_domain}" + " " + colors.ENDC + " Selected as Domain Fronting!")
+					domain=input(" Domain : ")
+					payloads["Host"]=f"{domain}"
+					print(colors.GREEN_BG + " " + f"{domain}" + " " + colors.ENDC + " Selected as Domain Fronting!")
 					print(colors.RED_BG+" Warning " + colors.ENDC + " : " + colors.RED_BG + " INVALID " + colors.ENDC + " Domain Will Give 0 Result!" )
 					print("")
 				else:
 					pass
 
+				print(" Check " + f"{payloads}")
 				headers = payloads
 				num_file=1
 				files = os.listdir(hostpath)
@@ -289,28 +290,27 @@ __  _  ________ ____   ____
 							print(res)
 						input("Continue...")
 						menu()
-	else:
-		menu()
+				else:
+					menu()
 
 		else:
 			exit()
 
 	elif str(ans)=="2":
 		def wsocket():
-				global domainlist, headers, frontdom, control_domain
-				
-				print("1. Insert custom fronting domain")
-				print("2. Leave it as default")
+			global domainlist, headers, frontdom, control_domain
+			print("1. Insert custom fronting domain")
+			print("2. Leave it as default")
+			print("")
+			ansi=input(" Choose Option : ")
+			if str(ansi)=="1":
 				print("")
-				ansi=input(" Choose Option : ")
-				if str(ansi)=="1":
-					print("")
-					control_domain=input(" Domain : ")
-					print(colors.GREEN_BG + " " + f"{control_domain}" + " " + colors.ENDC + " Selected as Domain Fronting!")
-					print(colors.RED_BG+" Warning " + colors.ENDC + " : " + colors.RED_BG + " INVALID " + colors.ENDC + " Domain Will Give 0 Result!" )
-					print("")
-				else:
-					pass
+				control_domain=input(" Domain : ")
+				print(colors.GREEN_BG + " " + f"{control_domain}" + " " + colors.ENDC + " Selected as Domain Fronting!")
+				print(colors.RED_BG+" Warning " + colors.ENDC + " : " + colors.RED_BG + " INVALID " + colors.ENDC + " Domain Will Give 0 Result!" )
+				print("")
+			else:
+				pass
 
 			wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
 			headers = wsocket
