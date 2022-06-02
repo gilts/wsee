@@ -21,13 +21,13 @@ class colors:
 expected_response = 101
 control_domain = 'd22236fd6eam5f.cloudfront.net'
 payloads = { "Host": control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
+wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
 file_hosts = ""
-result_success = []
 columns = defaultdict(list)
 txtfiles= []
 hostpath = 'host'
 
-def engine(domainlist,R):
+def engine(domainlist,R,F):
 	for domain in domainlist:
 		try:
 			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
@@ -37,13 +37,19 @@ def engine(domainlist,R):
 				R.append(str(domain))
 			elif r.status_code != expected_response:
 				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
+				F.append(str(domain))
 		except (Timeout, ReadTimeout, ConnectionError):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
+			F.append(str(domain))
+			pass
 		except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG+" Invalid Length "+colors.ENDC + "]")
+			F.append(str(domain))
 			pass
 		except(TooManyRedirects):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
+			F.append(str(domain))
+			pass
 
 def menu():
 	print('''
@@ -76,7 +82,7 @@ __  _  ________ ____   ____
 
 		if str(opsi)=="1":
 			def text():
-				global domainlist, headers, control_domain
+				global domainlist, headers
 				print("1. Insert custom fronting domain")
 				print("2. Leave it as default")
 				print("")
@@ -125,20 +131,22 @@ __  _  ________ ____   ____
 					num_cpus = cpu_count()
 					processes = []
 					R = manager.list()
+					F = manager.list()
 					for process_num in range(num_cpus):
 						section = domainlist[process_num::num_cpus]
-						p = Process(target=engine, args=(section,R,))
+						p = Process(target=engine, args=(section,R,F,))
 						p.start()
 						processes.append(p)
 					for p in processes:
 						p.join()
 					R = list(R)
+					F = list(F)
 
 					print("")
-					print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(R)) +" "+ colors.ENDC )
-					if len(result_success) >= 0:
+					if len(F) >= 0:
+						print(" Failed Result : "  + colors.RED_BG + " "+str(len(F)) +" "+ colors.ENDC )
+					if len(R) >= 0:
 						print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(R))+ " "+colors.ENDC)
-				print(R)
 
 				print("")
 				print("Scanning Finished!")
@@ -157,7 +165,7 @@ __  _  ________ ____   ____
 
 		elif str(opsi)=="2":
 			def csv():
-				global domainlist, headers, frontdom, control_domain
+				global domainlist, headers
 				print("1. Insert custom fronting domain")
 				print("2. Leave it as default")
 				print("")
@@ -210,19 +218,20 @@ __  _  ________ ____   ____
 					num_cpus = cpu_count()
 					processes = []
 					R = manager.list()
+					F = manager.list()
 					for process_num in range(num_cpus):
 						section = domainlist[process_num::num_cpus]
-						p = Process(target=engine, args=(section,R,))
+						p = Process(target=engine, args=(section,R,F,))
 						p.start()
 						processes.append(p)
 					for p in processes:
 						p.join()
 
 					print("")
-					print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(result_success)) +" "+ colors.ENDC)
-					if len(result_success) >= 0:
-						print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(result_success))+ " "+colors.ENDC)
-				print(R)
+					if len(F) >= 0:
+						print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(F)) +" "+ colors.ENDC)
+					if len(R) >= 0:
+						print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(R))+ " "+colors.ENDC)
 
 				print("")
 				print("Scanning Finished!")
@@ -262,7 +271,8 @@ __  _  ________ ____   ____
 				yn = input("\nContinue Scanning? (y/n): ")
 				if yn.lower() == "y":
 					head = { "Host": control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
-					sukses = []
+					R = []
+					F = []
 					if r.text == "error invalid host":
 						exit("ERR: error invalid host")
 					else:
@@ -273,35 +283,52 @@ __  _  ________ ____   ____
 								req = requests.get(f"http://{sub}",headers=head,timeout=0.7,allow_redirects=False)
 								if req.status_code == 101:
 									print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + str(sub))
-									sukses.append(str(sub))
+									R.append(str(sub))
 								else:
 									print(" ["+colors.RED_BG+ " FAIL " + colors.ENDC + "] " + sub + " [" +colors.RED_BG + " "+str(req.status_code)+" "+colors.ENDC+"]")
+									F.append(str(sub))
 							except (Timeout, ReadTimeout, ConnectionError):
 								print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub +" [" +colors.RED_BG+" TIMEOUT "+colors.ENDC+"]")
+								F.append(str(sub))
 							except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
 								print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " +sub +" [" +colors.RED_BG+" Invalid Length "+colors.ENDC+"]")
+								F.append(str(sub))
 								pass
 							except(TooManyRedirects):
 								print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + sub + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
+								F.append(str(sub))
 								pass
 							except:
 								pass
-						print(" Loaded: " + colors.GREEN + str(len(sub)) + colors.ENDC)
-						print("Successfull Result: \n")
-						for res in sukses:
-							print(res)
-						input("Continue...")
-						menu()
+
+						print("")
+						if len(F) >= 0:
+							print(" Failed Result : " + colors.RED_BG + str(len(F)) + colors.ENDC)
+						if len(R) >= 0:
+							print(" Successfull Result : "+ GREEN_BG + str(len(R))+colors.ENDC)
+
+
+						print("")
+						print("Scanning Finished!")
+						print("1. Go Back to Menu")
+						print("2. Scanning Again")
+						print("3. Quit Instead")
+						print("")
+						ans=input("Choose Option: ")
+						if ans=="2":
+							enum()
+						elif ans=="3":
+							exit()
+						else:
+							menu()
 				else:
 					menu()
-
 		else:
 			exit()
 
 	elif str(ans)=="2":
 		def wsocket():
 			global domainlist, headers, frontdom, control_domain
-			wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
 			headers = wsocket
 			num_file=1
 
@@ -336,6 +363,7 @@ __  _  ________ ____   ____
 				num_cpus = cpu_count()
 				processes = []
 				R = manager.list()
+				F = manager.list()
 				for process_num in range(num_cpus):
 					section = domainlist[process_num::num_cpus]
 					p = Process(target=engine, args=(section,R,))
@@ -345,9 +373,10 @@ __  _  ________ ____   ____
 					p.join()
 
 				print("")
-				print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(result_success)) +" "+ colors.ENDC)
-				if len(result_success) >= 0:
-					print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(result_success))+ " "+colors.ENDC)
+				if len(F) >= 0:
+					print(" Total of Domains Queried : "  + colors.RED_BG + " "+str(len(F)) +" "+ colors.ENDC)
+				if len(R) >= 0:
+					print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(R))+ " "+colors.ENDC)
 
 			print("")
 			print("Scanning Finished!")
