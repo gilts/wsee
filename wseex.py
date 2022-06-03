@@ -26,8 +26,10 @@ file_hosts = ""
 columns = defaultdict(list)
 txtfiles= []
 hostpath = 'host'
+R=[]
+F=[]
 
-def engine(domainlist,R,F):
+def engine(domainlist):
 	for domain in domainlist:
 		try:
 			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
@@ -82,21 +84,23 @@ __  _  ________ ____   ____
 
 		if str(opsi)=="1":
 			def text():
-				global domainlist, headers
+				global headers, R, F
 				print("1. Insert custom fronting domain")
 				print("2. Leave it as default")
 				print("")
 				ansi=input(" Choose Option : ")
 				print("")
 				if str(ansi)=="1":
-					print("")
 					domain=input(" Domain : ")
 					payloads["Host"]=f"{domain}"
-					print(colors.GREEN_BG + " " + f"{domain}" + " " + colors.ENDC + " Selected as Domain Fronting!")
-					print(colors.RED_BG+" Warning " + colors.ENDC + " : " + colors.RED_BG + " INVALID " + colors.ENDC + " Domain Will Give 0 Result!" )
+					print("["+colors.GREEN_BG + f" {domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+					print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 					print("")
 				else:
-					pass
+					payloads["Host"]=f"{control_domain}"
+					print("["+colors.GREEN_BG + f" {control_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+					print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
+					print("")
 
 				headers = payloads
 				num_file=1
@@ -134,7 +138,7 @@ __  _  ________ ____   ____
 					F = manager.list()
 					for process_num in range(num_cpus):
 						section = domainlist[process_num::num_cpus]
-						p = Process(target=engine, args=(section,R,F,))
+						p = Process(target=engine, args=(section,))
 						p.start()
 						processes.append(p)
 					for p in processes:
@@ -165,21 +169,23 @@ __  _  ________ ____   ____
 
 		elif str(opsi)=="2":
 			def csv():
-				global domainlist, headers
+				global headers, R, F
 				print("1. Insert custom fronting domain")
 				print("2. Leave it as default")
 				print("")
 				ansi=input(" Choose Option : ")
 				print("")
 				if str(ansi)=="1":
-					print("")
 					domain=input(" Domain : ")
 					payloads["Host"]=f"{domain}"
-					print(colors.GREEN_BG + " " + f"{domain}" + " " + colors.ENDC + " Selected as Domain Fronting!")
-					print(colors.RED_BG+" Warning " + colors.ENDC + " : " + colors.RED_BG + " INVALID " + colors.ENDC + " Domain Will Give 0 Result!" )
+					print("["+colors.GREEN_BG + f" {domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+					print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 					print("")
 				else:
-					pass
+					payloads["Host"]=f"{control_domain}"
+					print("["+colors.GREEN_BG + f" {control_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+					print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
+					print("")
 
 				num_file=1
 				headers = payloads
@@ -221,11 +227,13 @@ __  _  ________ ____   ____
 					F = manager.list()
 					for process_num in range(num_cpus):
 						section = domainlist[process_num::num_cpus]
-						p = Process(target=engine, args=(section,R,F,))
+						p = Process(target=engine, args=(section,))
 						p.start()
 						processes.append(p)
 					for p in processes:
 						p.join()
+					R = list(R)
+					F = list(F)
 
 					print("")
 					if len(F) >= 0:
@@ -249,21 +257,22 @@ __  _  ________ ____   ____
 
 		elif str(opsi)=="3":
 			def enum():
-				global control_domain
 				print("1. Insert custom fronting domain")
 				print("2. Leave it as default")
 				print("")
 				ansi=input(" Choose Option : ")
 				print("")
 				if str(ansi)=="1":
-					print("")
 					domain=input(" Domain : ")
 					payloads["Host"]=f"{domain}"
-					print(colors.GREEN_BG + " " + f"{domain}" + " " + colors.ENDC + " Selected as Domain Fronting!")
-					print(colors.RED_BG+" Warning " + colors.ENDC + " : " + colors.RED_BG + " INVALID " + colors.ENDC + " Domain Will Give 0 Result!" )
+					print("["+colors.GREEN_BG + f" {domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+					print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 					print("")
 				else:
-					pass
+					payloads["Host"]=f"{control_domain}"
+					print("["+colors.GREEN_BG + f" {control_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+					print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
+					print("")
 
 				subd = input("\nInput Domain: ")
 				subd = subd.replace("https://","").replace("http://","")
@@ -328,7 +337,7 @@ __  _  ________ ____   ____
 
 	elif str(ans)=="2":
 		def wsocket():
-			global domainlist, headers, frontdom, control_domain
+			global headers, R, F
 			headers = wsocket
 			num_file=1
 
@@ -366,11 +375,13 @@ __  _  ________ ____   ____
 				F = manager.list()
 				for process_num in range(num_cpus):
 					section = domainlist[process_num::num_cpus]
-					p = Process(target=engine, args=(section,R,))
+					p = Process(target=engine, args=(section,))
 					p.start()
 					processes.append(p)
 				for p in processes:
 					p.join()
+				R = list(R)
+				F = list(F)
 
 				print("")
 				if len(F) >= 0:
