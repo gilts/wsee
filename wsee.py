@@ -30,6 +30,7 @@ R=[]
 F=[]
 
 def doma():
+	global frontdom
 	print("1. Insert custom fronting domain")
 	print("2. Leave it as default")
 	print("")
@@ -46,10 +47,11 @@ def doma():
 		print("["+colors.GREEN_BG + f" {control_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
 		print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 		print("")
+	frontdom = str(payloads["Host"])
 	return
 
 def filet():
-	global domainlist
+	global domainlist, fileselector
 	num_file = 1
 	files = os.listdir(hostpath)
 	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
@@ -80,7 +82,7 @@ def filet():
 	return
 
 def csveat():
-	global domainlist
+	global domainlist, fileselector
 	num_file=1
 	files = os.listdir(hostpath)
 	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
@@ -116,6 +118,7 @@ def csveat():
 
 def executor():
 	with Manager() as manager:
+		global R, F
 		num_cpus = cpu_count()
 		processes = []
 		R = manager.list()
@@ -131,10 +134,8 @@ def executor():
 		F = list(F)
 
 		print("")
-		if len(F) >= 0:
-			print(" Failed Result : "  + colors.RED_BG + " "+str(len(F)) +" "+ colors.ENDC )
-		if len(R) >= 0:
-			print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(R))+ " "+colors.ENDC)
+		print(" Failed Result : "  + colors.RED_BG + " "+str(len(F)) +" "+ colors.ENDC )
+		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(R))+ " "+colors.ENDC)
 		return
 
 def uinput():
@@ -153,7 +154,7 @@ def uinput():
 		menu()
 
 def hacki():
-	global domainlist
+	global domainlist, subd
 	subd = input("\nInput Domain: ")
 	subd = subd.replace("https://","").replace("http://","")
 	r = requests.get("https://api.hackertarget.com/hostsearch/?q=" + subd, allow_redirects=False)
@@ -169,7 +170,7 @@ def engine(domainlist):
 			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
 			if r.status_code == expected_response:
 				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
-				print(domain, file=open("RelateCFront.txt", "a"))
+				print(domain, file=open(f"{nametag}.txt", "a"))
 				R.append(str(domain))
 			elif r.status_code != expected_response:
 				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
@@ -218,10 +219,11 @@ __  _  ________ ____   ____
 
 		if str(opsi)=="1":
 			def text():
-				global headers
+				global headers, nametag
 				headers = payloads
 				doma()
 				filet()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"[{frontdom}]¿-[CDN]-[TXT]"
 				executor()
 				uinput()
 				text()
@@ -229,10 +231,11 @@ __  _  ________ ____   ____
 
 		elif str(opsi)=="2":
 			def csv():
-				global headers
+				global headers, nametag
 				headers = payloads
 				doma()
 				csveat()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"[{frontdom}]-[CDN]-[CSV]"
 				executor()
 				uinput()
 				csv()
@@ -240,24 +243,60 @@ __  _  ________ ____   ____
 
 		elif str(opsi)=="3":
 			def enum():
-				global headers
+				global headers, nametag
 				headers = payloads
 				doma()
 				hacki()
+				nametag = str(subd) + f"[{frontdom}]-[CDN]-[ENUM]"
 				executor()
 				uinput()
 				enum()
 			enum()
 
 	elif str(ans)=="2":
-		def localws():
-			global headers
-			headers = wsocket
-			filet()
-			executor()
-			uinput()
-			wsocket()
-		localws()
+		print("1. Scanning File List from .txt")
+		print("2. Scanning File List from .csv")
+		print("3. Scanning from Subdomain Enum [HackerTarget]")
+		print("Q to Quit")
+		print("")
+		opsi=input(" Choose Option :  ")
+		print("")
+
+		if str(opsi)=="1":
+			def localtext():
+				global headers
+				headers = wsocket
+				doma()
+				filet()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"[{frontdom}]-[LOCAL]-[TXT]"
+				executor()
+				uinput()
+				text()
+			localtext()
+
+		elif str(opsi)=="2":
+			def localcsv():
+				global headers
+				headers = wsocket
+				doma()
+				csveat()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"[{frontdom}]-[LOCAL]-[CSV]"
+				executor()
+				uinput()
+				csv()
+			localcsv()
+
+		elif str(opsi)=="3":
+			def localenum():
+				global headers
+				headers = wsocket
+				doma()
+				hacki()
+				nametag = str(subd) + f"[{frontdom}]-[LOCAL]-[ENUM]"
+				executor()
+				uinput()
+				enum()
+			localenum()
 
 	else:
 		exit()
