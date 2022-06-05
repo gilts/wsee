@@ -1,6 +1,6 @@
 import requests,re
 import sys
-from requests.exceptions import ReadTimeout, Timeout, ConnectionError,ChunkedEncodingError,TooManyRedirects
+from requests.exceptions import ReadTimeout, Timeout, ConnectionError,ChunkedEncodingError,TooManyRedirects,InvalidURL
 from urllib3.exceptions import ProtocolError,InvalidChunkLength
 import os, fnmatch; os.system("clear")
 import csv
@@ -21,7 +21,7 @@ class colors:
 expected_response = 101
 control_domain = 'd22236fd6eam5f.cloudfront.net'
 payloads = { "Host": control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
-wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36", "Upgrade": "websocket" }
+wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
 file_hosts = ""
 columns = defaultdict(list)
 txtfiles= []
@@ -187,6 +187,10 @@ def engine(domainlist):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
 			F.append(str(domain))
 			pass
+		except(InvalidURL):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid URL "+colors.ENDC+"]")
+			F.append(str(domain))
+			pass
 
 def menu():
 	print('''
@@ -223,7 +227,7 @@ __  _  ________ ____   ____
 				headers = payloads
 				doma()
 				filet()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"[{frontdom}]¿-[CDN]-[TXT]"
+				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"]-[{frontdom}]-[CDN]-[TXT]"
 				executor()
 				uinput()
 				text()
@@ -235,7 +239,7 @@ __  _  ________ ____   ____
 				headers = payloads
 				doma()
 				csveat()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"[{frontdom}]-[CDN]-[CSV]"
+				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"]-[{frontdom}]-[CDN]-[CSV]"
 				executor()
 				uinput()
 				csv()
@@ -247,7 +251,7 @@ __  _  ________ ____   ____
 				headers = payloads
 				doma()
 				hacki()
-				nametag = str(subd) + f"[{frontdom}]-[CDN]-[ENUM]"
+				nametag = "["+str(subd) + f"]-[{frontdom}]-[CDN]-[ENUM]"
 				executor()
 				uinput()
 				enum()
@@ -266,36 +270,33 @@ __  _  ________ ____   ____
 			def localtext():
 				global headers
 				headers = wsocket
-				doma()
 				filet()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"[{frontdom}]-[LOCAL]-[TXT]"
+				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"]-[LOCAL]-[TXT]"
 				executor()
 				uinput()
-				text()
+				localtext()
 			localtext()
 
 		elif str(opsi)=="2":
 			def localcsv():
 				global headers
 				headers = wsocket
-				doma()
 				csveat()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"[{frontdom}]-[LOCAL]-[CSV]"
+				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"]-[LOCAL]-[CSV]"
 				executor()
 				uinput()
-				csv()
+				localcsv()
 			localcsv()
 
 		elif str(opsi)=="3":
 			def localenum():
 				global headers
 				headers = wsocket
-				doma()
 				hacki()
-				nametag = str(subd) + f"[{frontdom}]-[LOCAL]-[ENUM]"
+				nametag = "["+str(subd) + f"]-[LOCAL]-[ENUM]"
 				executor()
 				uinput()
-				enum()
+				localenum()
 			localenum()
 
 	else:
