@@ -21,10 +21,21 @@ Even tho it's following the general idea, `wsee` uses more vary technique that f
 
 # Installation
 Probably i shouldn't need to mention this; as it's only requires basic `requests` pkg of Python. Altho it might changes in the future.
+
+##### First Use - Download
 ```
-pip3 install -r requirements.txt
+apt install python3
+apt install git
+git clone https://github.com/MC874/wsee
+python3 -m pip install requests
+```
+
+##### Running `wsee.py` script.
+```
+cd wsee
 python3 wsee.py
 ```
+
 <p align="center"><img alt="Preview" src="https://i.postimg.cc/bYkbMnFQ/Screenshot-2022-05-23-16-40-37-84.jpg"></p>
 
 
