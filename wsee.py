@@ -19,8 +19,9 @@ class colors:
 	GREEN_BG = '\033[42m'
 
 expected_response = 101
-control_domain = 'd22236fd6eam5f.cloudfront.net'
-payloads = { "Host": control_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
+cflare_domain = "id3.sshws.me"
+cfront_domain = 'd2lwo1fc2clozh.cloudfront.net'
+payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
 file_hosts = ""
 columns = defaultdict(list)
@@ -32,7 +33,8 @@ F=[]
 def doma():
 	global frontdom
 	print("1. Insert custom fronting domain")
-	print("2. Leave it as default")
+	print("2. Default CloudFront")
+	print("3. Default CloudFlare")
 	print("")
 	ansi=input(" Choose Option : ")
 	print("")
@@ -42,11 +44,20 @@ def doma():
 		print("["+colors.GREEN_BG + f" {domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
 		print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 		print("")
-	else:
-		payloads["Host"]=f"{control_domain}"
-		print("["+colors.GREEN_BG + f" {control_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+	elif str(ansi)=="2":
+		payloads["Host"]=f"{cfront_domain}"
+		print("["+colors.GREEN_BG + f" {cfront_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
 		print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 		print("")
+	elif str(ansi)=="3":
+		payloads["Host"]=f"{cflare_domain}"
+		print("["+colors.GREEN_BG + f" {cflare_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+		print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
+		print("")
+	else:
+		print("["+colors.RED_BG+" GGRRR! " + colors.ENDC + "] Invalid INPUT!" )
+		print("")
+		menu()
 	frontdom = str(payloads["Host"])
 	return
 
