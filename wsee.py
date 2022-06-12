@@ -20,7 +20,7 @@ class colors:
 
 expected_response = 101
 cflare_domain = "id3.sshws.me"
-cfront_domain = 'd2lwo1fc2clozh.cloudfront.net'
+cfront_domain = 'd3r0orex98gi31.cloudfront.net'
 payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
 file_hosts = ""
@@ -32,11 +32,14 @@ F=[]
 
 def doma():
 	global frontdom
+	frontdom = str(payloads["Host"])
 	print("1. Insert custom fronting domain")
 	print("2. Default CloudFront")
 	print("3. Default CloudFlare")
+	print("Q to Quit")
+	print("M to Menu")
 	print("")
-	ansi=input(" Choose Option : ")
+	ansi=input(" Choose Option : ").lower()
 	print("")
 	if str(ansi)=="1":
 		domain=input(" Domain : ")
@@ -46,19 +49,22 @@ def doma():
 		print("")
 	elif str(ansi)=="2":
 		payloads["Host"]=f"{cfront_domain}"
-		print("["+colors.GREEN_BG + f" {cfront_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+		print("["+colors.GREEN_BG + f" {frontdom} "+ colors.ENDC + "] Selected as Domain Fronting!")
 		print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 		print("")
 	elif str(ansi)=="3":
 		payloads["Host"]=f"{cflare_domain}"
-		print("["+colors.GREEN_BG + f" {cflare_domain} "+ colors.ENDC + "] Selected as Domain Fronting!")
+		print("["+colors.GREEN_BG + f" {frontdom} "+ colors.ENDC + "] Selected as Domain Fronting!")
 		print("["+colors.RED_BG+" Warning! " + colors.ENDC + "] : [" + colors.RED_BG + " INVALID " + colors.ENDC + "] Domain Will Give 0 Result!" )
 		print("")
+	elif str(ansi)=="q":
+		exit()
+	elif str(ansi)=="m":
+		menu()
 	else:
 		print("["+colors.RED_BG+" GGRRR! " + colors.ENDC + "] Invalid INPUT!" )
 		print("")
 		menu()
-	frontdom = str(payloads["Host"])
 	return
 
 def filet():
@@ -228,8 +234,9 @@ __  _  ________ ____   ____
 		print("2. Scanning File List from .csv")
 		print("3. Scanning from Subdomain Enum [HackerTarget]")
 		print("Q to Quit")
+		print("M to Menu")
 		print("")
-		opsi=input(" Choose Option :  ")
+		opsi=input(" Choose Option :  ").lower()
 		print("")
 
 		if str(opsi)=="1":
@@ -273,6 +280,7 @@ __  _  ________ ____   ____
 		print("2. Scanning File List from .csv")
 		print("3. Scanning from Subdomain Enum [HackerTarget]")
 		print("Q to Quit")
+		print("M to Menu")
 		print("")
 		opsi=input(" Choose Option :  ")
 		print("")
@@ -309,6 +317,11 @@ __  _  ________ ____   ____
 				uinput()
 				localenum()
 			localenum()
+
+		elif str(opsi)=="q":
+			exit()
+		elif str(opsi)=="m":
+			menu()
 
 	else:
 		exit()
