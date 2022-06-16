@@ -64,7 +64,24 @@ def doma():
 def filet():
 	global domainlist, fileselector
 	num_file = 1
-	files = os.listdir(hostpath)
+
+	print("1. Check Files in Host Folder")
+	print("2. Check Files in Current Folder")
+	print("q to Quit")
+	print("m to Menu")
+	print("")
+	ans=input(" Choose : ").lower()
+	if ans=="1":
+		files = os.listdir(hostpath)
+	elif ans=="2":
+		files = [f for f in os.listdir('.') if os.path.isfile(f)]
+	elif ans=="q":
+		exit()
+	elif ans=="m":
+		menu()
+	else:
+		filet()
+
 	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
@@ -95,7 +112,24 @@ def filet():
 def csveat():
 	global domainlist, fileselector
 	num_file=1
-	files = os.listdir(hostpath)
+
+	print("1. Check Files in Host Folder")
+	print("2. Check Files in Current Folder")
+	print("q to Quit")
+	print("m to Menu")
+	print("")
+	ans=input(" Choose : ").lower()
+	if ans=="1":
+		files = os.listdir(hostpath)
+	elif ans=="2":
+		files = [f for f in os.listdir('.') if os.path.isfile(f)]
+	elif ans=="q":
+		exit()
+	elif ans=="m":
+		menu()
+	else:
+		csveat()
+
 	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
 	for f in files:
 		if fnmatch.fnmatch(f, '*.csv'):
