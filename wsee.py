@@ -128,7 +128,7 @@ def csveat():
 	ans=input(" Choose : ").lower()
 	if ans=="1":
 		files = os.listdir(hostpath)
-		switch["dir"]="0"
+		switch["dir"]="0":
 	elif ans=="2":
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
 		switch["dir"]="1"
