@@ -24,6 +24,7 @@ cfront_domain = "d3r0orex98gi31.cloudfront.net"
 payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
 file_hosts = ""
+switch = { "dir": "0" }
 columns = defaultdict(list)
 txtfiles= []
 hostpath = 'host'
@@ -73,8 +74,10 @@ def filet():
 	ans=input(" Choose : ").lower()
 	if ans=="1":
 		files = os.listdir(hostpath)
+		switch["dir"]="0"
 	elif ans=="2":
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
+		switch["dir"]="1"
 	elif ans=="q":
 		exit()
 	elif ans=="m":
@@ -95,7 +98,11 @@ def filet():
 	if fileselector.isdigit():
 		print("")
 		print(" Target Chosen : " + colors.RED_BG + " "+txtfiles[int(fileselector)-1]+" "+colors.ENDC)
-		file_hosts = str(hostpath) +"/"+ str(txtfiles[int(fileselector)-1])
+		direct = str(switch["dir"])
+		if direct == "0":
+			file_hosts = str(hostpath) +"/"+ str(txtfiles[int(fileselector)-1])
+		else:
+			file_hosts = str(txtfiles[int(fileselector)-1])
 	else:
 		menu()
 
@@ -121,8 +128,10 @@ def csveat():
 	ans=input(" Choose : ").lower()
 	if ans=="1":
 		files = os.listdir(hostpath)
+		switch["dir"]="0"
 	elif ans=="2":
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
+		switch["dir"]="1"
 	elif ans=="q":
 		exit()
 	elif ans=="m":
@@ -143,7 +152,11 @@ def csveat():
 	if fileselector.isdigit():
 		print("")
 		print(" Target Chosen : " + colors.RED_BG + " "+txtfiles[int(fileselector)-1]+" "+colors.ENDC)
-		file_hosts = str(hostpath) +"/"+ str(txtfiles[int(fileselector)-1])
+		direct = str(switch["dir"])
+		if direct == "0"
+			file_hosts = str(hostpath) +"/"+ str(txtfiles[int(fileselector)-1])
+		else:
+			file_hosts = str(txtfiles[int(fileselector)-1])
 	else:
 		menu()
 
