@@ -128,7 +128,7 @@ def csveat():
 	ans=input(" Choose : ").lower()
 	if ans=="1":
 		files = os.listdir(hostpath)
-		switch["dir"]="0":
+		switch["dir"]="0"
 	elif ans=="2":
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
 		switch["dir"]="1"
@@ -153,7 +153,7 @@ def csveat():
 		print("")
 		print(" Target Chosen : " + colors.RED_BG + " "+txtfiles[int(fileselector)-1]+" "+colors.ENDC)
 		direct = str(switch["dir"])
-		if direct == "0"
+		if direct == "0":
 			file_hosts = str(hostpath) +"/"+ str(txtfiles[int(fileselector)-1])
 		else:
 			file_hosts = str(txtfiles[int(fileselector)-1])
