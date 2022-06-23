@@ -1,7 +1,6 @@
 import requests,re
 import sys
 from requests.exceptions import ReadTimeout, Timeout, ConnectionError,ChunkedEncodingError,TooManyRedirects,InvalidURL
-from urllib3.exceptions import ProtocolError,InvalidChunkLength
 import os, fnmatch; os.system("clear")
 import csv
 from collections import defaultdict, Counter
@@ -237,7 +236,7 @@ def engine(domainlist):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
 			F.append(str(domain))
 			pass
-		except(ChunkedEncodingError, ProtocolError, InvalidChunkLength):
+		except(ChunkedEncodingError):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG+" Invalid Length "+colors.ENDC + "]")
 			F.append(str(domain))
 			pass
