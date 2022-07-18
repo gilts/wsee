@@ -1,38 +1,33 @@
 import requests,re
-import sys
-from requests.exceptions import ReadTimeout, Timeout, ConnectionError,ChunkedEncodingError,TooManyRedirects,InvalidURL
+from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
 import os, fnmatch; os.system("clear")
 import csv
-from collections import defaultdict, Counter
+from collections import defaultdict
 from os.path import abspath, dirname
 from multiprocessing import Process, cpu_count, Manager
 from time import sleep
+from concurrent.futures import ThreadPoolExecutor
 
 class colors:
-	RED = '\033[31m'
-	ENDC = '\033[m'
-	GREEN = '\033[32m'
-	YELLOW = '\033[33m'
-	BLUE = '\033[34m'
 	RED_BG = '\033[41m\033[1m'
 	GREEN_BG = '\033[42m'
+	ENDC = '\033[m'
 
 expected_response = 101
 cflare_domain = "id3.sshws.me"
 cfront_domain = "d3r0orex98gi31.cloudfront.net"
 payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
-file_hosts = ""
 switch = { "dir": "0" }
 columns = defaultdict(list)
 txtfiles= []
 hostpath = 'host'
-R=[]
-F=[]
+Resultee=[]
+Faily=[]
 
 def doma():
 	global frontdom
-	print("1. Insert custom fronting domain")
+	print("1. Custom Domain")
 	print("2. Default CloudFront")
 	print("3. Default CloudFlare")
 	print("Q to Quit")
@@ -64,7 +59,6 @@ def doma():
 def filet():
 	global domainlist, fileselector
 	num_file = 1
-
 	print("1. Check Files in Host Folder")
 	print("2. Check Files in Current Folder")
 	print("q to Quit")
@@ -83,14 +77,12 @@ def filet():
 		menu()
 	else:
 		filet()
-
 	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
 			print( str(num_file),str(f))
 			num_file=num_file+1
 			txtfiles.append(str(f))
-
 	print("")
 	print(" M back to Menu ")
 	fileselector = input(" Choose Target Files : ")
@@ -107,10 +99,8 @@ def filet():
 
 	with open(file_hosts) as f:
 		parseddom = f.read().split()
-
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
-
 	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 	return
@@ -118,7 +108,6 @@ def filet():
 def csveat():
 	global domainlist, fileselector
 	num_file=1
-
 	print("1. Check Files in Host Folder")
 	print("2. Check Files in Current Folder")
 	print("q to Quit")
@@ -137,14 +126,12 @@ def csveat():
 		menu()
 	else:
 		csveat()
-
 	print(" [" + colors.RED_BG + " Files Found " + colors.ENDC + "] ")
 	for f in files:
 		if fnmatch.fnmatch(f, '*.csv'):
 			print( str(num_file),str(f))
 			num_file=num_file+1
 			txtfiles.append(str(f))
-
 	print("")
 	print(" M back to Menu ")
 	fileselector = input(" Choose Target Files : ")
@@ -161,25 +148,23 @@ def csveat():
 
 	with open(file_hosts,'r') as csv_file:
 		reader = csv.reader(csv_file)
-
 		for row in reader:
 			for (i,v) in enumerate(row):
 				columns[i].append(v)
 	parseddom=columns[9]+columns[3]
 	domainlist = list(set(parseddom))
 	domainlist = list(filter(None, parseddom))
-
 	print(" Total of Domains Loaded: " + colors.RED_BG + " " +str(len(domainlist)) + " "+colors.ENDC )
 	print("")
 	return
 
 def executor():
 	with Manager() as manager:
-		global R, F
+		global Resultee, Faily
 		num_cpus = cpu_count()
 		processes = []
-		R = manager.list()
-		F = manager.list()
+		Resultee = manager.list()
+		Faily = manager.list()
 		for process_num in range(num_cpus):
 			section = domainlist[process_num::num_cpus]
 			p = Process(target=engine, args=(section,))
@@ -187,12 +172,11 @@ def executor():
 			processes.append(p)
 		for p in processes:
 			p.join()
-		R = list(R)
-		F = list(F)
-
+		Resultee = list(Resultee)
+		Faily = list(Faily)
 		print("")
-		print(" Failed Result : "  + colors.RED_BG + " "+str(len(F)) +" "+ colors.ENDC )
-		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(R))+ " "+colors.ENDC)
+		print(" Failed Result : "  + colors.RED_BG + " "+str(len(Faily)) +" "+ colors.ENDC )
+		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(Resultee))+ " "+colors.ENDC)
 		return
 
 def uinput():
@@ -228,25 +212,27 @@ def engine(domainlist):
 			if r.status_code == expected_response:
 				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
 				print(domain, file=open(f"{nametag}.txt", "a"))
-				R.append(str(domain))
+				Resultee.append(str(domain))
 			elif r.status_code != expected_response:
 				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
 				F.append(str(domain))
 		except (Timeout, ReadTimeout, ConnectionError):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
-			F.append(str(domain))
+			Faily.append(str(domain))
 			pass
 		except(ChunkedEncodingError):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG+" Invalid Length "+colors.ENDC + "]")
-			F.append(str(domain))
+			Faily.append(str(domain))
 			pass
 		except(TooManyRedirects):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
-			F.append(str(domain))
+			Faily.append(str(domain))
 			pass
 		except(InvalidURL):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid URL "+colors.ENDC+"]")
 			F.append(str(domain))
+			pass
+		except Exception:
 			pass
 
 def menu():
@@ -256,7 +242,7 @@ __  _  ________ ____   ____
 \ \/ \/ /  ___// __ \_/ __ \ 
  \     /\___ \\  ___/\  ___/ 
   \/\_//____  >\___  >\___  >
-            \/     \/     \/  
+			\/     \/     \/  
 
 	''')
 	print("    [" + colors.RED_BG + " Domain : Fronting " + colors.ENDC + "]")
@@ -270,15 +256,14 @@ __  _  ________ ____   ____
 	ans=input(" Choose Option : ")
 	print("")
 	if str(ans)=="1":
-		print("1. Scanning File List from .txt")
-		print("2. Scanning File List from .csv")
-		print("3. Scanning from Subdomain Enum [HackerTarget]")
+		print("1. Scan .TXT")
+		print("2. Scan .CSV")
+		print("3. Scan Online Sub-Domain Enumeration [HackerTarget]")
 		print("Q to Quit")
 		print("M to Menu")
 		print("")
 		opsi=input(" Choose Option :  ").lower()
 		print("")
-
 		if str(opsi)=="1":
 			def text():
 				global headers, nametag
@@ -290,7 +275,6 @@ __  _  ________ ____   ____
 				uinput()
 				text()
 			text()
-
 		elif str(opsi)=="2":
 			def csv():
 				global headers, nametag
@@ -302,7 +286,6 @@ __  _  ________ ____   ____
 				uinput()
 				csv()
 			csv()
-
 		elif str(opsi)=="3":
 			def enum():
 				global headers, nametag
@@ -316,15 +299,14 @@ __  _  ________ ____   ____
 			enum()
 
 	elif str(ans)=="2":
-		print("1. Scanning File List from .txt")
-		print("2. Scanning File List from .csv")
-		print("3. Scanning from Subdomain Enum [HackerTarget]")
+		print("1. Scan .TXT")
+		print("2. Scan .CSV")
+		print("3. Scan Online Sub-Domain Enumeration [HackerTarget]")
 		print("Q to Quit")
 		print("M to Menu")
 		print("")
 		opsi=input(" Choose Option :  ")
 		print("")
-
 		if str(opsi)=="1":
 			def localtext():
 				global headers
@@ -335,7 +317,6 @@ __  _  ________ ____   ____
 				uinput()
 				localtext()
 			localtext()
-
 		elif str(opsi)=="2":
 			def localcsv():
 				global headers
@@ -346,7 +327,6 @@ __  _  ________ ____   ____
 				uinput()
 				localcsv()
 			localcsv()
-
 		elif str(opsi)=="3":
 			def localenum():
 				global headers
@@ -357,7 +337,6 @@ __  _  ________ ____   ____
 				uinput()
 				localenum()
 			localenum()
-
 		elif str(opsi)=="q":
 			exit()
 		elif str(opsi)=="m":
