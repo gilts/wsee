@@ -179,6 +179,21 @@ def executor():
 		print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(Resultee))+ " "+colors.ENDC)
 		return
 
+def Asyncutor():
+	try:
+		global Resultee, Faily
+		Resultee = []
+		Faily = []
+		num_cpus = cpu_count()
+		with ThreadPoolExecutor(max_workers=num_cpus) as executor:
+			executor.submit(engine(domainlist))
+	except Exception as e:
+		print(e)
+	print("")
+	print(" Failed Result : "  + colors.RED_BG + " "+str(len(Faily)) +" "+ colors.ENDC )
+	print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(Resultee))+ " "+colors.ENDC)
+	return
+ 
 def uinput():
 	print("")
 	print("Scanning Finished!")
@@ -215,7 +230,7 @@ def engine(domainlist):
 				Resultee.append(str(domain))
 			elif r.status_code != expected_response:
 				print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" " + str(r.status_code) + " "+colors.ENDC+"]")
-				F.append(str(domain))
+				Faily.append(str(domain))
 		except (Timeout, ReadTimeout, ConnectionError):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
 			Faily.append(str(domain))
@@ -230,9 +245,7 @@ def engine(domainlist):
 			pass
 		except(InvalidURL):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid URL "+colors.ENDC+"]")
-			F.append(str(domain))
-			pass
-		except Exception:
+			Faily.append(str(domain))
 			pass
 
 def menu():
@@ -293,7 +306,7 @@ __  _  ________ ____   ____
 				doma()
 				hacki()
 				nametag = "["+str(subd) + f"]-[{frontdom}]-[CDN]-[ENUM]"
-				executor()
+				Asyncutor()
 				uinput()
 				enum()
 			enum()
