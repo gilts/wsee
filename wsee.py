@@ -8,22 +8,23 @@ from multiprocessing import Process, cpu_count, Manager
 from time import sleep
 from concurrent.futures import ThreadPoolExecutor
 
-class colors:
-	RED_BG = '\033[41m\033[1m'
-	GREEN_BG = '\033[42m'
-	ENDC = '\033[m'
-
 expected_response = 101
 cflare_domain = "id3.sshws.me"
 cfront_domain = "d3r0orex98gi31.cloudfront.net"
 payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
 switch = { "dir": "0" }
+hostpath = 'host'
+
 columns = defaultdict(list)
 txtfiles= []
-hostpath = 'host'
 Resultee=[]
 Faily=[]
+
+class colors:
+	RED_BG = '\033[41m\033[1m'
+	GREEN_BG = '\033[42m'
+	ENDC = '\033[m'
 
 def doma():
 	global frontdom
@@ -181,14 +182,12 @@ def executor():
 
 def Asyncutor():
 	try:
-		global Resultee, Faily
-		Resultee = []
-		Faily = []
 		num_cpus = cpu_count()
 		with ThreadPoolExecutor(max_workers=num_cpus) as executor:
 			executor.submit(engine(domainlist))
 	except Exception as e:
 		print(e)
+		pass
 	print("")
 	print(" Failed Result : "  + colors.RED_BG + " "+str(len(Faily)) +" "+ colors.ENDC )
 	print(" Successfull Result : " + colors.GREEN_BG + " "+str(len(Resultee))+ " "+colors.ENDC)
@@ -223,7 +222,7 @@ def hacki():
 def engine(domainlist):
 	for domain in domainlist:
 		try:
-			r = requests.get("http://" + domain, headers=headers, timeout=0.7, allow_redirects=False)
+			r = requests.get("http://" + domain, headers=headers, allow_redirects=False)
 			if r.status_code == expected_response:
 				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
 				print(domain, file=open(f"{nametag}.txt", "a"))
@@ -246,6 +245,9 @@ def engine(domainlist):
 		except(InvalidURL):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid URL "+colors.ENDC+"]")
 			Faily.append(str(domain))
+			pass
+		except Exception as e:
+			print(e)
 			pass
 
 def menu():
@@ -283,8 +285,8 @@ __  _  ________ ____   ____
 				headers = payloads
 				doma()
 				filet()
-				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"]-[{frontdom}]-[CDN]-[TXT]"
-				executor()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"-[{frontdom}]-[CDN]-[TXT]"
+				Asyncutor()
 				uinput()
 				text()
 			text()
@@ -294,8 +296,8 @@ __  _  ________ ____   ____
 				headers = payloads
 				doma()
 				csveat()
-				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"]-[{frontdom}]-[CDN]-[CSV]"
-				executor()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"-[{frontdom}]-[CDN]-[CSV]"
+				Asyncutor()
 				uinput()
 				csv()
 			csv()
@@ -305,11 +307,15 @@ __  _  ________ ____   ____
 				headers = payloads
 				doma()
 				hacki()
-				nametag = "["+str(subd) + f"]-[{frontdom}]-[CDN]-[ENUM]"
+				nametag = str(subd) + f"-[{frontdom}]-[CDN]-[ENUM]"
 				Asyncutor()
 				uinput()
 				enum()
 			enum()
+		elif str(opsi)=="m":
+			menu()
+		else:
+			exit()
 
 	elif str(ans)=="2":
 		print("1. Scan .TXT")
@@ -325,8 +331,8 @@ __  _  ________ ____   ____
 				global headers
 				headers = wsocket
 				filet()
-				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"]-[LOCAL]-[TXT]"
-				executor()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[LOCAL]-[TXT]"
+				Asyncutor()
 				uinput()
 				localtext()
 			localtext()
@@ -335,8 +341,8 @@ __  _  ________ ____   ____
 				global headers
 				headers = wsocket
 				csveat()
-				nametag = "["+str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"]-[LOCAL]-[CSV]"
-				executor()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[LOCAL]-[CSV]"
+				Asyncutor()
 				uinput()
 				localcsv()
 			localcsv()
@@ -345,20 +351,21 @@ __  _  ________ ____   ____
 				global headers
 				headers = wsocket
 				hacki()
-				nametag = "["+str(subd) + f"]-[LOCAL]-[ENUM]"
-				executor()
+				nametag = str(subd) + "-[LOCAL]-[ENUM]"
+				Asyncutor()
 				uinput()
 				localenum()
 			localenum()
-		elif str(opsi)=="q":
-			exit()
 		elif str(opsi)=="m":
 			menu()
+		else:
+			exit()
 
 	else:
 		exit()
 
-os.chdir(dirname(abspath(__file__)))
-if not os.path.exists(hostpath):
-	os.makedirs(hostpath)
-menu()
+if __name__ == '__main__':
+	os.chdir(dirname(abspath(__file__)))
+	if not os.path.exists(hostpath):
+		os.makedirs(hostpath)
+	menu()
