@@ -3,6 +3,7 @@ from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEn
 import os, fnmatch; os.system("clear")
 import csv
 from collections import defaultdict
+import traceback
 from os.path import abspath, dirname
 from multiprocessing import Process, cpu_count, Manager
 from time import sleep
@@ -15,6 +16,8 @@ payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
 switch = { "dir": "0" }
 hostpath = 'host'
+logpath = 'logs'
+outpath = 'output'
 
 columns = defaultdict(list)
 txtfiles= []
@@ -168,7 +171,7 @@ def executor():
 		Faily = manager.list()
 		for process_num in range(num_cpus):
 			section = domainlist[process_num::num_cpus]
-			p = Process(target=engine, args=(section,))
+			p = Process(target=engine, args=(section,nametag,headers))
 			p.start()
 			processes.append(p)
 		for p in processes:
@@ -184,9 +187,11 @@ def Asyncutor():
 	try:
 		num_cpus = cpu_count()
 		with ThreadPoolExecutor(max_workers=num_cpus) as executor:
-			executor.submit(engine(domainlist))
+			executor.submit(engine(domainlist,nametag,headers))
+			executor.shutdown( cancel_futures = True )
 	except Exception as e:
 		print(e)
+		traceback.print_exc()
 		pass
 	print("")
 	print(" Failed Result : "  + colors.RED_BG + " "+str(len(Faily)) +" "+ colors.ENDC )
@@ -219,7 +224,7 @@ def hacki():
 		domainlist = re.findall("(.*?),",r.text)
 		return
 
-def engine(domainlist):
+def engine(domainlist,nametag,headers):
 	for domain in domainlist:
 		try:
 			r = requests.get("http://" + domain, headers=headers, allow_redirects=False)
@@ -248,6 +253,7 @@ def engine(domainlist):
 			pass
 		except Exception as e:
 			print(e)
+			traceback.print_exc()
 			pass
 
 def menu():
@@ -286,7 +292,7 @@ __  _  ________ ____   ____
 				doma()
 				filet()
 				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"-[{frontdom}]-[CDN]-[TXT]"
-				Asyncutor()
+				executor()
 				uinput()
 				text()
 			text()
