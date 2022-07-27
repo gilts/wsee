@@ -14,7 +14,7 @@ cflare_domain = "id3.sshws.me"
 cfront_domain = "d3r0orex98gi31.cloudfront.net"
 payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
-switch = { "dir": "0" }
+switch = { "dir": "0", "func": "0" }
 hostpath = 'host'
 logpath = 'logs'
 outpath = 'output'
@@ -187,7 +187,10 @@ def Asyncutor():
 	try:
 		num_cpus = cpu_count()
 		with ThreadPoolExecutor(max_workers=num_cpus) as executor:
-			executor.submit(engine(domainlist,nametag,headers))
+			if switch["func"]=="0":
+				executor.submit(engine(domainlist,nametag,headers))
+			else:
+				executor.submit(grabber(domainlist,nametag,headers))
 			executor.shutdown( cancel_futures = True )
 	except Exception as e:
 		print(e)
@@ -256,6 +259,19 @@ def engine(domainlist,nametag,headers):
 			traceback.print_exc()
 			pass
 
+def grabber(domainlist,nametag,headers):
+	for domain in domainlist:
+		try:
+			commando =f"cat {domain} | ./zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite portable -t 10 | | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			result = subprocess.check_output(commando, shell=True)
+			print(result)
+		except Exception as e:
+			print(e)
+			traceback.print_exc()
+			print("")
+			print(colors.RED_BG + " Check your  ZGrab Installation " + colors.ENDC)
+			menu()
+
 def menu():
 	print('''
 
@@ -272,6 +288,7 @@ __  _  ________ ____   ____
 
 	print("1. CDN Websocket")
 	print("2. Local Websocket")
+	print("3. ZGrab Websocket")
 	print("q to Quit")
 	print("")
 	ans=input(" Choose Option : ")
@@ -285,6 +302,7 @@ __  _  ________ ____   ____
 		print("")
 		opsi=input(" Choose Option :  ").lower()
 		print("")
+		switch["func"]="0"
 		if str(opsi)=="1":
 			def text():
 				global headers, nametag
@@ -332,6 +350,7 @@ __  _  ________ ____   ____
 		print("")
 		opsi=input(" Choose Option :  ")
 		print("")
+		switch["func"]="0"
 		if str(opsi)=="1":
 			def localtext():
 				global headers
@@ -362,6 +381,45 @@ __  _  ________ ____   ____
 				uinput()
 				localenum()
 			localenum()
+		elif str(opsi)=="m":
+			menu()
+		else:
+			exit()
+
+	elif str(ans)=="3":
+		print("1. Scan .TXT")
+		print("2. Scan .CSV")
+		print("3. Scan Online Sub-Domain Enumeration [HackerTarget]")
+		print("Q to Quit")
+		print("M to Menu")
+		print("")
+		opsi=input(" Choose Option :  ")
+		print("")
+		switch["func"]="1"
+		if str(opsi)=="1":
+			def grabtext():
+				filet()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[LOCAL]-[TXT]"
+				Asyncutor()
+				uinput()
+				localtext()
+			grabtext()
+		elif str(opsi)=="2":
+			def grabcsv():
+				csveat()
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[LOCAL]-[CSV]"
+				Asyncutor()
+				uinput()
+				localcsv()
+			grabcsv()
+		elif str(opsi)=="3":
+			def grabenum():
+				hacki()
+				nametag = str(subd) + "-[LOCAL]-[ENUM]"
+				Asyncutor()
+				uinput()
+				localenum()
+			grabenum()
 		elif str(opsi)=="m":
 			menu()
 		else:
