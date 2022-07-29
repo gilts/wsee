@@ -14,7 +14,7 @@ cflare_domain = "id3.sshws.me"
 cfront_domain = "d3r0orex98gi31.cloudfront.net"
 payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
-switch = { "dir": "0", "func": "0" }
+switch = { "dir": "0", "func": "0", "sub": "0" }
 hostpath = 'host'
 logpath = 'logs'
 outpath = 'output'
@@ -259,7 +259,7 @@ def engine(domainlist,nametag,headers):
 			traceback.print_exc()
 			pass
 
-def grabber(domainlist,nametag,headers):
+def grabber(domainlist,nametag):
 	for domain in domainlist:
 		try:
 			commando =f"cat {domain} | ./zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite portable -t 10 | | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
@@ -294,137 +294,78 @@ __  _  ________ ____   ____
 	ans=input(" Choose Option : ")
 	print("")
 	if str(ans)=="1":
-		print("1. Scan .TXT")
-		print("2. Scan .CSV")
-		print("3. Scan Online Sub-Domain Enumeration [HackerTarget]")
-		print("Q to Quit")
-		print("M to Menu")
-		print("")
-		opsi=input(" Choose Option :  ").lower()
-		print("")
 		switch["func"]="0"
-		if str(opsi)=="1":
-			def text():
-				global headers, nametag
-				headers = payloads
-				doma()
-				filet()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"-[{frontdom}]-[CDN]-[TXT]"
-				executor()
-				uinput()
-				text()
-			text()
-		elif str(opsi)=="2":
-			def csv():
-				global headers, nametag
-				headers = payloads
-				doma()
-				csveat()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"-[{frontdom}]-[CDN]-[CSV]"
-				Asyncutor()
-				uinput()
-				csv()
-			csv()
-		elif str(opsi)=="3":
-			def enum():
-				global headers, nametag
-				headers = payloads
-				doma()
-				hacki()
-				nametag = str(subd) + f"-[{frontdom}]-[CDN]-[ENUM]"
-				Asyncutor()
-				uinput()
-				enum()
-			enum()
-		elif str(opsi)=="m":
-			menu()
-		else:
-			exit()
-
+		switch["sub"]="0"
 	elif str(ans)=="2":
-		print("1. Scan .TXT")
-		print("2. Scan .CSV")
-		print("3. Scan Online Sub-Domain Enumeration [HackerTarget]")
-		print("Q to Quit")
-		print("M to Menu")
-		print("")
-		opsi=input(" Choose Option :  ")
-		print("")
 		switch["func"]="0"
-		if str(opsi)=="1":
-			def localtext():
-				global headers
-				headers = wsocket
-				filet()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[LOCAL]-[TXT]"
-				Asyncutor()
-				uinput()
-				localtext()
-			localtext()
-		elif str(opsi)=="2":
-			def localcsv():
-				global headers
-				headers = wsocket
-				csveat()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[LOCAL]-[CSV]"
-				Asyncutor()
-				uinput()
-				localcsv()
-			localcsv()
-		elif str(opsi)=="3":
-			def localenum():
-				global headers
-				headers = wsocket
-				hacki()
-				nametag = str(subd) + "-[LOCAL]-[ENUM]"
-				Asyncutor()
-				uinput()
-				localenum()
-			localenum()
-		elif str(opsi)=="m":
-			menu()
-		else:
-			exit()
-
+		switch["sub"]="1"
 	elif str(ans)=="3":
-		print("1. Scan .TXT")
-		print("2. Scan .CSV")
-		print("3. Scan Online Sub-Domain Enumeration [HackerTarget]")
-		print("Q to Quit")
-		print("M to Menu")
-		print("")
-		opsi=input(" Choose Option :  ")
-		print("")
 		switch["func"]="1"
-		if str(opsi)=="1":
-			def grabtext():
-				filet()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[LOCAL]-[TXT]"
-				Asyncutor()
-				uinput()
-				localtext()
-			grabtext()
-		elif str(opsi)=="2":
-			def grabcsv():
-				csveat()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[LOCAL]-[CSV]"
-				Asyncutor()
-				uinput()
-				localcsv()
-			grabcsv()
-		elif str(opsi)=="3":
-			def grabenum():
-				hacki()
-				nametag = str(subd) + "-[LOCAL]-[ENUM]"
-				Asyncutor()
-				uinput()
-				localenum()
-			grabenum()
-		elif str(opsi)=="m":
-			menu()
-		else:
-			exit()
-
+		switch["sub"]="2"
+	else:
+		exit()
+	print("1. Scan File (.txt)")
+	print("2. Scan File (.csv)")
+	print("3. Scan Online (HackerTarget)")
+	print("Q to Quit")
+	print("M to Menu")
+	print("")
+	opsi=input(" Choose Option :  ").lower()
+	print("")
+	if str(opsi)=="1":
+		def text():
+			global headers, nametag
+			doma()
+			filet()
+			if switch["sub"]=="0":
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"-[{frontdom}]-[CDN]-[txt]"
+				headers = payloads
+			elif switch["sub"]=="1":
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[Local]-[txt]"
+				headers = wsocket
+			else:
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[ZGrab]-[txt]"
+			executor()
+			uinput()
+			text()
+		text()
+	elif str(opsi)=="2":
+		def csv():
+			global headers, nametag
+			headers = payloads
+			doma()
+			csveat()
+			if switch["sub"]=="0":
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"-[{frontdom}]-[CDN]-[csv]"
+				headers = payloads
+			elif switch["sub"]=="1":
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[Local]-[csv]"
+				headers = wsocket
+			else:
+				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[ZGrab]-[csv]"
+			Asyncutor()
+			uinput()
+			csv()
+		csv()
+	elif str(opsi)=="3":
+		def enum():
+			global headers, nametag
+			doma()
+			hacki()
+			if switch["sub"]=="0":
+				nametag = str(subd) + f"-[{frontdom}]-[CDN]-[Online]"
+				headers = payloads
+			elif switch["sub"]=="1":
+				nametag = str(subd) + f"-[{frontdom}]-[Local]-[Online]"
+				headers = wsocket
+			else:
+				nametag = str(subd) + f"-[{frontdom}]-[ZGrab]-[Online]"
+			Asyncutor()
+			uinput()
+			enum()
+		enum()
+	elif str(opsi)=="m":
+		menu()
 	else:
 		exit()
 
