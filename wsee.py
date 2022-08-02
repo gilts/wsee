@@ -6,7 +6,6 @@ from collections import defaultdict
 import traceback
 from os.path import abspath, dirname
 from multiprocessing import Process, cpu_count, Manager
-from time import sleep
 from concurrent.futures import ThreadPoolExecutor
 
 expected_response = 101
@@ -171,7 +170,10 @@ def executor():
 		Faily = manager.list()
 		for process_num in range(num_cpus):
 			section = domainlist[process_num::num_cpus]
-			p = Process(target=engine, args=(section,nametag,headers))
+			if switch['func']=='0':
+				p = Process(target=engine, args=(section,nametag,headers))
+			else:
+				p = Process(target=grabber, args=(section,nametag,headers))
 			p.start()
 			processes.append(p)
 		for p in processes:
@@ -190,7 +192,7 @@ def Asyncutor():
 			if switch["func"]=="0":
 				executor.submit(engine(domainlist,nametag,headers))
 			else:
-				executor.submit(grabber(domainlist,nametag,headers))
+				executor.submit(grabber(domainlist,nametag))
 			executor.shutdown( cancel_futures = True )
 	except Exception as e:
 		print(e)
@@ -301,7 +303,6 @@ __  _  ________ ____   ____
 		switch["sub"]="1"
 	elif str(ans)=="3":
 		switch["func"]="1"
-		switch["sub"]="2"
 	else:
 		exit()
 	print("1. Scan File (.txt)")
@@ -315,54 +316,69 @@ __  _  ________ ____   ____
 	if str(opsi)=="1":
 		def text():
 			global headers, nametag
-			doma()
-			filet()
-			if switch["sub"]=="0":
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"-[{frontdom}]-[CDN]-[txt]"
-				headers = payloads
-			elif switch["sub"]=="1":
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[Local]-[txt]"
-				headers = wsocket
+			if switch['func']=='0':
+				doma()
+				filet()
+				if switch["sub"]=="0":
+					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"-[{frontdom}]-[CDN]-[txt]"
+					headers = payloads
+				else:
+					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[Local]-[txt]"
+					headers = wsocket
+				Asyncutor()
+				uinput()
+				text()
 			else:
+				filet()
 				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[ZGrab]-[txt]"
-			executor()
-			uinput()
-			text()
+				Asyncutor()
+				uinput()
+				text()
 		text()
 	elif str(opsi)=="2":
 		def csv():
 			global headers, nametag
 			headers = payloads
-			doma()
-			csveat()
-			if switch["sub"]=="0":
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"-[{frontdom}]-[CDN]-[csv]"
-				headers = payloads
-			elif switch["sub"]=="1":
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[Local]-[csv]"
-				headers = wsocket
+			if switch['func']=='0':
+				doma()
+				csveat()
+				if switch["sub"]=="0":
+					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"-[{frontdom}]-[CDN]-[csv]"
+					headers = payloads
+				else:
+					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[Local]-[csv]"
+					headers = wsocket
+				Asyncutor()
+				uinput()
+				csv()
 			else:
+				csveat()
 				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[ZGrab]-[csv]"
-			Asyncutor()
-			uinput()
-			csv()
+				Asyncutor()
+				uinput()
+				csv()
 		csv()
 	elif str(opsi)=="3":
 		def enum():
 			global headers, nametag
-			doma()
-			hacki()
-			if switch["sub"]=="0":
-				nametag = str(subd) + f"-[{frontdom}]-[CDN]-[Online]"
-				headers = payloads
-			elif switch["sub"]=="1":
-				nametag = str(subd) + f"-[{frontdom}]-[Local]-[Online]"
-				headers = wsocket
+			if switch['func']=='0':
+				doma()
+				hacki()
+				if switch["sub"]=="0":
+					nametag = str(subd) + f"-[{frontdom}]-[CDN]-[Online]"
+					headers = payloads
+				else:
+					nametag = str(subd) + f"-[{frontdom}]-[Local]-[Online]"
+					headers = wsocket
+				Asyncutor()
+				uinput()
+				enum()
 			else:
+				hacki()
 				nametag = str(subd) + f"-[{frontdom}]-[ZGrab]-[Online]"
-			Asyncutor()
-			uinput()
-			enum()
+				Asyncutor()
+				uinput()
+				enum()
 		enum()
 	elif str(opsi)=="m":
 		menu()
