@@ -1,12 +1,15 @@
-import requests,re
-from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
-import os, fnmatch; os.system("clear")
 import csv
-from collections import defaultdict
 import traceback
+import subprocess
+import requests,re
+import os, fnmatch; os.system("clear")
+from functools import wraps
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from os.path import abspath, dirname
 from multiprocessing import Process, cpu_count, Manager
-from concurrent.futures import ThreadPoolExecutor
+from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
+
 
 expected_response = 101
 cflare_domain = "id3.sshws.me"
@@ -27,6 +30,16 @@ class colors:
 	RED_BG = '\033[41m\033[1m'
 	GREEN_BG = '\033[42m'
 	ENDC = '\033[m'
+
+def run_once(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            result = f(*args, **kwargs)
+            wrapper.has_run = True
+            return result
+    wrapper.has_run = False
+    return wrapper
 
 def doma():
 	global frontdom
@@ -204,6 +217,7 @@ def Asyncutor():
 	return
  
 def uinput():
+	global Faily, Resultee
 	print("")
 	print("Scanning Finished!")
 	print("1. Go Back to Menu")
@@ -212,10 +226,16 @@ def uinput():
 	print("")
 	ans=input("Choose Option: ")
 	if ans=="2":
+		tag.has_run = False
+		Faily = []
+		Resultee = []
 		return
 	elif ans=="3":
 		exit()
 	else:
+		tag.has_run = False
+		Faily = []
+		Resultee = []
 		menu()
 
 def hacki():
@@ -303,6 +323,7 @@ __  _  ________ ____   ____
 		switch["sub"]="1"
 	elif str(ans)=="3":
 		switch["func"]="1"
+		switch["sub"]="2"
 	else:
 		exit()
 	print("1. Scan File (.txt)")
@@ -315,70 +336,62 @@ __  _  ________ ____   ____
 	print("")
 	if str(opsi)=="1":
 		def text():
-			global headers, nametag
+			global tag
 			if switch['func']=='0':
 				doma()
-				filet()
+			filet()
+			def nametag():
+				global headers, nametag
 				if switch["sub"]=="0":
 					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + f"-[{frontdom}]-[CDN]-[txt]"
 					headers = payloads
-				else:
+				elif switch['sub']=='1':
 					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[Local]-[txt]"
 					headers = wsocket
-				Asyncutor()
-				uinput()
-				text()
-			else:
-				filet()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[ZGrab]-[txt]"
-				Asyncutor()
-				uinput()
-				text()
+				else:
+					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[ZGrab]-[txt]"
+			tag = run_once(nametag)
+			tag()
+			Asyncutor()
+			uinput()
+			text()
 		text()
 	elif str(opsi)=="2":
 		def csv():
-			global headers, nametag
-			headers = payloads
+			global tag
 			if switch['func']=='0':
 				doma()
-				csveat()
+			csveat()
+			def nametag():
+				global headers, nametag
 				if switch["sub"]=="0":
 					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + f"-[{frontdom}]-[CDN]-[csv]"
 					headers = payloads
-				else:
+				elif switch['sub']=='1':
 					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[Local]-[csv]"
 					headers = wsocket
-				Asyncutor()
-				uinput()
-				csv()
-			else:
-				csveat()
-				nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[ZGrab]-[csv]"
-				Asyncutor()
-				uinput()
-				csv()
+				else:
+					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[ZGrab]-[csv]"
+			Asyncutor()
+			uinput()
+			csv()
 		csv()
 	elif str(opsi)=="3":
 		def enum():
-			global headers, nametag
+			global tag
 			if switch['func']=='0':
 				doma()
-				hacki()
+			hacki()
+			def nametag():
 				if switch["sub"]=="0":
 					nametag = str(subd) + f"-[{frontdom}]-[CDN]-[Online]"
 					headers = payloads
 				else:
 					nametag = str(subd) + f"-[{frontdom}]-[Local]-[Online]"
 					headers = wsocket
-				Asyncutor()
-				uinput()
-				enum()
-			else:
-				hacki()
-				nametag = str(subd) + f"-[{frontdom}]-[ZGrab]-[Online]"
-				Asyncutor()
-				uinput()
-				enum()
+			Asyncutor()
+			uinput()
+			enum()
 		enum()
 	elif str(opsi)=="m":
 		menu()
