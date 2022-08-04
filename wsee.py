@@ -13,7 +13,7 @@ from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEn
 
 expected_response = 101
 cflare_domain = "id3.sshws.me"
-cfront_domain = "d3r0orex98gi31.cloudfront.net"
+cfront_domain = "d1104vxq4e2uai.cloudfront.net"
 payloads = { "Host": cfront_domain, "Upgrade": "websocket", "DNT":  "1", "Accept-Language": "*", "Accept": "*/*", "Accept-Encoding": "*", "Connection": "keep-alive, upgrade", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" }
 wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
 switch = { "dir": "0", "func": "0", "sub": "0" }
@@ -186,7 +186,7 @@ def executor():
 			if switch['func']=='0':
 				p = Process(target=engine, args=(section,nametag,headers))
 			else:
-				p = Process(target=grabber, args=(section,nametag,headers))
+				p = Process(target=grabber, args=(section,nametag,))
 			p.start()
 			processes.append(p)
 		for p in processes:
@@ -252,7 +252,7 @@ def hacki():
 def engine(domainlist,nametag,headers):
 	for domain in domainlist:
 		try:
-			r = requests.get("http://" + domain, headers=headers, allow_redirects=False)
+			r = requests.get("http://" + domain, headers=headers, timeout=1.0, allow_redirects=False)
 			if r.status_code == expected_response:
 				print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + domain)
 				print(domain, file=open(f"{nametag}.txt", "a"))
@@ -284,9 +284,10 @@ def engine(domainlist,nametag,headers):
 def grabber(domainlist,nametag):
 	for domain in domainlist:
 		try:
-			commando =f"cat {domain} | ./zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite portable -t 10 | | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-			result = subprocess.check_output(commando, shell=True)
-			print(result)
+			commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101' | tee -a {nametag}.txt"
+			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+			commandos = commando.stdout.read() + commando.stderr.read()  
+			print(commandos)
 		except Exception as e:
 			print(e)
 			traceback.print_exc()
@@ -352,7 +353,7 @@ __  _  ________ ____   ____
 					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[ZGrab]-[txt]"
 			tag = run_once(nametag)
 			tag()
-			Asyncutor()
+			executor()
 			uinput()
 			text()
 		text()
@@ -372,6 +373,8 @@ __  _  ________ ____   ____
 					headers = wsocket
 				else:
 					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".csv") + "-[ZGrab]-[csv]"
+			tag = run_once(nametag)
+			tag()
 			Asyncutor()
 			uinput()
 			csv()
@@ -389,6 +392,8 @@ __  _  ________ ____   ____
 				else:
 					nametag = str(subd) + f"-[{frontdom}]-[Local]-[Online]"
 					headers = wsocket
+			tag = run_once(nametag)
+			tag()
 			Asyncutor()
 			uinput()
 			enum()
