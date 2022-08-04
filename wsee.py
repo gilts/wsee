@@ -1,4 +1,6 @@
 import csv
+import json
+import regex
 import traceback
 import subprocess
 import requests,re
@@ -32,14 +34,14 @@ class colors:
 	ENDC = '\033[m'
 
 def run_once(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if not wrapper.has_run:
-            result = f(*args, **kwargs)
-            wrapper.has_run = True
-            return result
-    wrapper.has_run = False
-    return wrapper
+	@wraps(f)
+	def wrapper(*args, **kwargs):
+		if not wrapper.has_run:
+			result = f(*args, **kwargs)
+			wrapper.has_run = True
+			return result
+	wrapper.has_run = False
+	return wrapper
 
 def doma():
 	global frontdom
@@ -283,17 +285,16 @@ def engine(domainlist,nametag,headers):
 
 def grabber(domainlist,nametag):
 	for domain in domainlist:
-		try:
-			commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101' | tee -a {nametag}.txt"
-			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-			commandos = commando.stdout.read() + commando.stderr.read()  
-			print(commandos)
-		except Exception as e:
-			print(e)
-			traceback.print_exc()
-			print("")
-			print(colors.RED_BG + " Check your  ZGrab Installation " + colors.ENDC)
-			menu()
+		commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101' | tee -a {nametag}.txt"
+		commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		commandos = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
+		regu = regex.compile(r'\{(?:[^{}]|(?R))*\}')
+		cmd = json.loads(regu.search(commandos).group())
+		jsony = cmd["statuses"]["http"]
+		if jsony['successes']==1:
+			Resultee.append("succ")
+		else:
+			Faily.append("suck")
 
 def menu():
 	print('''
@@ -386,12 +387,15 @@ __  _  ________ ____   ____
 				doma()
 			hacki()
 			def nametag():
+				global headers, nametag
 				if switch["sub"]=="0":
 					nametag = str(subd) + f"-[{frontdom}]-[CDN]-[Online]"
 					headers = payloads
-				else:
+				elif swtich['sub']=='1':
 					nametag = str(subd) + f"-[{frontdom}]-[Local]-[Online]"
 					headers = wsocket
+				else:
+					nametag = str(subd) + f"-[{frontdom}]-[ZGrab]-[Online]"
 			tag = run_once(nametag)
 			tag()
 			Asyncutor()
