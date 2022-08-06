@@ -286,15 +286,17 @@ def engine(domainlist,nametag,headers):
 def grabber(domainlist,nametag):
 	for domain in domainlist:
 		commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101' | tee -a {nametag}.txt"
+		####commando=subprocess.Popen(commando,shell=True)
 		commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 		commandos = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
-		regu = regex.compile(r'\{(?:[^{}]|(?R))*\}')
-		cmd = json.loads(regu.search(commandos).group())
-		jsony = cmd["statuses"]["http"]
-		if jsony['successes']==1:
-			Resultee.append("succ")
+		rege = re.split(r'\n',commandos)
+		if rege[0]=='101':
+			print(" ["+colors.GREEN_BG+" HIT "+colors.ENDC+"] " + rege[1])
+			print(rege[1], file=open(f"{nametag}.txt", "a"))
+			Resultee.append(rege[1])
 		else:
-			Faily.append("suck")
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain)
+			Faily.append(domain)
 
 def menu():
 	print('''
@@ -354,7 +356,7 @@ __  _  ________ ____   ____
 					nametag = str(txtfiles[int(fileselector)-1]).removesuffix(".txt") + "-[ZGrab]-[txt]"
 			tag = run_once(nametag)
 			tag()
-			executor()
+			Asyncutor()
 			uinput()
 			text()
 		text()
