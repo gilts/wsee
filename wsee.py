@@ -1,17 +1,18 @@
 import csv
 import json
 import regex
+import socket
 import traceback
 import subprocess
 import requests,re
 import os, fnmatch; os.system('clear')
+from time import sleep
 from functools import wraps
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
 from os.path import abspath, dirname
+from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process, cpu_count, Manager
 from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
-
 
 expected_response = 101
 cflare_domain = 'id3.sshws.me'
@@ -253,30 +254,41 @@ def hacki():
 
 def engine(domainlist,nametag,headers):
 	for domain in domainlist:
+		def connect():
+			s = socket.socket()
+			try:
+				s.settimeout(1)
+				s.connect(("1.1.1.1", 80))
+				return
+			except Exception as e:
+				print(e.errno, e)
+				sleep(10)
+				connect()
+		connect()
 		try:
 			r = requests.get('http://' + domain, headers=headers, timeout=1.0, allow_redirects=False)
 			if r.status_code == expected_response:
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
 				print(domain, file=open(f'{nametag}.txt', 'a'))
-				Resultee.append(str(domain))
+				Resultee.append(1)
 			elif r.status_code != expected_response:
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r.status_code) + ' '+colors.ENDC+']')
-				Faily.append(str(domain))
+				Faily.append(1)
 		except (Timeout, ReadTimeout, ConnectionError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
-			Faily.append(str(domain))
+			Faily.append(1)
 			pass
 		except(ChunkedEncodingError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG+' Invalid Length '+colors.ENDC + ']')
-			Faily.append(str(domain))
+			Faily.append(1)
 			pass
 		except(TooManyRedirects):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Redirects Loop '+colors.ENDC+']')
-			Faily.append(str(domain))
+			Faily.append(1)
 			pass
 		except(InvalidURL):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Invalid URL '+colors.ENDC+']')
-			Faily.append(str(domain))
+			Faily.append(1)
 			pass
 		except Exception as e:
 			print(e)
@@ -293,10 +305,10 @@ def grabber(domainlist,nametag):
 			if rege[0]==f'{expected_response}':
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + rege[1])
 				print(rege[1], file=open(f'{nametag}.txt', 'a'))
-				Resultee.append(rege[1])
+				Resultee.append('1')
 			else:
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain)
-				Faily.append(domain)
+				Faily.append('1')
 		except Exception as e:
 			print(e)
 			traceback.print_exc()
@@ -329,7 +341,7 @@ __  _  ________ ____   ____
 		switch['func']='0'
 		switch['sub']='0'
 	elif str(ans)=='2':
-		switch['func']='0'
+		switch['func']='1'
 		switch['sub']='1'
 	elif str(ans)=='3':
 		switch['func']='1'
