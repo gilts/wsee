@@ -17,7 +17,7 @@ from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEn
 
 expected_response = 101
 cflare_domain = 'id3.sshws.me'
-cfront_domain = 'd1104vxq4e2uai.cloudfront.net'
+cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 payloads = { 'Host': cfront_domain, 'Upgrade': 'websocket', 'DNT':  '1', 'Accept-Language': '*', 'Accept': '*/*', 'Accept-Encoding': '*', 'Connection': 'keep-alive, upgrade', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36' }
 wsocket = { 'Connection': 'Upgrade', 'Sec-Websocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Version': '13', 'Upgrade': 'websocket' }
 switch = { 'dir': '0', 'func': '0', 'sub': '0' }
@@ -197,7 +197,7 @@ def executor():
 			if switch['func']=='0':
 				p = Process(target=engine, args=(section,nametag,headers,Resultee,Faily))
 			else:
-				p = Process(target=grabber, args=(section,nametag,))
+				p = Process(target=grabber, args=(section,nametag,Resultee,Faily))
 			p.start()
 			processes.append(p)
 		for p in processes:
@@ -242,15 +242,15 @@ def uinput():
 	ans=input('Choose Option: ')
 	if ans=='2':
 		tag.has_run = False
-		Faily = 0
-		Resultee = 0
+		###Faily = 0
+		###Resultee = 0
 		return
 	elif ans=='3':
 		exit()
 	else:
 		tag.has_run = False
-		Faily = 0
-		Resultee = 0
+		###Faily = 0
+		###Resultee = 0
 		menu()
 
 def hacki():
@@ -329,7 +329,7 @@ def engine(domainlist,nametag,headers,Resultee,Faily):
 			traceback.print_exc()
 			pass
 
-def grabber(domainlist,nametag):
+def grabber(domainlist,nametag,Resultee,Faily):
 	for domain in domainlist:
 		try:
 			commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
@@ -339,10 +339,12 @@ def grabber(domainlist,nametag):
 			if rege[0]==f'{expected_response}':
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + rege[1])
 				print(rege[1], file=open(f'{nametag}.txt', 'a'))
-				Resultee.append('1')
+				with Resultee.get_lock():
+					Resultee.value +=1
 			else:
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain)
-				Faily.append('1')
+				with Faily.get_lock():
+					Faily.value +=1
 		except Exception as e:
 			print(e)
 			traceback.print_exc()
@@ -375,7 +377,7 @@ __  _  ________ ____   ____
 		switch['func']='0'
 		switch['sub']='0'
 	elif str(ans)=='2':
-		switch['func']='1'
+		switch['func']='0'
 		switch['sub']='1'
 	elif str(ans)=='3':
 		switch['func']='1'
