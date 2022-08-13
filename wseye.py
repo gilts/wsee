@@ -11,6 +11,7 @@ from time import sleep
 from functools import wraps
 from collections import defaultdict
 from os.path import abspath, dirname
+from requests.adapters import HTTPAdapter
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process, cpu_count, Manager, Value
 from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
@@ -30,6 +31,23 @@ class colors:
 	RED_BG = '\033[41m\033[1m'
 	GREEN_BG = '\033[42m'
 	ENDC = '\033[m'
+
+class FrontingAdapter(HTTPAdapter):
+    def __init__(self, fronted_domain=None, **kwargs):
+        self.fronted_domain = fronted_domain
+        super(FrontingAdapter, self).__init__(**kwargs)
+    def send(self, request, **kwargs):
+        connection_pool_kwargs = self.poolmanager.connection_pool_kw
+        if self.fronted_domain:
+            connection_pool_kwargs["assert_hostname"] = self.fronted_domain
+        elif "assert_hostname" in connection_pool_kwargs:
+            connection_pool_kwargs.pop("assert_hostname", None)
+        return super(FrontingAdapter, self).send(request, **kwargs)
+    def init_poolmanager(self, *args, **kwargs):
+        server_hostname = None
+        if self.fronted_domain:
+            server_hostname = self.fronted_domain
+        super(FrontingAdapter, self).init_poolmanager(server_hostname=server_hostname, *args, **kwargs)
 
 def run_once(f):
 	@wraps(f)
@@ -223,7 +241,7 @@ def Asyncutor():
 			if switch['func']=='0':
 				executor.submit(engine(domainlist,nametag,headers,Resultee,Faily))
 			else:
-				executor.submit(grabber(domainlist,nametag))
+				executor.submit(grabber(domainlist,nametag,Resultee,Faily))
 			executor.shutdown( cancel_futures = True )
 	except Exception as e:
 		print(e)
@@ -266,6 +284,73 @@ def hacki():
 	else:
 		domainlist = re.findall('(.*?),',r.text)
 		return
+
+def engsel():
+	pinger()
+	for domain in domainlist():
+		try:
+			rs = requests.Session()
+			rs.mount('https://', FrontingAdapter(fronted_domain=domain))
+			r = rs.get("http://" + domain, headers=headers)
+			if r.status_code == expected_response:
+				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
+				print(domain, file=open(f'{nametag}.txt', 'a'))
+				with Resultee.get_lock():
+					Resultee.value +=1
+				####
+				###lock.acquire()
+				###Resultee+=1
+				###lock.release()
+				####
+			elif r.status_code != expected_response:
+				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r.status_code) + ' '+colors.ENDC+']')
+				with Faily.get_lock():
+					Faily.value +=1
+				####
+				###lock.acquire()
+				###Faily+=1
+				###lock.release()
+				####
+		except (Timeout, ReadTimeout, ConnectionError):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
+			####
+			###lock.acquire()
+			###Faily+=1
+			###lock.release()
+			####
+		except(ChunkedEncodingError):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG+' Invalid Length '+colors.ENDC + ']')
+			with Faily.get_lock():
+				Faily.value +=1
+			####
+			###lock.acquire()
+			###Faily+=1
+			###lock.release()
+			####
+		except(TooManyRedirects):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Redirects Loop '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
+			####
+			###lock.acquire()
+			###Faily+=1
+			###lock.release()
+			####
+		except(InvalidURL):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Invalid URL '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
+			####
+			###lock.acquire()
+			###Faily+=1
+			###lock.release()
+			####
+		except Exception as e:
+			print(e)
+			traceback.print_exc()
+			pass			
 
 def engine(domainlist,nametag,headers,Resultee,Faily):
 	pinger()
@@ -335,10 +420,11 @@ def engine(domainlist,nametag,headers,Resultee,Faily):
 def grabber(domainlist,nametag,Resultee,Faily):
 	for domain in domainlist:
 		try:
-			commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 			rege = re.split(r'\n',commando)
+			print(commando)
 			if rege[0]==f'{expected_response}':
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + rege[1])
 				print(rege[1], file=open(f'{nametag}.txt', 'a'))
@@ -353,7 +439,6 @@ def grabber(domainlist,nametag,Resultee,Faily):
 			traceback.print_exc()
 			print(' [' + colors.RED_BG+'Check Your ZGrab Installation!'+colors.ENDC+'] ' + domain)
 			menu()
-
 
 def menu():
 	print('''
