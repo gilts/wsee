@@ -22,8 +22,6 @@ payloads = { 'Host': cfront_domain, 'Upgrade': 'websocket', 'DNT':  '1', 'Accept
 wsocket = { 'Connection': 'Upgrade', 'Sec-Websocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Version': '13', 'Upgrade': 'websocket' }
 switch = { 'dir': '0', 'func': '0', 'sub': '0' }
 hostpath = 'host'
-logpath = 'logs'
-outpath = 'output'
 
 columns = defaultdict(list)
 txtfiles= []
@@ -45,8 +43,13 @@ def run_once(f):
 
 def pinger():
 	try:
-		requests.get("http://google.com")
-		return
+		requ = requests.get("http://google.com")
+		if requ.status_code == 200:
+			return
+		elif requ.status_code != expected_response:
+			print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
+			sleep(10)
+			pinger()
 	except requests.ConnectionError:
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
 		sleep(10)
@@ -395,7 +398,7 @@ __  _  ________ ____   ____
 	if str(opsi)=='1':
 		def text():
 			global tag
-			if switch['func']=='0':
+			if switch['sub']=='0':
 				doma()
 			filet()
 			def nametag():
@@ -417,7 +420,7 @@ __  _  ________ ____   ____
 	elif str(opsi)=='2':
 		def csv():
 			global tag
-			if switch['func']=='0':
+			if switch['sub']=='0':
 				doma()
 			csveat()
 			def nametag():
@@ -439,7 +442,7 @@ __  _  ________ ____   ____
 	elif str(opsi)=='3':
 		def enum():
 			global tag
-			if switch['func']=='0':
+			if switch['sub']=='0':
 				doma()
 			hacki()
 			def nametag():
