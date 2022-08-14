@@ -21,7 +21,7 @@ cflare_domain = 'id3.sshws.me'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 payloads = { 'Host': cfront_domain, 'Upgrade': 'websocket', 'DNT':  '1', 'Accept-Language': '*', 'Accept': '*/*', 'Accept-Encoding': '*', 'Connection': 'keep-alive, upgrade', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36' }
 wsocket = { 'Connection': 'Upgrade', 'Sec-Websocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Version': '13', 'Upgrade': 'websocket' }
-switch = { 'dir': '0', 'func': '0', 'sub': '0' }
+switch = { 'dir': '0', 'func': '0', 'sub': '0', 'opt': '0' }
 hostpath = 'host'
 
 columns = defaultdict(list)
@@ -48,16 +48,6 @@ class FrontingAdapter(HTTPAdapter):
         if self.fronted_domain:
             server_hostname = self.fronted_domain
         super(FrontingAdapter, self).init_poolmanager(server_hostname=server_hostname, *args, **kwargs)
-
-def run_once(f):
-	@wraps(f)
-	def wrapper(*args, **kwargs):
-		if not wrapper.has_run:
-			result = f(*args, **kwargs)
-			wrapper.has_run = True
-			return result
-	wrapper.has_run = False
-	return wrapper
 
 def pinger():
 	try:
@@ -290,8 +280,8 @@ def engsel():
 	for domain in domainlist():
 		try:
 			rs = requests.Session()
-			rs.mount('https://', FrontingAdapter(fronted_domain=domain))
-			r = rs.get("http://" + domain, headers=headers)
+			rs.mount('https://', FrontingAdapter(fronted_domain=frontdom))
+			r = rs.get("https://" + domain, headers=headers, timeout=1.0, allow_redirects=False)
 			if r.status_code == expected_response:
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
 				print(domain, file=open(f'{nametag}.txt', 'a'))
@@ -456,22 +446,54 @@ __  _  ________ ____   ____
 
 	print('1. CDN Websocket')
 	print('2. Local Websocket')
-	print('3. ZGrab Websocket')
 	print('q to Quit')
 	print('')
 	ans=input(' Choose Option : ')
 	print('')
+	global headers, nametag
 	if str(ans)=='1':
-		switch['func']='0'
-		switch['sub']='0'
-	elif str(ans)=='2':
-		switch['func']='0'
+		print('1. CDN SSL')
+		print('2. CDN Direct')
+		print('3. CDN Direct ZGrab')
+		print('q to Quit')
+		print('')
+		ans=input(' Choose Option : ')
+		print('')
+		headers = payloads
 		switch['sub']='1'
-	elif str(ans)=='3':
-		switch['func']='1'
-		switch['sub']='2'
+		if str(ans)=='1':
+			switch['func']='0'
+			print('[', colors.RED_BG + ' This Feature currently not Available, Check for future releases ' + colors.ENDC + ']')
+			menu()
+		elif str(ans)=='2':
+			switch['func']='0'
+		else:
+			switch['func']='1'
+			print('[', colors.RED_BG + ' This Feature currently not Available, Check for future releases ' + colors.ENDC + ']')
+			menu()
+	elif str(ans)=='2':
+		print('1. Local SSL')
+		print('2. Local Direct')
+		print('3. Local Direct ZGrab')
+		print('q to Quit')
+		print('')
+		ans=input(' Choose Option : ')
+		print('')
+		headers = wsocket
+		switch['sub']='0'
+		if str(ans)=='1':
+			switch['func']='0'
+			print('[', colors.RED_BG + ' This Feature currently not Available, Check for future releases ' + colors.ENDC + ']')
+			menu()
+		elif str(ans)=='2':
+			switch['func']='0'
+		else:
+			switch['func']='1'
 	else:
 		exit()
+	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
+	nametag = input(' Output as : ')
+	print('')
 	print('1. Scan File (.txt)')
 	print('2. Scan File (.csv)')
 	print('3. Scan Online (HackerTarget)')
@@ -483,21 +505,9 @@ __  _  ________ ____   ____
 	if str(opsi)=='1':
 		def text():
 			global tag
-			if switch['sub']=='0':
+			if switch['sub']=='1':
 				doma()
 			filet()
-			def nametag():
-				global headers, nametag
-				if switch['sub']=='0':
-					nametag = str(txtfiles[int(fileselector)-1]).removesuffix('.txt') + f'-[{frontdom}]-[CDN]-[txt]'
-					headers = payloads
-				elif switch['sub']=='1':
-					nametag = str(txtfiles[int(fileselector)-1]).removesuffix('.txt') + '-[Local]-[txt]'
-					headers = wsocket
-				else:
-					nametag = str(txtfiles[int(fileselector)-1]).removesuffix('.txt') + '-[ZGrab]-[txt]'
-			tag = run_once(nametag)
-			tag()
 			executor()
 			uinput()
 			text()
@@ -505,21 +515,9 @@ __  _  ________ ____   ____
 	elif str(opsi)=='2':
 		def csv():
 			global tag
-			if switch['sub']=='0':
+			if switch['sub']=='1':
 				doma()
 			csveat()
-			def nametag():
-				global headers, nametag
-				if switch['sub']=='0':
-					nametag = str(txtfiles[int(fileselector)-1]).removesuffix('.csv') + f'-[{frontdom}]-[CDN]-[csv]'
-					headers = payloads
-				elif switch['sub']=='1':
-					nametag = str(txtfiles[int(fileselector)-1]).removesuffix('.csv') + '-[Local]-[csv]'
-					headers = wsocket
-				else:
-					nametag = str(txtfiles[int(fileselector)-1]).removesuffix('.csv') + '-[ZGrab]-[csv]'
-			tag = run_once(nametag)
-			tag()
 			executor()
 			uinput()
 			csv()
@@ -527,21 +525,9 @@ __  _  ________ ____   ____
 	elif str(opsi)=='3':
 		def enum():
 			global tag
-			if switch['sub']=='0':
+			if switch['sub']=='1':
 				doma()
 			hacki()
-			def nametag():
-				global headers, nametag
-				if switch['sub']=='0':
-					nametag = str(subd) + f'-[{frontdom}]-[CDN]-[Online]'
-					headers = payloads
-				elif swtich['sub']=='1':
-					nametag = str(subd) + f'-[{frontdom}]-[Local]-[Online]'
-					headers = wsocket
-				else:
-					nametag = str(subd) + f'-[{frontdom}]-[ZGrab]-[Online]'
-			tag = run_once(nametag)
-			tag()
 			executor()
 			uinput()
 			enum()
