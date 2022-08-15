@@ -275,78 +275,16 @@ def hacki():
 		domainlist = re.findall('(.*?),',r.text)
 		return
 
-def engsel():
-	pinger()
-	for domain in domainlist():
-		try:
-			rs = requests.Session()
-			rs.mount('https://', FrontingAdapter(fronted_domain=frontdom))
-			r = rs.get("https://" + domain, headers=headers, timeout=1.0, allow_redirects=False)
-			if r.status_code == expected_response:
-				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
-				print(domain, file=open(f'{nametag}.txt', 'a'))
-				with Resultee.get_lock():
-					Resultee.value +=1
-				####
-				###lock.acquire()
-				###Resultee+=1
-				###lock.release()
-				####
-			elif r.status_code != expected_response:
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r.status_code) + ' '+colors.ENDC+']')
-				with Faily.get_lock():
-					Faily.value +=1
-				####
-				###lock.acquire()
-				###Faily+=1
-				###lock.release()
-				####
-		except (Timeout, ReadTimeout, ConnectionError):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
-			with Faily.get_lock():
-				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
-		except(ChunkedEncodingError):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG+' Invalid Length '+colors.ENDC + ']')
-			with Faily.get_lock():
-				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
-		except(TooManyRedirects):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Redirects Loop '+colors.ENDC+']')
-			with Faily.get_lock():
-				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
-		except(InvalidURL):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Invalid URL '+colors.ENDC+']')
-			with Faily.get_lock():
-				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
-		except Exception as e:
-			print(e)
-			traceback.print_exc()
-			pass			
-
 def engine(domainlist,nametag,headers,Resultee,Faily):
 	pinger()
 	for domain in domainlist:
 		try:
-			r = requests.get('http://' + domain, headers=headers, timeout=1.0, allow_redirects=False)
+			if switch['opt']=='1':
+				rs = requests.Session()
+				rs.mount('https://', FrontingAdapter(fronted_domain=frontdom))
+				r = rs.get("https://" + domain, headers=headers, timeout=1.0, allow_redirects=False)
+			elif switch['opt']=='0':
+				r = requests.get('http://' + domain, headers=headers, timeout=1.0, allow_redirects=False)
 			if r.status_code == expected_response:
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
 				print(domain, file=open(f'{nametag}.txt', 'a'))
@@ -410,7 +348,10 @@ def engine(domainlist,nametag,headers,Resultee,Faily):
 def grabber(domainlist,nametag,Resultee,Faily):
 	for domain in domainlist:
 		try:
-			commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			if switch['opt']=='2':
+				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			elif switch['opt']=='3':
+				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Host,Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='{frontdom},websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 			rege = re.split(r'\n',commando)
@@ -456,20 +397,24 @@ __  _  ________ ____   ____
 		print('2. CDN Direct')
 		print('3. CDN Direct ZGrab')
 		print('q to Quit')
+		print('m to Menu')
 		print('')
-		ans=input(' Choose Option : ')
+		ans=input(' Choose Option : ').lower()
 		print('')
 		headers = payloads
 		switch['sub']='1'
 		if str(ans)=='1':
 			switch['func']='0'
-			print('[', colors.RED_BG + ' This Feature currently not Available, Check for future releases ' + colors.ENDC + ']')
-			menu()
+			switch['opt']='1'
 		elif str(ans)=='2':
 			switch['func']='0'
-		else:
+			switch['opt']='0'
+		elif str(ans)=='3':
 			switch['func']='1'
-			print('[', colors.RED_BG + ' This Feature currently not Available, Check for future releases ' + colors.ENDC + ']')
+			switch['opt']='3'
+		elif str(ans)=='q':
+			exit()
+		else:
 			menu()
 	elif str(ans)=='2':
 		print('1. Local SSL')
@@ -483,12 +428,18 @@ __  _  ________ ____   ____
 		switch['sub']='0'
 		if str(ans)=='1':
 			switch['func']='0'
-			print('[', colors.RED_BG + ' This Feature currently not Available, Check for future releases ' + colors.ENDC + ']')
+			switch['opt']='1'
 			menu()
 		elif str(ans)=='2':
 			switch['func']='0'
-		else:
+			switch['opt']='0'
+		elif str(ans)=='3':
 			switch['func']='1'
+			switch['opt']='2'
+		elif str(ans)=='q':
+			exit()
+		else:
+			menu()
 	else:
 		exit()
 	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
