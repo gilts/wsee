@@ -20,7 +20,9 @@ expected_response = 101
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 payloads = { 'Host': cfront_domain, 'Upgrade': 'websocket', 'DNT':  '1', 'Accept-Language': '*', 'Accept': '*/*', 'Accept-Encoding': '*', 'Connection': 'keep-alive, upgrade', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36' }
+hsocket = { 'Host': cfront_domain, 'Upgrade': 'h2c', 'DNT':  '1', 'Accept-Language': '*', 'Accept': '*/*', 'Accept-Encoding': '*', 'Connection': 'keep-alive, upgrade, HTTP2-Settings', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36' }
 wsocket = { 'Connection': 'Upgrade', 'Sec-Websocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Version': '13', 'Upgrade': 'websocket' }
+locket = { 'Connection': 'Upgrade, HTTP2-Settings', 'HTTP2-Settings': '', 'Upgrade': 'h2c' }
 switch = { 'dir': '0', 'func': '0', 'sub': '0', 'opt': '0' }
 hostpath = 'host'
 
@@ -76,10 +78,13 @@ def doma():
 	if str(ansi)=='1':
 		domain=input(' Domain : ')
 		payloads['Host']=f'{domain}'
+		hsocket['Host']=f'{domain}'
 	elif str(ansi)=='2':
 		payloads['Host']=f'{cfront_domain}'
+		hsocket['Host']=f'{cfront_domain}'
 	elif str(ansi)=='3':
 		payloads['Host']=f'{cflare_domain}'
+		hsocket['Host']=f'{cflare_domain}'
 	elif str(ansi)=='q':
 		exit()
 	elif str(ansi)=='m':
@@ -352,6 +357,10 @@ def grabber(domainlist,nametag,Resultee,Faily):
 				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 			elif switch['opt']=='3':
 				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Host,Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='{frontdom},websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			elif switch['opt']=='4':
+				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Host,Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='{frontdom},websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --retry-http --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			elif switch['opt']=='5':
+				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --retry-http --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 			rege = re.split(r'\n',commando)
@@ -387,6 +396,8 @@ __  _  ________ ____   ____
 
 	print('1. CDN Websocket')
 	print('2. Local Websocket')
+	print('3. H2C Socket')
+	print('4. Local H2C Socket')
 	print('q to Quit')
 	print('')
 	ans=input(' Choose Option : ')
@@ -395,7 +406,8 @@ __  _  ________ ____   ____
 	if str(ans)=='1':
 		print('1. CDN SSL')
 		print('2. CDN Direct')
-		print('3. CDN Direct ZGrab')
+		print('3. CDN SSL ZGrab')
+		print('4. CDN Direct ZGrab')
 		print('q to Quit')
 		print('m to Menu')
 		print('')
@@ -412,6 +424,9 @@ __  _  ________ ____   ____
 		elif str(ans)=='3':
 			switch['func']='1'
 			switch['opt']='3'
+		elif str(ans)=='4':
+			switch['func']='1'
+			switch['opt']='4'
 		elif str(ans)=='q':
 			exit()
 		else:
@@ -419,7 +434,8 @@ __  _  ________ ____   ____
 	elif str(ans)=='2':
 		print('1. Local SSL')
 		print('2. Local Direct')
-		print('3. Local Direct ZGrab')
+		print('3. Local SSL ZGrab')
+		print('4. Local Direct ZGrab')
 		print('q to Quit')
 		print('')
 		ans=input(' Choose Option : ')
@@ -429,13 +445,70 @@ __  _  ________ ____   ____
 		if str(ans)=='1':
 			switch['func']='0'
 			switch['opt']='1'
-			menu()
 		elif str(ans)=='2':
 			switch['func']='0'
 			switch['opt']='0'
 		elif str(ans)=='3':
 			switch['func']='1'
 			switch['opt']='2'
+		elif str(ans)=='4':
+			switch['func']='1'
+			switch['opt']='5'
+		elif str(ans)=='q':
+			exit()
+		else:
+			menu()
+	elif str(ans)=='3':
+		print('1. H2C SSL')
+		print('2. H2C Direct')
+		print('3. H2C SSL ZGrab')
+		print('4. H2C Direct ZGrab')
+		print('q to Quit')
+		print('m to Menu')
+		print('')
+		ans=input(' Choose Option : ').lower()
+		print('')
+		headers = hsocket
+		switch['sub']='1'
+		if str(ans)=='1':
+			switch['func']='0'
+			switch['opt']='1'
+		elif str(ans)=='2':
+			switch['func']='0'
+			switch['opt']='0'
+		elif str(ans)=='3':
+			switch['func']='1'
+			switch['opt']='3'
+		elif str(ans)=='4':
+			switch['func']='1'
+			switch['opt']='4'
+		elif str(ans)=='q':
+			exit()
+		else:
+			menu()
+	elif str(ans)=='4':
+		print('1. Local H2C SSL')
+		print('2. Local H2C Direct')
+		print('2. Local H2C SSL ZGrab')
+		print('3. Local H2C Direct ZGrab')
+		print('q to Quit')
+		print('')
+		ans=input(' Choose Option : ')
+		print('')
+		headers = locket
+		switch['sub']='0'
+		if str(ans)=='1':
+			switch['func']='0'
+			switch['opt']='1'
+		elif str(ans)=='2':
+			switch['func']='0'
+			switch['opt']='0'
+		elif str(ans)=='3':
+			switch['func']='1'
+			switch['opt']='2'
+		elif str(ans)=='4':
+			switch['func']='1'
+			switch['opt']='5'
 		elif str(ans)=='q':
 			exit()
 		else:
