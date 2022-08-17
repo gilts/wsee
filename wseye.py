@@ -1,7 +1,6 @@
 import csv
-import json
+import ssl
 import socket
-###import threading
 import traceback
 import subprocess
 import requests,re
@@ -20,10 +19,8 @@ expected_response = 101
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 payloads = { 'Host': cfront_domain, 'Upgrade': 'websocket', 'DNT':  '1', 'Accept-Language': '*', 'Accept': '*/*', 'Accept-Encoding': '*', 'Connection': 'keep-alive, upgrade', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36' }
-hsocket = { 'Host': cfront_domain, 'Upgrade': 'h2c', 'DNT':  '1', 'Accept-Language': '*', 'Accept': '*/*', 'Accept-Encoding': '*', 'Connection': 'keep-alive, upgrade, HTTP2-Settings', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36' }
-wsocket = { 'Connection': 'Upgrade', 'Sec-Websocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Version': '13', 'Upgrade': 'websocket' }
-locket = { 'Connection': 'Upgrade, HTTP2-Settings', 'HTTP2-Settings': '', 'Upgrade': 'h2c' }
-switch = { 'dir': '0', 'func': '0', 'sub': '0', 'opt': '0' }
+wsocket = { "Connection": "Upgrade", "Sec-Websocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==", "Sec-Websocket-Version": "13", "Upgrade": "websocket" }
+switch = { 'dir': '0', 'func': '0', 'sub': '0', 'opt': '0', 'nametag': 'ano' }
 hostpath = 'host'
 
 columns = defaultdict(list)
@@ -33,23 +30,6 @@ class colors:
 	RED_BG = '\033[41m\033[1m'
 	GREEN_BG = '\033[42m'
 	ENDC = '\033[m'
-
-class FrontingAdapter(HTTPAdapter):
-    def __init__(self, fronted_domain=None, **kwargs):
-        self.fronted_domain = fronted_domain
-        super(FrontingAdapter, self).__init__(**kwargs)
-    def send(self, request, **kwargs):
-        connection_pool_kwargs = self.poolmanager.connection_pool_kw
-        if self.fronted_domain:
-            connection_pool_kwargs["assert_hostname"] = self.fronted_domain
-        elif "assert_hostname" in connection_pool_kwargs:
-            connection_pool_kwargs.pop("assert_hostname", None)
-        return super(FrontingAdapter, self).send(request, **kwargs)
-    def init_poolmanager(self, *args, **kwargs):
-        server_hostname = None
-        if self.fronted_domain:
-            server_hostname = self.fronted_domain
-        super(FrontingAdapter, self).init_poolmanager(server_hostname=server_hostname, *args, **kwargs)
 
 def pinger():
 	try:
@@ -78,13 +58,10 @@ def doma():
 	if str(ansi)=='1':
 		domain=input(' Domain : ')
 		payloads['Host']=f'{domain}'
-		hsocket['Host']=f'{domain}'
 	elif str(ansi)=='2':
 		payloads['Host']=f'{cfront_domain}'
-		hsocket['Host']=f'{cfront_domain}'
 	elif str(ansi)=='3':
 		payloads['Host']=f'{cflare_domain}'
-		hsocket['Host']=f'{cflare_domain}'
 	elif str(ansi)=='q':
 		exit()
 	elif str(ansi)=='m':
@@ -211,9 +188,9 @@ def executor():
 		for process_num in range(num_cpus):
 			section = domainlist[process_num::num_cpus]
 			if switch['func']=='0':
-				p = Process(target=engine, args=(section,nametag,headers,Resultee,Faily))
+				p = Process(target=engine, args=(section,headers,Resultee,Faily))
 			else:
-				p = Process(target=grabber, args=(section,nametag,Resultee,Faily))
+				p = Process(target=grabber, args=(section,Resultee,Faily))
 			p.start()
 			processes.append(p)
 		for p in processes:
@@ -225,18 +202,14 @@ def executor():
 
 def Asyncutor():
 	try:
-		global lock, Resultee, Faily
-		###Resultee=0
-		###Faily=0
-		###lock = threading.Lock()
 		Faily=Value('i',0)
 		Resultee=Value('d',0)
 		num_cpus = cpu_count()
 		with ThreadPoolExecutor(max_workers=num_cpus) as executor:
 			if switch['func']=='0':
-				executor.submit(engine(domainlist,nametag,headers,Resultee,Faily))
+				executor.submit(engine(domainlist,headers,Resultee,Faily))
 			else:
-				executor.submit(grabber(domainlist,nametag,Resultee,Faily))
+				executor.submit(grabber(domainlist,Resultee,Faily))
 			executor.shutdown( cancel_futures = True )
 	except Exception as e:
 		print(e)
@@ -257,14 +230,10 @@ def uinput():
 	print('')
 	ans=input('Choose Option: ')
 	if ans=='2':
-		###Faily = 0
-		###Resultee = 0
 		return
 	elif ans=='3':
 		exit()
 	else:
-		###Faily = 0
-		###Resultee = 0
 		menu()
 
 def hacki():
@@ -278,71 +247,56 @@ def hacki():
 		domainlist = re.findall('(.*?),',r.text)
 		return
 
-def engine(domainlist,nametag,headers,Resultee,Faily):
+def engine(domainlist,headers,Resultee,Faily):
 	pinger()
 	for domain in domainlist:
 		try:
 			if switch['opt']=='1':
-				rs = requests.Session()
-				rs.mount('https://', FrontingAdapter(fronted_domain=frontdom))
-				r = rs.get("https://" + domain, headers=headers, timeout=1.0, allow_redirects=False)
+				cont = ssl._create_unverified_context(ssl.PROTOCOL_TLS)
+				soc = socket.socket()
+				sock = cont.wrap_socket(soc, server_hostname = f'{domain}')
+				sock.connect((f'{domain}', 443))
+				if switch['sub']=='0':
+					sock.sendall(bytes(f"GET wss://{domain}/ HTTP/1.1\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n", encoding="utf-8"))
+				elif switch['sub']=='1':
+					sock.sendall(bytes(f"GET wss://{domain}/ HTTP/1.1\r\nHost: {payloads['Host']}\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n", encoding="utf-8"))
+				line = str(sock.recv(13))
+				sock.close()
+				rege = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+				r = int(rege[0])
 			elif switch['opt']=='0':
-				r = requests.get('http://' + domain, headers=headers, timeout=1.0, allow_redirects=False)
-			if r.status_code == expected_response:
+				requ = requests.get('http://' + domain, headers=headers, timeout=1.0, allow_redirects=False)
+				r = requ.status_code
+			if r == expected_response:
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
-				print(domain, file=open(f'{nametag}.txt', 'a'))
+				print(domain, file=open(f'{switch["nametag"]}.txt', 'a'))
 				with Resultee.get_lock():
 					Resultee.value +=1
-				####
-				###lock.acquire()
-				###Resultee+=1
-				###lock.release()
-				####
-			elif r.status_code != expected_response:
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r.status_code) + ' '+colors.ENDC+']')
+			elif r != expected_response:
+				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r) + ' '+colors.ENDC+']')
 				with Faily.get_lock():
 					Faily.value +=1
-				####
-				###lock.acquire()
-				###Faily+=1
-				###lock.release()
-				####
-		except (Timeout, ReadTimeout, ConnectionError):
+		except (Timeout, ReadTimeout, ConnectionError, TimeoutError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
 		except(ChunkedEncodingError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG+' Invalid Length '+colors.ENDC + ']')
 			with Faily.get_lock():
 				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
 		except(TooManyRedirects):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Redirects Loop '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
 		except(InvalidURL):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' Invalid URL '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
-			####
-			###lock.acquire()
-			###Faily+=1
-			###lock.release()
-			####
+		except IndexError:
+			print(str(r))
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
 		except Exception as e:
 			print(e)
 			traceback.print_exc()
@@ -352,16 +306,15 @@ def grabber(domainlist,nametag,Resultee,Faily):
 	for domain in domainlist:
 		try:
 			if switch['opt']=='2':
-				run =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-			elif switch['opt']=='5':
-				run =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-			commando=subprocess.Popen(run,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+				 commando=f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			elif switch['opt']=='3':
+				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 			rege = re.split(r'\n',commando)
-			print(commando)
 			if rege[0]==f'{expected_response}':
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + rege[1])
-				print(rege[1], file=open(f'{nametag}.txt', 'a'))
+				print(rege[1], file=open(f'{switch["name"]}.txt', 'a'))
 				with Resultee.get_lock():
 					Resultee.value +=1
 			else:
@@ -396,7 +349,7 @@ __  _  ________ ____   ____
 	print('')
 	ans=input(' Choose Option : ').lower()
 	print('')
-	global headers, nametag
+	global headers, switch
 	if str(ans)=='1':
 		print('1. CDN SSL')
 		print('2. CDN Direct')
@@ -405,8 +358,8 @@ __  _  ________ ____   ____
 		print('')
 		ansi=input(' Choose Option : ').lower()
 		print('')
-		headers = payloads
 		switch['sub']='1'
+		headers = payloads
 		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
@@ -424,22 +377,22 @@ __  _  ________ ____   ____
 		print('4. Local Direct ZGrab')
 		print('q to Quit')
 		print('')
-		ansi=input(' Choose Option : ')
+		ansi=input(' Choose Option : ').lower()
 		print('')
-		headers = wsocket
 		switch['sub']='0'
+		headers = wsocket
 		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
 		elif str(ansi)=='2':
 			switch['func']='0'
 			switch['opt']='0'
-		elif str(ansi)=='3':
+		elif str(ansi)=='4':
 			switch['func']='1'
 			switch['opt']='2'
 		elif str(ansi)=='4':
 			switch['func']='1'
-			switch['opt']='5'
+			switch['opt']='3'
 		elif str(ansi)=='q':
 			exit()
 		else:
@@ -447,13 +400,14 @@ __  _  ________ ____   ____
 	elif str(ans)=='3':
 		print('1. H2C SSL')
 		print('2. H2C Direct')
+		print('3. H2C Direct ZGrab')
 		print('q to Quit')
 		print('m to Menu')
 		print('')
 		ansi=input(' Choose Option : ').lower()
 		print('')
-		headers = hsocket
 		switch['sub']='1'
+		headers = cdns
 		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
@@ -472,8 +426,8 @@ __  _  ________ ____   ____
 		print('')
 		ansi=input(' Choose Option : ')
 		print('')
-		headers = locket
 		switch['sub']='0'
+		headers = wsocket
 		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
@@ -494,6 +448,7 @@ __  _  ________ ____   ____
 		exit()
 	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
 	nametag = input(' Output as : ')
+	switch |= {'nametag':f'{nametag}'}
 	print('')
 	print('1. Scan File (.txt)')
 	print('2. Scan File (.csv)')
