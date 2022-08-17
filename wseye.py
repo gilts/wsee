@@ -257,14 +257,12 @@ def uinput():
 	print('')
 	ans=input('Choose Option: ')
 	if ans=='2':
-		tag.has_run = False
 		###Faily = 0
 		###Resultee = 0
 		return
 	elif ans=='3':
 		exit()
 	else:
-		tag.has_run = False
 		###Faily = 0
 		###Resultee = 0
 		menu()
@@ -354,14 +352,10 @@ def grabber(domainlist,nametag,Resultee,Faily):
 	for domain in domainlist:
 		try:
 			if switch['opt']=='2':
-				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-			elif switch['opt']=='3':
-				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Host,Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='{frontdom},websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-			elif switch['opt']=='4':
-				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Host,Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='{frontdom},websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --retry-http --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+				run =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 			elif switch['opt']=='5':
-				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --retry-http --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+				run =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+			commando=subprocess.Popen(run,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 			rege = re.split(r'\n',commando)
 			print(commando)
@@ -400,34 +394,26 @@ __  _  ________ ____   ____
 	print('4. Local H2C Socket')
 	print('q to Quit')
 	print('')
-	ans=input(' Choose Option : ')
+	ans=input(' Choose Option : ').lower()
 	print('')
 	global headers, nametag
 	if str(ans)=='1':
 		print('1. CDN SSL')
 		print('2. CDN Direct')
-		print('3. CDN SSL ZGrab')
-		print('4. CDN Direct ZGrab')
 		print('q to Quit')
 		print('m to Menu')
 		print('')
-		ans=input(' Choose Option : ').lower()
+		ansi=input(' Choose Option : ').lower()
 		print('')
 		headers = payloads
 		switch['sub']='1'
-		if str(ans)=='1':
+		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
-		elif str(ans)=='2':
+		elif str(ansi)=='2':
 			switch['func']='0'
 			switch['opt']='0'
-		elif str(ans)=='3':
-			switch['func']='1'
-			switch['opt']='3'
-		elif str(ans)=='4':
-			switch['func']='1'
-			switch['opt']='4'
-		elif str(ans)=='q':
+		elif str(ansi)=='q':
 			exit()
 		else:
 			menu()
@@ -438,78 +424,69 @@ __  _  ________ ____   ____
 		print('4. Local Direct ZGrab')
 		print('q to Quit')
 		print('')
-		ans=input(' Choose Option : ')
+		ansi=input(' Choose Option : ')
 		print('')
 		headers = wsocket
 		switch['sub']='0'
-		if str(ans)=='1':
+		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
-		elif str(ans)=='2':
+		elif str(ansi)=='2':
 			switch['func']='0'
 			switch['opt']='0'
-		elif str(ans)=='3':
+		elif str(ansi)=='3':
 			switch['func']='1'
 			switch['opt']='2'
-		elif str(ans)=='4':
+		elif str(ansi)=='4':
 			switch['func']='1'
 			switch['opt']='5'
-		elif str(ans)=='q':
+		elif str(ansi)=='q':
 			exit()
 		else:
 			menu()
 	elif str(ans)=='3':
 		print('1. H2C SSL')
 		print('2. H2C Direct')
-		print('3. H2C SSL ZGrab')
-		print('4. H2C Direct ZGrab')
 		print('q to Quit')
 		print('m to Menu')
 		print('')
-		ans=input(' Choose Option : ').lower()
+		ansi=input(' Choose Option : ').lower()
 		print('')
 		headers = hsocket
 		switch['sub']='1'
-		if str(ans)=='1':
+		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
-		elif str(ans)=='2':
+		elif str(ansi)=='2':
 			switch['func']='0'
 			switch['opt']='0'
-		elif str(ans)=='3':
-			switch['func']='1'
-			switch['opt']='3'
-		elif str(ans)=='4':
-			switch['func']='1'
-			switch['opt']='4'
-		elif str(ans)=='q':
+		elif str(ansi)=='q':
 			exit()
 		else:
 			menu()
 	elif str(ans)=='4':
 		print('1. Local H2C SSL')
 		print('2. Local H2C Direct')
-		print('2. Local H2C SSL ZGrab')
 		print('3. Local H2C Direct ZGrab')
 		print('q to Quit')
 		print('')
-		ans=input(' Choose Option : ')
+		ansi=input(' Choose Option : ')
 		print('')
 		headers = locket
 		switch['sub']='0'
-		if str(ans)=='1':
+		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
-		elif str(ans)=='2':
+		elif str(ansi)=='2':
 			switch['func']='0'
 			switch['opt']='0'
-		elif str(ans)=='3':
+		elif str(ansi)=='3':
 			switch['func']='1'
 			switch['opt']='2'
-		elif str(ans)=='4':
+		elif str(ansi)=='4':
 			switch['func']='1'
 			switch['opt']='5'
-		elif str(ans)=='q':
+		elif str(ansi)=='q':
 			exit()
 		else:
 			menu()
