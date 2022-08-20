@@ -257,14 +257,22 @@ def wsee(domainlist,Resultee,Faily):
 					sock.sendall(bytes(f'GET wss://{domain}/ HTTP/1.1\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='1':
 					sock.sendall(bytes(f'GET wss://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n', encoding='utf-8'))
+				elif switch['sub']=='2':
+					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+				elif switch['sub']=='3':
+					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 			elif switch['opt']=='0':
 				sock = socket.socket()
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				sock.connect((domain, 80))
 				if switch['sub']=='0':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
-				if switch['sub']=='1':
+				elif switch['sub']=='1':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
+				elif switch['sub']=='2':
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+				elif switch['sub']=='3':
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2c\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 			line = str(sock.recv(13))
 			sock.close()
 			rege = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -299,9 +307,15 @@ def grabber(domainlist,nametag,Resultee,Faily):
 	for domain in domainlist:
 		try:
 			if switch['opt']=='2':
-				 commando=f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+				if switch['sub']=='0':
+					commando=f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+				elif switch['sub']=='2':
+					commando=f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 			elif switch['opt']=='3':
-				commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+				if switch['sub']=='0':
+					commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+				elif switch['sub']=='2':
+					commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 			commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 			commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 			rege = re.split(r'\n',commando)
@@ -389,15 +403,14 @@ __  _  ________ ____   ____
 		else:
 			menu()
 	elif str(ans)=='3':
-		print('1. H2C SSL')
+		print('1. H2 SSL')
 		print('2. H2C Direct')
-		print('3. H2C Direct ZGrab')
 		print('q to Quit')
 		print('m to Menu')
 		print('')
 		ansi=input(' Choose Option : ').lower()
 		print('')
-		switch['sub']='1'
+		switch['sub']='3'
 		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
@@ -411,12 +424,13 @@ __  _  ________ ____   ____
 	elif str(ans)=='4':
 		print('1. Local H2C SSL')
 		print('2. Local H2C Direct')
+		print('3. Local H2C SSL ZGrab')
 		print('3. Local H2C Direct ZGrab')
 		print('q to Quit')
 		print('')
 		ansi=input(' Choose Option : ')
 		print('')
-		switch['sub']='0'
+		switch['sub']='2'
 		if str(ansi)=='1':
 			switch['func']='0'
 			switch['opt']='1'
@@ -428,7 +442,7 @@ __  _  ________ ____   ____
 			switch['opt']='2'
 		elif str(ansi)=='4':
 			switch['func']='1'
-			switch['opt']='5'
+			switch['opt']='3'
 		elif str(ansi)=='q':
 			exit()
 		else:
