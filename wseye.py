@@ -254,25 +254,25 @@ def wsee(domainlist,Resultee,Faily):
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				sock.connect((domain, 443))
 				if switch['sub']=='0':
-					sock.sendall(bytes(f'GET wss://{domain}/ HTTP/1.1\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET wss://{domain}/ HTTP/1.1\r\nHost: {domain}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='1':
-					sock.sendall(bytes(f'GET wss://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET wss://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='2':
-					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nHost: {domain}\r\nUpgrade: h2\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='3':
-					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 			elif switch['opt']=='0':
 				sock = socket.socket()
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				sock.connect((domain, 80))
 				if switch['sub']=='0':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {domain}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='1':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='2':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {domain}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='3':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUser-Agent: cpprestsdk/2.9.0\r\nUpgrade: h2c\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 			line = str(sock.recv(13))
 			sock.close()
 			rege = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -292,6 +292,10 @@ def wsee(domainlist,Resultee,Faily):
 				Faily.value +=1
 		except (socket.gaierror):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
+		except (socket.error):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' RESET '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
 		except IndexError:
@@ -449,10 +453,6 @@ __  _  ________ ____   ____
 			menu()
 	else:
 		exit()
-	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
-	nametag = input(' Output as : ')
-	switch['nametag']=f'{nametag}'
-	print('')
 	print('1. Scan File (.txt)')
 	print('2. Scan File (.csv)')
 	print('3. Scan Online (HackerTarget)')
@@ -467,6 +467,9 @@ __  _  ________ ____   ____
 			if switch['sub']=='1':
 				doma()
 			filet()
+			print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
+			nametag = input(' Output as : ')
+			switch['nametag']=f'{nametag}'
 			executor()
 			uinput()
 			text()
@@ -477,6 +480,9 @@ __  _  ________ ____   ____
 			if switch['sub']=='1':
 				doma()
 			csveat()
+			print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
+			nametag = input(' Output as : ')
+			switch['nametag']=f'{nametag}'
 			executor()
 			uinput()
 			csv()
@@ -487,6 +493,9 @@ __  _  ________ ____   ____
 			if switch['sub']=='1':
 				doma()
 			hacki()
+			print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
+			nametag = input(' Output as : ')
+			switch['nametag']=f'{nametag}'
 			executor()
 			uinput()
 			enum()
