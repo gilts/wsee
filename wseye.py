@@ -14,7 +14,7 @@ from multiprocessing import Process, cpu_count, Manager, Value
 from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
 
 expected_response = 101
-cflare_domain = 'id3.sshws.me'
+cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 payloads = {'Host': cfront_domain}
 switch = { 'dir': '0', 'func': '0', 'sub': '0', 'opt': '0', 'nametag': 'ano' }
@@ -41,6 +41,13 @@ def pinger():
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
 		sleep(10)
 		pinger()
+
+def nametage():
+	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
+	nametag = input(' Output as : ')
+	print('')
+	switch['nametag']=f'{nametag}'
+	return
 
 def doma():
 	global frontdom
@@ -249,9 +256,10 @@ def wsee(domainlist,Resultee,Faily):
 	for domain in domainlist:
 		try:
 			if switch['opt']=='1':
-				cont = ssl._create_unverified_context()
+				cont = ssl.SSLContext(ssl.PROTOCOL_TLS)
 				sock = cont.wrap_socket(socket.socket(), server_hostname = domain)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+				sock.settimeout(10)
 				sock.connect((domain, 443))
 				if switch['sub']=='0':
 					sock.sendall(bytes(f'GET wss://{domain}/ HTTP/1.1\r\nHost: {domain}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n', encoding='utf-8'))
@@ -264,6 +272,7 @@ def wsee(domainlist,Resultee,Faily):
 			elif switch['opt']=='0':
 				sock = socket.socket()
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+				sock.settimeout(10)
 				sock.connect((domain, 80))
 				if switch['sub']=='0':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {domain}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
@@ -274,32 +283,30 @@ def wsee(domainlist,Resultee,Faily):
 				elif switch['sub']=='3':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 			line = str(sock.recv(13))
-			sock.close()
-			rege = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-			r = int(rege[0])
-			if r == expected_response:
+			r = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+			print(r)
+			if int(r[0]) == expected_response:
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
 				print(domain, file=open(f'{switch["nametag"]}.txt', 'a'))
 				with Resultee.get_lock():
 					Resultee.value +=1
-			elif r != expected_response:
+			elif int(r[0]) != expected_response:
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r) + ' '+colors.ENDC+']')
 				with Faily.get_lock():
 					Faily.value +=1
-		except (ssl.SSLError):
+		except (ssl.SSLError) as e:
+			traceback.print_exc()
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
+			print('')
 			with Faily.get_lock():
 				Faily.value +=1
 		except (socket.gaierror):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
-		except (socket.error):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' RESET '+colors.ENDC+']')
-			with Faily.get_lock():
-				Faily.value +=1
-		except IndexError:
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
+		except socket.error as e:
+			print(e)
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
 		except Exception as e:
@@ -307,7 +314,7 @@ def wsee(domainlist,Resultee,Faily):
 			traceback.print_exc()
 			pass
 
-def grabber(domainlist,nametag,Resultee,Faily):
+def grabber(domainlist,Resultee,Faily):
 	for domain in domainlist:
 		try:
 			if switch['opt']=='2':
@@ -325,7 +332,7 @@ def grabber(domainlist,nametag,Resultee,Faily):
 			rege = re.split(r'\n',commando)
 			if rege[0]==f'{expected_response}':
 				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + rege[1])
-				print(rege[1], file=open(f'{switch["name"]}.txt', 'a'))
+				print(rege[1], file=open(f'{switch["nametag"]}.txt', 'a'))
 				with Resultee.get_lock():
 					Resultee.value +=1
 			else:
@@ -396,7 +403,7 @@ __  _  ________ ____   ____
 		elif str(ansi)=='2':
 			switch['func']='0'
 			switch['opt']='0'
-		elif str(ansi)=='4':
+		elif str(ansi)=='3':
 			switch['func']='1'
 			switch['opt']='2'
 		elif str(ansi)=='4':
@@ -467,9 +474,7 @@ __  _  ________ ____   ____
 			if switch['sub']=='1':
 				doma()
 			filet()
-			print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
-			nametag = input(' Output as : ')
-			switch['nametag']=f'{nametag}'
+			nametage()
 			executor()
 			uinput()
 			text()
@@ -480,9 +485,7 @@ __  _  ________ ____   ____
 			if switch['sub']=='1':
 				doma()
 			csveat()
-			print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
-			nametag = input(' Output as : ')
-			switch['nametag']=f'{nametag}'
+			nametage()
 			executor()
 			uinput()
 			csv()
@@ -493,9 +496,7 @@ __  _  ________ ____   ____
 			if switch['sub']=='1':
 				doma()
 			hacki()
-			print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
-			nametag = input(' Output as : ')
-			switch['nametag']=f'{nametag}'
+			nametage()
 			executor()
 			uinput()
 			enum()
