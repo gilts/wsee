@@ -257,6 +257,8 @@ def wsee(domainlist,Resultee,Faily):
 		try:
 			if switch['opt']=='1':
 				cont = ssl.SSLContext(ssl.PROTOCOL_TLS)
+				cipher = (':ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
+				cont.set_ciphers(cipher)
 				sock = cont.wrap_socket(socket.socket(), server_hostname = domain)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				sock.settimeout(10)
@@ -284,28 +286,29 @@ def wsee(domainlist,Resultee,Faily):
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 			line = str(sock.recv(13))
 			r = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-			print(r)
-			if int(r[0]) == expected_response:
-				print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
-				print(domain, file=open(f'{switch["nametag"]}.txt', 'a'))
-				with Resultee.get_lock():
-					Resultee.value +=1
-			elif int(r[0]) != expected_response:
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r) + ' '+colors.ENDC+']')
+			if not r:
+				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
 				with Faily.get_lock():
 					Faily.value +=1
-		except (ssl.SSLError) as e:
-			traceback.print_exc()
+			else:
+				if int(r[0]) == expected_response:
+					print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
+					print(domain, file=open(f'{switch["nametag"]}.txt', 'a'))
+					with Resultee.get_lock():
+						Resultee.value +=1
+				elif int(r[0]) != expected_response:
+					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r) + ' '+colors.ENDC+']')
+					with Faily.get_lock():
+						Faily.value +=1
+		except(ssl.SSLError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
-			print('')
 			with Faily.get_lock():
 				Faily.value +=1
-		except (socket.gaierror):
+		except(socket.gaierror):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
-		except socket.error as e:
-			print(e)
+		except(socket.error):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
