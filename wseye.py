@@ -255,8 +255,9 @@ def wsee(domainlist,Resultee,Faily):
 	pinger()
 	for domain in domainlist:
 		try:
+			resu = []
 			if switch['opt']=='1':
-				cont = ssl.SSLContext(ssl.PROTOCOL_TLS)
+				cont = ssl.create_default_context()
 				cipher = (':ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 				cont.set_ciphers(cipher)
 				sock = cont.wrap_socket(socket.socket(), server_hostname = domain)
@@ -271,35 +272,52 @@ def wsee(domainlist,Resultee,Faily):
 					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nHost: {domain}\r\nUpgrade: h2\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 				elif switch['sub']=='3':
 					sock.sendall(bytes(f'GET h2://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+				line = str(sock.recv(13))
+				resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 			elif switch['opt']=='0':
-				sock = socket.socket()
-				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-				sock.settimeout(10)
-				sock.connect((domain, 80))
 				if switch['sub']=='0':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {domain}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
+					req = requests.get('http://' + domain, headers={'Connection':'Upgrade','Upgrade':'websocket','Sec-WebSocket-Key':'dXP3jD9Ipw0B2EmWrMDTEw==','Sec-WebSocket-Version':'13'}, timeout=10, allow_redirects=False, verify=False)
 				elif switch['sub']=='1':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-Websocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\n\r\n', encoding='utf-8'))
+					req = requests.get('http://' + domain, headers={'Host':f'{payloads["Host"]}','Connection':'Upgrade','Upgrade':'websocket','Sec-WebSocket-Key':'dXP3jD9Ipw0B2EmWrMDTEw==','Sec-WebSocket-Version':'13'}, timeout=10, allow_redirects=False, verify=False)
 				elif switch['sub']=='2':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {domain}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					req = requests.get('http://' + domain, headers={'Connection':'h2c, HTTP2-Settings','Upgrade':'h2c','HTTP2-Settings':''}, timeout=10, allow_redirects=False, verify=False)
 				elif switch['sub']=='3':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-			line = str(sock.recv(13))
-			r = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-			if not r:
+					req = requests.get('http://' + domain, headers={'Host':f'{payloads["Host"]}','Connection':'h2c, HTTP2-Settings','Upgrade':'h2c','HTTP2-Settings':''}, timeout=10, allow_redirects=False, verify=False)
+				resu.append(req.status_code)
+			if not resu:
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
 				with Faily.get_lock():
 					Faily.value +=1
 			else:
-				if int(r[0]) == expected_response:
-					print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain)
+				if int(resu[0]) == expected_response:
+					print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain + ' [' +colors.GREEN_BG+' ' + str(resu) + ' '+colors.ENDC+']')
 					print(domain, file=open(f'{switch["nametag"]}.txt', 'a'))
 					with Resultee.get_lock():
 						Resultee.value +=1
-				elif int(r[0]) != expected_response:
-					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r) + ' '+colors.ENDC+']')
+				elif int(resu[0]) != expected_response:
+					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(resu) + ' '+colors.ENDC+']')
 					with Faily.get_lock():
 						Faily.value +=1
+		except (Timeout, ReadTimeout, ConnectionError):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG +" TIMEOUT "+colors.ENDC+"]")
+			with Faily.get_lock():
+				Faily.value +=1
+			pass
+		except(ChunkedEncodingError):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" + colors.RED_BG+" Invalid Length "+colors.ENDC + "]")
+			with Faily.get_lock():
+				Faily.value +=1
+			pass
+		except(TooManyRedirects):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Redirects Loop "+colors.ENDC+"]")
+			with Faily.get_lock():
+				Faily.value +=1
+			pass
+		except(InvalidURL):
+			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid URL "+colors.ENDC+"]")
+			with Faily.get_lock():
+				Faily.value +=1
+			pass
 		except(ssl.SSLError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 			with Faily.get_lock():
