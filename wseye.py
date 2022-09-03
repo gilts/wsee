@@ -9,7 +9,6 @@ import os, fnmatch; os.system('clear')
 from time import sleep
 from collections import defaultdict
 from os.path import abspath, dirname
-from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process, cpu_count, Manager, Value
 from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
 
@@ -99,6 +98,8 @@ def filet():
 	num_file = 1
 	print('1. Check Files in Host Folder')
 	print('2. Check Files in Current Folder')
+	print('3. Check Files in Termux Host')
+	print('4. Check Files in Termux')
 	print('q to Quit')
 	print('m to Menu')
 	print('')
@@ -109,6 +110,12 @@ def filet():
 	elif ans=='2':
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
 		switch['dir']='1'
+	elif ans=='3':
+		files = os.listdir('./storage/shared/' + hostpath)
+		switch['dir']='2'
+	elif ans=='4':
+		files = os.listdir('./storage/shared/')
+		switch['dir']='3'
 	elif ans=='q':
 		exit()
 	elif ans=='m':
@@ -130,8 +137,12 @@ def filet():
 		direct = str(switch['dir'])
 		if direct == '0':
 			file_hosts = str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
-		else:
+		elif direct == '1':
 			file_hosts = str(txtfiles[int(fileselector)-1])
+		elif direct == '2':
+			file_hosts = './storage/shared/' + str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
+		elif direct == '3':
+			file_hosts = './storage/shared/' + str(txtfiles[int(fileselector)-1])
 	else:
 		menu()
 
@@ -148,6 +159,8 @@ def csveat():
 	num_file=1
 	print('1. Check Files in Host Folder')
 	print('2. Check Files in Current Folder')
+	print('3. Check Files in Termux Host')
+	print('4. Check Files in Termux')
 	print('q to Quit')
 	print('m to Menu')
 	print('')
@@ -158,6 +171,12 @@ def csveat():
 	elif ans=='2':
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
 		switch['dir']='1'
+	elif ans=='3':
+		files = os.listdir('./storage/shared/' + hostpath)
+		switch['dir']='2'
+	elif ans=='4':
+		files = os.listdir('./storage/shared/')
+		switch['dir']='3'
 	elif ans=='q':
 		exit()
 	elif ans=='m':
@@ -179,8 +198,12 @@ def csveat():
 		direct = str(switch['dir'])
 		if direct == '0':
 			file_hosts = str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
-		else:
+		elif direct == '1':
 			file_hosts = str(txtfiles[int(fileselector)-1])
+		elif direct == '2':
+			file_hosts = './storage/shared/' + str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
+		elif direct == '3':
+			file_hosts = './storage/shared/' + str(txtfiles[int(fileselector)-1])
 	else:
 		menu()
 
@@ -219,28 +242,6 @@ def executor():
 		print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 		print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 		return
-
-def Asyncutor():
-	try:
-		Faily=Value('i',0)
-		Resultee=Value('d',0)
-		num_cpus = cpu_count()
-		with ThreadPoolExecutor(max_workers=num_cpus) as executor:
-			if switch['isFunc']=='0':
-				executor.submit(tcp(domainlist,Resultee,Faily))
-			elif switch['isFunc']=='1':
-				executor.submit(sli(domainlist,Resultee,Faily))
-			else:
-				executor.submit(grabber(domainlist,Resultee,Faily))
-			executor.shutdown( cancel_futures = True )
-	except Exception as e:
-		print(e)
-		traceback.print_exc()
-		pass
-	print('')
-	print(' Failed Result : '  + colors.RED_BG + ' '+str(Faily.value) +' '+ colors.ENDC )
-	print(' Successfull Result : ' + colors.GREEN_BG + ' '+str(Resultee.value)+ ' '+colors.ENDC)
-	return
  
 def uinput():
 	global Faily, Resultee
@@ -302,6 +303,54 @@ def tcp(domainlist,Resultee,Faily):
 			print(" ["+colors.RED_BG+" FAIL "+colors.ENDC+"] " + domain + " [" +colors.RED_BG+" Invalid URL "+colors.ENDC+"]")
 			with Faily.get_lock():
 				Faily.value +=1
+		except Exception as e:
+			print(e)
+			traceback.print_exc()
+			pass
+
+def socp():
+	pinger()
+	for domain in domainlist:
+		try:
+			soct = socket.socket()
+			soct.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+			soct.connect((domain, 80))
+			if switch['isCDN']=='1':
+				sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+			elif switch['isCDN']=='0':
+				sock.sendall(bytes(f'GET {payloads["Scheme"]}://{domain}/ HTTP/1.1\r\nHost: {domain}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+			line = str(sock.recv(13))
+			resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+			if not resu:
+				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
+				with Faily.get_lock():
+					Faily.value +=1
+			else:
+				if int(resu[0]) == expected_response:
+					print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + domain + ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+					print(domain, file=open(f'{switch["nametag"]}.txt', 'a'))
+					with Resultee.get_lock():
+						Resultee.value +=1
+				elif int(resu[0]) != expected_response:
+					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+					with Faily.get_lock():
+						Faily.value +=1
+		except(ssl.SSLError):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
+		except(socket.gaierror):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
+		except(socket.error):
+			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
+			with Faily.get_lock():
+				Faily.value +=1
+		except Exception as e:
+			print(e)
+			traceback.print_exc()
+			pass
 
 def sli(domainlist,Resultee,Faily):
 	pinger()
