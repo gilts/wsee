@@ -4,6 +4,7 @@ import socket
 import traceback
 import subprocess
 import requests,re
+import dns.resolver
 import multiprocessing
 import os, fnmatch; os.system('clear')
 from time import sleep
@@ -231,7 +232,7 @@ def executor():
 			if switch['isFunc']=='0':
 				p = Process(target=tcp, args=(section,Resultee,Faily))
 			elif switch['isFunc']=='1':
-				p = Process(target=sli, args=(section,Resultee,Faily))
+				p = Process(target=socp, args=(section,Resultee,Faily))
 			else:
 				p = Process(target=grabber, args=(section,Resultee,Faily))
 			p.start()
@@ -308,18 +309,19 @@ def tcp(domainlist,Resultee,Faily):
 			traceback.print_exc()
 			pass
 
-def socp():
+def socp(domainlist,Resultee,Faily):
 	pinger()
 	for domain in domainlist:
 		try:
 			soct = socket.socket()
 			soct.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+			soct.settimeout(3)
 			soct.connect((domain, 80))
 			if switch['isCDN']=='1':
-				sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+				soct.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 			elif switch['isCDN']=='0':
-				sock.sendall(bytes(f'GET {payloads["Scheme"]}://{domain}/ HTTP/1.1\r\nHost: {domain}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-			line = str(sock.recv(13))
+				soct.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {domain}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+			line = str(soct.recv(13))
 			resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 			if not resu:
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
@@ -335,11 +337,12 @@ def socp():
 					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 					with Faily.get_lock():
 						Faily.value +=1
+			soct.close()
 		except(ssl.SSLError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
-		except(socket.gaierror):
+		except(socket.gaierror, socket.timeout):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
@@ -361,6 +364,7 @@ def sli(domainlist,Resultee,Faily):
 			cont.set_ciphers(cipher)
 			sock = cont.wrap_socket(socket.socket(), server_hostname = domain)
 			sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+			sock.settimeout(3)
 			sock.connect((domain, 443))
 			if switch['isCDN']=='1':
 				sock.sendall(bytes(f'GET {payloads["Scheme"]}://{domain}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
@@ -382,11 +386,12 @@ def sli(domainlist,Resultee,Faily):
 					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 					with Faily.get_lock():
 						Faily.value +=1
+			sock.close()
 		except(ssl.SSLError):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
-		except(socket.gaierror):
+		except(socket.gaierror, socket.timeout, dns.exception.Timeout):
 			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
 			with Faily.get_lock():
 				Faily.value +=1
