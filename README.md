@@ -1,16 +1,16 @@
 # wsee
-A CDN Domain Fronting Tool or Websocket Discovery / Finder / Checker Tool. Should work on any CDN but more focused on `CloudFlare` and `CloudFront` CDN.  This tool uses several way to make sure any endpoint can fall under specific protocol, indicated via `101` statuses. This tool also can be used for **Bug  Hunters** to find any delicate domain related to CDN behind Endpoint.
+A CDN Domain Fronting Tool or Websocket Discovery. Should work on any CDN but more focused on `CloudFlare` and `CloudFront` CDN.  This tool uses several way to make sure any endpoint can fall under specific protocol, indicated via `101` statuses. This tool also can be used for **Bug  Hunters** to find any delicate domain related to CDN behind Endpoint.
 
 ## Features
-- `wsee: to go` an Easy to use, scans whenever needed with Clean interactive Python script. Only require a minimal 3rd-party package, makes it usable accros any device that supports for ```python```. PS: Even work on ```Termux``` and ```WSL```.
-- A Fast domain queries using Multiprocessing to interlude all cpu cores, shorten your time.
-- Wait, Multiprocessing isn't enough? The new integration has offer `ThreadPool` as an alternative. 
+- `wsee: to go` an Easy to use, scans whenever needed with Clean interactive Python script. Usable across any device that supports for `python`. PS: Even work on `Termux` and `WSL`.
+- A Fast domain queries using `Multiprocessing` to interlude all cpu cores, shorten your time.
 - Has a `Local WebSocket` finder; that allows you to discover more websocket possibilities without `domain-fronting` restriction.
 - More vary technique such as `ZGrab` to accurately find more `Local Websocket` for your endpoint.
-- ***Don't have a wordlist?*** : `wsee` got you covered with `subdomain enumeration` feature using `HackerTarget` as source.
+- ***Don't have a wordlist?*** : `wsee` got you covered with `Online Subdomain Enumeration` feature using `HackerTarget` as source.
 - Accept `.csv` as wordlist, breaking the barrier of must used `.txt` and made it compatible for other Enumeration Tool Output.
+- Supports for Internal Storage for `Termux` users.
 - Supports for `ZGrab` tool dedicated in more `Local Websocket` discovery.
-- Supports for HTTP2 Protocol `H2` and `H2C` instead only websockets.
+- Supports for HTTP2 Protocol Upgrade indicated as `h2c`.
 - New Enhancement each Updates
 
 # How it works
@@ -38,15 +38,22 @@ nameserver 1.1.1.1
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 ```
+##### **Internal Storage**
+For Termux users; you can now takes input from Internal Storage. `Termux` is able to create a symlink to your storage from mounted `./storage/shared/`, you can negate manually using `custom path` or create `host` folder inside your phone storage. Make sure to create symlink first inside the Termux:
+```
+termux-setup-storage
+```
 
 # Installation
+`wsee` uses 3rd-party module, make sure to install `netaddr` and `requests` before running, or you can do it from scratch:
 ```
 apt install python3, python3-pip
 apt install git
 git clone https://github.com/MC874/wsee
 cd wsee
 chmod +x *
-./install.sh
+python3 -m pip install requests
+python3 -m pip install netaddr
 python3 wsee.py
 ```
 
