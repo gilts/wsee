@@ -29,8 +29,8 @@ class colors:
 
 def pinger():
 	try:
-		requ = requests.get("http://google.com")
-		if requ.status_code == 200:
+		requ = requests.get("http://zendesk4.grabtaxi.com", headers={'Host': cflare_domain, 'Connection': 'Upgrade', 'Upgrade': 'WebSocket', 'Sec-WebSocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Accept': 'GLWt4W8Ogwo6lmX9ZGa314RMRr0=', 'Sec-WebSocket-Version': '13')
+		if requ.status_code == expected_response:
 			return
 		elif requ.status_code != expected_response:
 			print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
@@ -261,13 +261,13 @@ def tcp(appendix,Resultee,Faily):
 				pass
 
 def socp(appendix,Resultee,Faily):
-	pinger()
 	while True:
 		onliner = appendix.get()
 		if onliner == 'ENDED':
 			break
 		else:	
 			try:
+				pinger()
 				soct = socket.socket()
 				soct.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				soct.settimeout(5)
@@ -311,13 +311,13 @@ def socp(appendix,Resultee,Faily):
 				pass
 
 def sli(appendix,Resultee,Faily):
-	pinger()
 	while True:
 		onliner = appendix.get()
 		if onliner == 'ENDED':
 			break
 		else:
 			try:
+				pinger()
 				cont = ssl.create_default_context()
 				cipher = (':ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 				cont.set_ciphers(cipher)
@@ -364,13 +364,13 @@ def sli(appendix,Resultee,Faily):
 				pass
 
 def grabber(appendix,Resultee,Faily):
-	pinger()
 	while True:
 		onliner = appendix.get()
 		if onliner == 'ENDED':
 			break
 		else:
 			try:
+				pinger()
 				if switch['isTLS']=='1':
 					if switch['isWS']=='1':
 						commando=f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
