@@ -16,8 +16,8 @@ from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEn
 expected_response = 101
 cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
-payloads = {'Host': '', 'Scheme': '', 'Grade': '', 'Conn': '', 'Key': '', 'Acc': '', 'Ver': ''}
-switch = { 'dir': '', 'isFunc': '', 'isCDN': '', 'isTLS': '', 'isWS': '', 'type': '', 'loc': '', 'nametag': 'result' }
+payloads = {'Host': '', 'Scheme': '', 'Grade': '', 'Conn': '', 'Key': '', 'Acc': '', 'Ver': '', 'SNI': '', 'Proxy': ''}
+switch = { 'dir': '', 'isFunc': '', 'isCDN': '', 'isTLS': '', 'isWS': '', 'type': '', 'loc': '', 'Rot': '', 'nametag': 'result'}
 hostpath = 'host'
 columns = defaultdict(list)
 txtfiles= []
@@ -56,6 +56,14 @@ def option():
 		payloads['Acc']=''
 		payloads['Ver']=''
 		payloads['Grade']='h2'
+	if switch['Rot']=='1':
+		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
+		prox = input(' Proxy : ')
+		payloads['Proxy']=prox
+	elif switch['Rot']=='2':
+		print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
+		bugger = input(' SNI : ')
+		payloads['SNI']=bugger
 	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
 	nametag = input(' Output as : ')
 	print('')
@@ -321,14 +329,31 @@ def sli(appendix,Resultee,Faily):
 				cont = ssl.create_default_context()
 				cipher = (':ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 				cont.set_ciphers(cipher)
-				sock = cont.wrap_socket(socket.socket(), server_hostname = onliner)
-				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-				sock.settimeout(5)
-				sock.connect((onliner, 443))
+				if switch['Rot']=='1':
+					sock = cont.wrap_socket(socket.socket(), server_hostname = onliner)
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					sock.settimeout(5)
+					sock.connect((f'{payloads['Proxy']}', 443))
+				elif switch['Rot']=='2':
+					sock = cont.wrap_socket(socket.socket(), server_hostname = f'{payloads['SNI']}')
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					sock.settimeout(5)
+					sock.connect((onliner, 443))
+				else:
+					sock = cont.wrap_socket(socket.socket(), server_hostname = onliner)
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					sock.settimeout(5)
+					sock.connect((onliner, 443))
 				if switch['isCDN']=='1':
-					sock.sendall(bytes(f'GET {payloads["Scheme"]}://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					if switch['Rot']=='2':
+						sock.sendall(bytes(f'GET {payloads["Scheme"]}://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					else:
+						sock.sendall(bytes(f'GET {payloads["Scheme"]}://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 				elif switch['isCDN']=='0':
-					sock.sendall(bytes(f'GET {payloads["Scheme"]}://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					if switch['Rot']=='2':
+						sock.sendall(bytes(f'GET {payloads["Scheme"]}://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					else:
+						sock.sendall(bytes(f'GET {payloads["Scheme"]}://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 				line = str(sock.recv(13))
 				resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 				if not resu:
@@ -424,7 +449,9 @@ __  _  ________ ____   ____
 	global headers, switch
 	if str(ans)=='1':
 		print('1. CDN SSL')
-		print('2. CDN Direct')
+		print('2. CDN SSL IP Rotate')
+		print('3. CDN SSL Host Rotate')
+		print('4. CDN Direct')
 		print('q to Quit')
 		print('m to Menu')
 		print('')
@@ -434,8 +461,16 @@ __  _  ________ ____   ____
 		switch['isWS']='1'
 		if str(ansi)=='1':
 			switch['isFunc']='1'
-		elif str(ansi)=='2':
+			switch['Rot']='0'
+		if str(ansi)=='2':
+			switch['isFunc']='1'
+			switch['Rot']='2'
+		if str(ansi)=='3':
+			switch['isFunc']='1'
+			switch['Rot']='1'
+		elif str(ansi)=='4':
 			switch['isFunc']='0'
+			switch['Rot']='0'
 		elif str(ansi)=='q':
 			exit()
 		else:
@@ -467,7 +502,9 @@ __  _  ________ ____   ____
 			menu()
 	elif str(ans)=='3':
 		print('1. H2 SSL')
-		print('2. H2C Direct')
+		print('2. H2 SSL IP Rotate')
+		print('3. H2 SSL Host Rotate')
+		print('4. H2C Direct')
 		print('q to Quit')
 		print('m to Menu')
 		print('')
@@ -477,8 +514,16 @@ __  _  ________ ____   ____
 		switch['isWS']='0'
 		if str(ansi)=='1':
 			switch['isFunc']='1'
+			switch['Rot']='0'
 		elif str(ansi)=='2':
+			switch['isFunc']='1'
+			switch['Rot']='2'
+		elif str(ansi)=='3':
+			switch['isFunc']='1'
+			switch['Rot']='1'
+		elif str(ansi)=='4':
 			switch['isFunc']='0'
+			switch['Rot']='0'
 		elif str(ansi)=='q':
 			exit()
 		else:
