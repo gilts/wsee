@@ -4,23 +4,24 @@ import socket
 import traceback
 import subprocess
 import requests,re
-import multiprocessing
 import os, fnmatch; os.system('clear')
 from time import sleep
 from threading import Thread
+from netaddr import IPNetwork
 from collections import defaultdict
 from os.path import abspath, dirname
 from multiprocessing import Process, Manager, Value, Queue, cpu_count
 from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
 
+hostpath = 'host'
 expected_response = 101
 cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
+
+txtfiles= []
 payloads = {'Host': '', 'Scheme': '', 'Grade': '', 'Conn': '', 'Key': '', 'Acc': '', 'Ver': '', 'SNI': '', 'Proxy': ''}
 switch = { 'dir': '', 'isFunc': '', 'isCDN': '', 'isTLS': '', 'isWS': '', 'type': '', 'loc': '', 'Rot': '', 'nametag': 'result'}
-hostpath = 'host'
 columns = defaultdict(list)
-txtfiles= []
 
 class colors:
 	RED_BG = '\033[41m\033[1m'
@@ -29,7 +30,7 @@ class colors:
 
 def pinger():
 	try:
-		requ = requests.get("http://zendesk4.grabtaxi.com", headers={'Host': cflare_domain, 'Connection': 'Upgrade', 'Upgrade': 'WebSocket', 'Sec-WebSocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Accept': 'GLWt4W8Ogwo6lmX9ZGa314RMRr0=', 'Sec-WebSocket-Version': '13')
+		requ = requests.get("http://zendesk4.grabtaxi.com", headers={'Host': cflare_domain, 'Connection': 'Upgrade', 'Upgrade': 'WebSocket', 'Sec-WebSocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Accept': 'GLWt4W8Ogwo6lmX9ZGa314RMRr0=', 'Sec-WebSocket-Version': '13'})
 		if requ.status_code == expected_response:
 			return
 		elif requ.status_code != expected_response:
@@ -107,6 +108,8 @@ def filet():
 	print('2. Check Files in Current Folder')
 	print('3. Check Files in Termux Host')
 	print('4. Check Files in Termux')
+	print('5. CloudFlare CIDR')
+	print('6. CloudFront CIDR')
 	print('q to Quit')
 	print('m to Menu')
 	print('')
@@ -123,6 +126,12 @@ def filet():
 	elif ans=='4':
 		files = os.listdir('./storage/shared/')
 		switch['dir']='3'
+	elif ans=='5':
+		print(' [' + colors.RED_BG + ' This Feature is not Implemented yet... ' + colors.ENDC + '] ')
+		menu()
+	elif ans=='6':
+		print(' [' + colors.RED_BG + ' This Feature is not Implemented yet... ' + colors.ENDC + '] ')
+		menu()
 	elif ans=='q':
 		exit()
 	elif ans=='m':
@@ -333,9 +342,9 @@ def sli(appendix,Resultee,Faily):
 					sock = cont.wrap_socket(socket.socket(), server_hostname = onliner)
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.settimeout(5)
-					sock.connect((f'{payloads['Proxy']}', 443))
+					sock.connect((f'{payloads["Proxy"]}', 443))
 				elif switch['Rot']=='2':
-					sock = cont.wrap_socket(socket.socket(), server_hostname = f'{payloads['SNI']}')
+					sock = cont.wrap_socket(socket.socket(), server_hostname = f'{payloads["SNI"]}')
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.settimeout(5)
 					sock.connect((onliner, 443))
@@ -398,14 +407,14 @@ def grabber(appendix,Resultee,Faily):
 				pinger()
 				if switch['isTLS']=='1':
 					if switch['isWS']=='1':
-						commando=f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+						commando=f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 					elif switch['isWS']=='0':
-						commando=f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+						commando=f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 				elif switch['isTLS']=='0':
 					if switch['isWS']=='1':
-						commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+						commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 					elif switch['isWS']=='0':
-						commando =f"echo {domain} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+						commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 				commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 				commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 				rege = re.split(r'\n',commando)
@@ -415,13 +424,13 @@ def grabber(appendix,Resultee,Faily):
 					with Resultee.get_lock():
 						Resultee.value +=1
 				else:
-					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain)
+					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner)
 					with Faily.get_lock():
 						Faily.value +=1
 			except Exception as e:
 				print(e)
 				traceback.print_exc()
-				print(' [' + colors.RED_BG+'Check Your ZGrab Installation!'+colors.ENDC+'] ' + domain)
+				print(' [' + colors.RED_BG+'Check Your ZGrab Installation!'+colors.ENDC+'] ' + onliner)
 				menu()
 
 def menu():
