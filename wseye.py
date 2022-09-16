@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+
+'''
+Licensed Under Apache 2.0
+Copyright (C) MC874
+All rights Reserved
+
+Commits preserved free as is;
+Permitted for Commercial Use or Private use.
+With other Circumstances such as free Distribution and Modification.
+All the state bounds with Conditions.
+
+Following states, it's conditions to indicate the changes
+As well mention it's License use and Copyright holders.
+
+Heavily forbid Trademark act.
+Provides NO WARRANTY; implies 'WITHOUT' it's related such as MERCHANTABILITY.
+Derived details <https://www.apache.org/licenses/LICENSE-2.0>
+'''
+
 import csv
 import ssl
 import socket
@@ -179,7 +199,7 @@ def executor():
 				with open(switch['loc'], 'r') as f:
 					for liner in f:
 						appendix.put(liner.strip())
-			else:
+			elif switch['type']=='csv':
 				with open(switch['loc'], 'r') as f:
 					reader = csv.reader(csv_file)
 					for row in reader:
@@ -196,7 +216,7 @@ def executor():
 				p = Process(target=socp, args=(appendix,Resultee,Faily))
 			elif switch['isFunc']=='1':
 				p = Process(target=sli, args=(appendix,Resultee,Faily))
-			else:
+			elif switch['isFunc']=='2':
 				p = Process(target=grabber, args=(appendix,Resultee,Faily))
 			p.start()
 			processes.append(p)
@@ -217,12 +237,12 @@ def uinput():
 	print('3. Quit Instead')
 	print('')
 	ans=input('Choose Option: ')
-	if ans=='2':
+	if ans=='1':
+		menu()
+	elif ans=='2':
 		return
 	elif ans=='3':
 		exit()
-	else:
-		menu()
 
 def hacki():
 	global domainlist, subd
@@ -252,7 +272,7 @@ def tcp(appendix,Resultee,Faily):
 					print(domain, file=open(f'{switch["nametag"]}.txt', 'a'))
 					with Resultee.get_lock():
 						Resultee.value +=1
-				else:
+				elif r.status_code != expected_response:
 					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + domain + ' [' +colors.RED_BG+' ' + str(r.status_code) + ' '+colors.ENDC+']')
 					with Faily.get_lock():
 						Faily.value +=1
@@ -348,7 +368,7 @@ def sli(appendix,Resultee,Faily):
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.settimeout(5)
 					sock.connect((onliner, 443))
-				else:
+				elif switch['Rot']=='0':
 					sock = cont.wrap_socket(socket.socket(), server_hostname = onliner)
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.settimeout(5)
@@ -423,7 +443,7 @@ def grabber(appendix,Resultee,Faily):
 					print(rege[1], file=open(f'{switch["nametag"]}.txt', 'a'))
 					with Resultee.get_lock():
 						Resultee.value +=1
-				else:
+				elif rege[0]!=f'{expected_response}':
 					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner)
 					with Faily.get_lock():
 						Faily.value +=1
@@ -482,7 +502,7 @@ __  _  ________ ____   ____
 			switch['Rot']='0'
 		elif str(ansi)=='q':
 			exit()
-		else:
+		elif str(ansi)=='m':
 			menu()
 	elif str(ans)=='2':
 		print('1. Local SSL')
@@ -507,7 +527,7 @@ __  _  ________ ____   ____
 			switch['isTLS']='0'
 		elif str(ansi)=='q':
 			exit()
-		else:
+		elif str(ansi)=='m':
 			menu()
 	elif str(ans)=='3':
 		print('1. H2 SSL')
@@ -535,7 +555,7 @@ __  _  ________ ____   ____
 			switch['Rot']='0'
 		elif str(ansi)=='q':
 			exit()
-		else:
+		elif str(ansi)=='m':
 			menu()
 	elif str(ans)=='4':
 		print('1. Local H2C SSL')
@@ -560,9 +580,9 @@ __  _  ________ ____   ____
 			switch['isTLS']='0'
 		elif str(ansi)=='q':
 			exit()
-		else:
+		elif str(ansi)=='m':
 			menu()
-	else:
+	elif str(ans)=='q':
 		exit()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
@@ -595,7 +615,7 @@ __  _  ________ ____   ____
 		enum()
 	elif str(opsi)=='m':
 		menu()
-	else:
+	elif str(opsi)=='q':
 		exit()
 
 if __name__ == '__main__':
