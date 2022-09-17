@@ -14,7 +14,7 @@ Following states, it's conditions to indicate the changes
 As well mention it's License use and Copyright holders.
 
 Heavily forbid Trademark act.
-Provides NO WARRANTY; implies 'WITHOUT' it's related such as MERCHANTABILITY.
+Provides NO WARRANTY; implies 'WITHOUT' to all it's related such as MERCHANTABILITY.
 Derived details <https://www.apache.org/licenses/LICENSE-2.0>
 '''
 
@@ -157,7 +157,9 @@ def filet():
 	elif ans=='m':
 		menu()
 	else:
-		filet()
+		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+		print('')
+		menu()
 	print(' [' + colors.RED_BG + ' Files Found ' + colors.ENDC + '] ')
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
@@ -195,6 +197,7 @@ def executor():
 		Faily=Value('i',0)
 		Resultee=Value('d',0)
 		def filement():
+			pinger()
 			if switch['type']=='txt':
 				with open(switch['loc'], 'r') as f:
 					for liner in f:
@@ -243,6 +246,10 @@ def uinput():
 		return
 	elif ans=='3':
 		exit()
+	else:
+		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+		print('')
+		menu()
 
 def hacki():
 	global domainlist, subd
@@ -491,10 +498,10 @@ __  _  ________ ____   ____
 		if str(ansi)=='1':
 			switch['isFunc']='1'
 			switch['Rot']='0'
-		if str(ansi)=='2':
+		elif str(ansi)=='2':
 			switch['isFunc']='1'
 			switch['Rot']='2'
-		if str(ansi)=='3':
+		elif str(ansi)=='3':
 			switch['isFunc']='1'
 			switch['Rot']='1'
 		elif str(ansi)=='4':
@@ -503,6 +510,10 @@ __  _  ________ ____   ____
 		elif str(ansi)=='q':
 			exit()
 		elif str(ansi)=='m':
+			menu()
+		else:
+			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+			print('')
 			menu()
 	elif str(ans)=='2':
 		print('1. Local SSL')
@@ -528,6 +539,10 @@ __  _  ________ ____   ____
 		elif str(ansi)=='q':
 			exit()
 		elif str(ansi)=='m':
+			menu()
+		else:
+			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+			print('')
 			menu()
 	elif str(ans)=='3':
 		print('1. H2 SSL')
@@ -557,11 +572,16 @@ __  _  ________ ____   ____
 			exit()
 		elif str(ansi)=='m':
 			menu()
+		else:
+			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+			print('')
+			menu()
 	elif str(ans)=='4':
 		print('1. Local H2C SSL')
 		print('2. Local H2C Direct')
 		print('3. Local H2C SSL ZGrab')
 		print('3. Local H2C Direct ZGrab')
+		print('m to Menu')
 		print('q to Quit')
 		print('')
 		ansi=input(' Choose Option : ')
@@ -581,6 +601,10 @@ __  _  ________ ____   ____
 		elif str(ansi)=='q':
 			exit()
 		elif str(ansi)=='m':
+			menu()
+		else:
+			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+			print('')
 			menu()
 	elif str(ans)=='q':
 		exit()
@@ -617,6 +641,10 @@ __  _  ________ ____   ____
 		menu()
 	elif str(opsi)=='q':
 		exit()
+	else:
+		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+		print('')
+		menu()
 
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
