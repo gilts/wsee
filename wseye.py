@@ -91,6 +91,12 @@ def option():
 	switch['nametag']=f'{nametag}'
 	return
 
+def cehcker():
+	resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+	if parse_version(resp.text) > parse_version("1.10.0"):
+		print('[' + colors.GREEN_BG + ' Update Available ' + ']')
+		return
+
 def doma():
 	global frontdom
 	print('1. Custom Domain')
@@ -209,6 +215,8 @@ def executor():
 						for (i,v) in enumerate(row):
 							columns[i].append(v)
 					appendix.put(columns[9]+columns[3])
+			elif switch['type']=='enum':
+				apppendix.put(domainlist)
 			for i in range(procount):
 				appendix.put('ENDED')
 		filament = Thread(target=filement)
@@ -259,6 +267,7 @@ def hacki():
 	if r.text == 'error invalid host':
 		exit('ERR: error invalid host')
 	else:
+		switch['type']='enum'
 		domainlist = re.findall('(.*?),',r.text)
 		return
 
