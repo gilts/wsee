@@ -1,5 +1,5 @@
 # wsee
-A CDN Domain Fronting Tool or Websocket Discovery. Should work on any CDN but more focused on `CloudFlare` and `CloudFront` CDN.  This tool uses several way to make sure any endpoint can fall under specific protocol, indicated via `101` statuses. This tool also can be used for **Bug  Hunters** to find any delicate domain related to CDN behind Endpoint.
+A CDN Domain Fronting Tool or Websocket Discovery. Should work on any CDN but more focused on `CloudFlare` and `CloudFront` CDN.  This tool provides multiple technique to ensure target endpoint can fall under specific protocol, indicated via `101` statuses. Can be used for **Bug  Hunters** to find any delicate domain related to CDN behind Endpoint.
 
 ## Features
 - `wsee: to go` an Easy to use, scans whenever needed with Clean interactive Python script. Usable across any device that supports for `python`. PS: Even work on `Termux` and `WSL`.
@@ -11,6 +11,7 @@ A CDN Domain Fronting Tool or Websocket Discovery. Should work on any CDN but mo
 - Supports for Internal Storage for `Termux` users.
 - Supports for `ZGrab` tool dedicated in more `Local Websocket` discovery.
 - Supports for HTTP2 Protocol Upgrade indicated as `h2c`.
+- New `Rotate` Mode feature; Now you can rotate `proxy` and `hostname` individually. This is useful if the target only accept specific proxy or ssl masking.
 - New Enhancement each Updates
 
 # How it works
@@ -32,7 +33,7 @@ export OPENSSL_CONF=/openssl.cnf
 ```
 ### CloudFlare DNS
 nameserver 1.1.1.1
-nameserver 1.1.1.1
+nameserver 1.0.0.1
 
 ### Google DNS
 nameserver 8.8.8.8
@@ -45,7 +46,7 @@ termux-setup-storage
 ```
 
 # Installation
-`wsee` uses 3rd-party module, make sure to install `netaddr` and `requests` before running, or you can do it from scratch:
+`wsee` uses 3rd-party module, make sure to install `netaddr` and `requests` before running, or else:
 ```
 apt install python3, python3-pip
 apt install git
@@ -60,7 +61,7 @@ python3 wsee.py
 # Credit
 This Repo is build on top of other works, i'm not a jerk that steals other people work.
 - Thanks to [@fdxreborn](https://github.com/fdxreborn) for letting me to enhance his tools. This Repo is built on top of his awesome works at [cfchecker](https://github.com/fdxreborn/cfchecker)
-- Also thanks [@PalindromeLabs](https://github.com/PalindromeLabs) for ZGrab uses in Websocket Discovery. This repo borrows some material from [STEWS: Security Testing and Enumeration of WebSockets](https://github.com/PalindromeLabs/STEWS)
+- Also thanks to [@PalindromeLabs](https://github.com/PalindromeLabs) for ZGrab uses in Websocket Discovery. This repo borrows some material from [STEWS: Security Testing and Enumeration of WebSockets](https://github.com/PalindromeLabs/STEWS)
 
 You can also support my work by offering me some free Doughnut xD:
 https://saweria.co/mc874
