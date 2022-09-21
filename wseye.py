@@ -62,6 +62,23 @@ def pinger():
 		sleep(10)
 		pinger()
 
+def checker():
+	resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+	print(resp.text)
+	if parse_version(resp.text) > parse_version("1.10.0"):
+		print('[' + colors.GREEN_BG + ' Update Available ' + ']')
+		print('1) Ignore Update')
+		print('2) Apply Update')
+		opt=input(' Choose : ')
+		if str(ans)=='1':
+			return
+		elif str(ans)=='2':
+			upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
+			with open('wsee.py', 'a') as pd:
+				pd.write(upd.text)
+	else:
+		return
+
 def option():
 	if switch['isWS']=='1':
 		payloads['Scheme']='wss'
@@ -90,12 +107,6 @@ def option():
 	print('')
 	switch['nametag']=f'{nametag}'
 	return
-
-def cehcker():
-	resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-	if parse_version(resp.text) > parse_version("1.10.0"):
-		print('[' + colors.GREEN_BG + ' Update Available ' + ']')
-		return
 
 def doma():
 	global frontdom
@@ -659,4 +670,5 @@ if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
 	if not os.path.exists(hostpath):
 		os.makedirs(hostpath)
+	checker()
 	menu()
