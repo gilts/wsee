@@ -20,6 +20,7 @@ Derived details <https://www.apache.org/licenses/LICENSE-2.0>
 
 import csv
 import ssl
+import json
 import socket
 import traceback
 import subprocess
@@ -30,6 +31,7 @@ from threading import Thread
 from netaddr import IPNetwork
 from collections import defaultdict
 from os.path import abspath, dirname
+from pkg_resources import parse_version
 from multiprocessing import Process, Manager, Value, Queue, cpu_count
 from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
 
@@ -63,21 +65,25 @@ def pinger():
 		pinger()
 
 def checker():
-	resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-	print(resp.text)
-	if parse_version(resp.text) > parse_version("1.10.0"):
-		print('[' + colors.GREEN_BG + ' Update Available ' + ']')
-		print('1) Ignore Update')
-		print('2) Apply Update')
-		opt=input(' Choose : ')
-		if str(ans)=='1':
-			return
-		elif str(ans)=='2':
-			upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
-			with open('wsee.py', 'a') as pd:
-				pd.write(upd.text)
-	else:
-		return
+	try:
+		with open('.wsee/CONFIG') as f:
+			data = json.load(f)
+			if data['config']['update-wsee'] == True:
+				resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+				if parse_version(resp.text) > parse_version("1.10.0"):
+					print('[' + colors.GREEN_BG + ' Update Available ' + ']')
+					print('1) Ignore Update')
+					print('2) Apply Update')
+					opt=input(' Choose : ')
+					if str(ans)=='2':
+						os.remove('wsee.py')
+						upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
+						with open('wsee.py', 'a') as pd:
+							pd.write(upd.text)
+							pd.close()
+							f.close()
+	finally:
+		f.close()
 
 def option():
 	if switch['isWS']=='1':
