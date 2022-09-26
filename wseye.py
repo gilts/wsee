@@ -65,25 +65,35 @@ def pinger():
 		pinger()
 
 def checker():
-	try:
-		with open('.wsee/CONFIG') as f:
-			data = json.load(f)
-			if data['config']['update-wsee'] == True:
-				resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-				if parse_version(resp.text) > parse_version("1.10.0"):
-					print('[' + colors.GREEN_BG + ' Update Available ' + ']')
-					print('1) Ignore Update')
-					print('2) Apply Update')
-					opt=input(' Choose : ')
-					if str(ans)=='2':
-						os.remove('wsee.py')
-						upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
-						with open('wsee.py', 'a') as pd:
-							pd.write(upd.text)
-							pd.close()
-							f.close()
-	finally:
-		f.close()
+	print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
+	with open('.wsee/CONFIG') as f:
+		data = json.load(f)
+		if data['config']['update-wsee'] == True:
+			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+			if parse_version(resp.text) > parse_version("1.10.0"):
+				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
+				print('1) Ignore Update')
+				print('2) Apply Update')
+				opt=input(' Choose : ')
+				if str(ans)=='2':
+					os.remove('wsee.py')
+					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
+					with open('wsee.py', 'a') as pd:
+						pd.write(upd.text)
+						pd.close()
+						f.close()
+					print('[' + colors.GREEN_BG + ' Updated! ' + colors.ENDC + ']')
+					exit()
+				else:
+					f.close()
+					return
+			else:
+				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
+				f.close()
+				return
+		else:
+			f.close()
+			return
 
 def option():
 	if (switch['proto']=='0') or (switch['proto']=='1'):
@@ -238,6 +248,8 @@ def executor():
 				appendix.put('ENDED')
 		filament = Thread(target=filement)
 		filament.start()
+		pingu = Thread(target=pinger)
+		pingu.start()
 		processes = []
 		for process_num in range(procount):
 			if switch['bloc']=='0':
@@ -249,6 +261,7 @@ def executor():
 		for p in processes:
 			p.join()
 		filament.join()
+		pingu.join()
 		print('')
 		print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 		print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
