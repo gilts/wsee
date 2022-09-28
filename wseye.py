@@ -65,10 +65,10 @@ def pinger():
 		pinger()
 
 def checker():
-	print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
 	with open('.wsee/CONFIG') as f:
 		data = json.load(f)
 		if data['config']['update-wsee'] == True:
+			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
 			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
 			if parse_version(resp.text) > parse_version("1.10.0"):
 				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
@@ -80,15 +80,19 @@ def checker():
 					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
 					with open('wsee.py', 'a') as pd:
 						pd.write(upd.text)
+						print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 						pd.close()
 						f.close()
 					print('[' + colors.GREEN_BG + ' Updated! ' + colors.ENDC + ']')
 					exit()
 				else:
+					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 					f.close()
 					return
 			else:
 				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
+				sleep(3)
+				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 				f.close()
 				return
 		else:
@@ -277,14 +281,17 @@ def uinput():
 	print('')
 	ans=input('Choose Option: ')
 	if ans=='1':
+		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 		menu()
 	elif ans=='2':
+		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 		return
 	elif ans=='3':
 		exit()
 	else:
 		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 		print('')
+		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 		menu()
 
 def hacki():
