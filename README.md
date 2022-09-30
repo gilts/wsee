@@ -59,7 +59,7 @@ Latest releases introduce auto-update feature. It's a small feature but you're n
 ```
 apt install python3, python3-pip
 apt install git
-git clone https://github.com/MC874/wsee
+git clone https://github.com/MC189/wsee
 cd wsee
 chmod +x *
 python3 -m pip install requests
