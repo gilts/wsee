@@ -41,9 +41,10 @@ cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
+columns = defaultdict(list)
 payloads = {'Host': '', 'Scheme': '', 'Grade': '', 'Conn': '', 'Key': '', 'Acc': '', 'Ver': '', 'SNI': '', 'Proxy': ''}
 switch = { 'bloc': '', 'crt': '', 'rot': '', 'proto': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
-columns = defaultdict(list)
+cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
 class colors:
 	RED_BG = '\033[41m\033[1m'
@@ -314,38 +315,47 @@ def engine(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				cont = ssl.create_default_context()
-				cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
-				cont.set_ciphers(cipher)
 				sock = socket.socket()
 				if switch['crt']=='1':
-					if switch['rot']=='1':
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
-						sock.connect((f'{payloads["Proxy"]}', 443))
-					elif switch['rot']=='2':
-						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
-						sock.connect((onliner, 443))
+					print('Using SSL')
+					cont = ssl.create_default_context()
+					cont.set_ciphers(cipher)
+					sock = cont.wrap_socket(sock, server_hostname = onliner)
+					sock.connect((onliner, 443))
+					if (switch['rot']=='1') or (switch['rot']=='2'):
+						print('Route to Rotate 1/2')
+						if switch['rot']=='1':
+							print('Rotate 1 Host')
+							sock = cont.wrap_socket(sock, server_hostname = onliner)
+							sock.connect((f'{payloads["Proxy"]}', 443))
+						elif switch['rot']=='2':
+							print('Rotate 2 Proxy')
+							sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
+							sock.connect((onliner, 443))
+						if switch['proto']=='2':
+							print('Proto 2 H2 CDN')
+							sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+						elif switch['proto']=='0':
+							print('Proto 0 WS CDN')
+							sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
 					elif switch['rot']=='0':
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
-						sock.connect((onliner, 443))
-					if (switch['proto']=='0') or (switch['proto']=='2'):
-						if switch['rot']=='2':
-							sock.sendall(bytes(f'GET {payloads["Scheme"]}://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-						else:
-							sock.sendall(bytes(f'GET {payloads["Scheme"]}://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-					elif (switch['proto']=='1') or (switch['proto']=='3'):
-						print('Proto 3 - 1')
-						if switch['rot']=='2':
-							sock.sendall(bytes(f'GET {payloads["Scheme"]}://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-						else:
-							sock.sendall(bytes(f'GET {payloads["Scheme"]}://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+						print('Route to Normal')
+						if switch['proto']=='2':
+							print('Proto 2 H2 CDN')
+							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+						elif switch['proto']=='0':
+							print('Proto 0 WS CDN')
+							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
 				elif switch['crt']=='0':
-					print('Using Direct/Proxy')
-					sock.connect((f'{onliner}', 80))
-					if (switch['proto']=='0') or (switch['proto']=='2'):
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-					elif (switch['proto']=='1') or (switch['proto']=='3'):
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: {payloads["Grade"]}\r\nConnection: {payloads["Conn"]}\r\nSec-WebSocket-Key: {payloads["Key"]}\r\nSec-WebSocket-Version: {payloads["Ver"]}\r\nSec-Websocket-Accept: {payloads["Acc"]}\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					sock.connect((onliner, 80))
+					if switch['proto']=='2':
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					elif switch['proto']=='0':
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
+				if switch['proto']=='3':		
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+				elif switch['proto']=='1':
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
 				sock.settimeout(5)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				line = str(sock.recv(13))
