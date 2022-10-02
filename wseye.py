@@ -42,7 +42,7 @@ cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
 columns = defaultdict(list)
-payloads = {'Host': '', 'Scheme': '', 'Grade': '', 'Conn': '', 'Key': '', 'Acc': '', 'Ver': '', 'SNI': '', 'Proxy': ''}
+payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
 switch = { 'bloc': '', 'crt': '', 'rot': '', 'proto': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
@@ -101,20 +101,6 @@ def checker():
 			return
 
 def option():
-	if (switch['proto']=='0') or (switch['proto']=='1'):
-		payloads['Scheme']='wss'
-		payloads['Conn']='Upgrade'
-		payloads['Key']='dXP3jD9Ipw0B2EmWrMDTEw=='
-		payloads['Acc']='GLWt4W8Ogwo6lmX9ZGa314RMRr0='
-		payloads['Ver']='13'
-		payloads['Grade']='websocket'
-	elif (switch['proto']=='2') or (switch['proto']=='3'):
-		payloads['Scheme']='h2'
-		payloads['Conn']='Upgrade, HTTP2-Settings'
-		payloads['Key']=''
-		payloads['Acc']=''
-		payloads['Ver']=''
-		payloads['Grade']='h2'
 	if switch['rot']=='1':
 		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
 		prox = input(' Proxy : ')
@@ -166,8 +152,6 @@ def filet():
 	print('2. Check Files in Current Folder')
 	print('3. Check Files in Termux Host')
 	print('4. Check Files in Termux')
-	print('5. CloudFlare CIDR')
-	print('6. CloudFront CIDR')
 	print('q to Quit')
 	print('m to Menu')
 	print('')
@@ -184,12 +168,6 @@ def filet():
 	elif ans=='4':
 		files = os.listdir('./storage/shared/')
 		switch['dir']='3'
-	elif ans=='5':
-		print(' [' + colors.RED_BG + ' This Feature is not Implemented yet... ' + colors.ENDC + '] ')
-		menu()
-	elif ans=='6':
-		print(' [' + colors.RED_BG + ' This Feature is not Implemented yet... ' + colors.ENDC + '] ')
-		menu()
 	elif ans=='q':
 		exit()
 	elif ans=='m':
@@ -322,7 +300,7 @@ def engine(appendix,Resultee,Faily):
 					cont.set_ciphers(cipher)
 					sock = cont.wrap_socket(sock, server_hostname = onliner)
 					sock.connect((onliner, 443))
-					if (switch['rot']=='1') or (switch['rot']=='2'):
+					if 1 <= int(switch['proto']) < 2:
 						print('Route to Rotate 1/2')
 						if switch['rot']=='1':
 							print('Rotate 1 Host')
@@ -356,6 +334,8 @@ def engine(appendix,Resultee,Faily):
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 				elif switch['proto']=='1':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
+				elif 4 <= int(switch['proto']) < 5:
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n', encoding='utf-8'))
 				sock.settimeout(5)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				line = str(sock.recv(13))
@@ -365,12 +345,23 @@ def engine(appendix,Resultee,Faily):
 					with Faily.get_lock():
 						Faily.value +=1
 				else:
-					if int(resu[0]) == expected_response:
-						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						print(onliner, file=open(f'{switch["nametag"]}.txt', 'a'))
-						with Resultee.get_lock():
-							Resultee.value +=1
-					elif int(resu[0]) != expected_response:
+					if 0 <= int(switch['proto']) < 3:
+						if int(resu[0]) == expected_response:
+							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(onliner, file=open(f'{switch["nametag"]}.txt', 'a'))
+							with Resultee.get_lock():
+								Resultee.value +=1
+						elif int(resu[0]) != expected_response:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						with Faily.get_lock():
+							Faily.value +=1
+					else:
+						if int(resu[0]) == 200:
+							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(onliner, file=open(f'{switch["nametag"]}.txt', 'a'))
+							with Resultee.get_lock():
+								Resultee.value +=1
+						elif int(resu[0]) != 200:
 						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
@@ -444,8 +435,10 @@ __  _  ________ ____   ____
 
 	print('1. CDN Websocket')
 	print('2. Local Websocket')
-	print('3. H2C Socket')
-	print('4. Local H2C Socket')
+	print('3. CDN H2C')
+	print('4. Local H2C')
+	print('5. TLS/SSL')
+	print('6. Direct/Proxy')
 	print('q to Quit')
 	print('')
 	ans=input(' Choose Option : ').lower()
@@ -577,10 +570,24 @@ __  _  ________ ____   ____
 			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 			print('')
 			menu()
+	elif str(ans)=='4':
+		switch['proto']='4'
+		switch['bloc']='0'
+		switch['crt']='1'
+		switch['rot']='0'
+	elif str(ans)=='5':
+		switch['proto']='5'
+		switch['bloc']='0'
+		switch['crt']='0'
+		switch['rot']='0'
 	elif str(ans)=='q':
 		exit()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
+	print('3. CloudFlare CIDR')
+	print('4. CloudFront CIDR')
+	print('5. Telkomsel CIDR')
+	print('6. XL Axiata CIDR')
 	print('Q to Quit')
 	print('M to Menu')
 	print('')
@@ -612,6 +619,8 @@ __  _  ________ ____   ____
 		menu()
 	elif str(opsi)=='q':
 		exit()
+	elif 3 <= int(opsi) < 6:
+		print(' [' + colors.RED_BG + ' This Feature is not Implemented yet... ' + colors.ENDC + '] ')
 	else:
 		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 		print('')
