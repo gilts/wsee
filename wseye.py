@@ -75,8 +75,8 @@ def checker():
 				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
 				print('1) Ignore Update')
 				print('2) Apply Update')
-				opt=input(' Choose : ')
-				if str(ans)=='2':
+				ans=input(' Choose : ')
+				if ans=='2':
 					os.remove('wsee.py')
 					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
 					with open('wsee.py', 'a') as pd:
@@ -116,31 +116,30 @@ def option():
 	return
 
 def doma():
-	global frontdom
 	print('1. Custom Domain')
 	print('2. Default CloudFront')
 	print('3. Default CloudFlare')
 	print('Q to Quit')
 	print('M to Menu')
 	print('')
-	ansi=input(' Choose Option : ').lower()
+	ans=input(' Choose Option : ').lower()
 	print('')
-	if str(ansi)=='1':
+	if ans=='1':
 		domain=input(' Domain : ')
 		payloads['Host']=f'{domain}'
-	elif str(ansi)=='2':
+	elif ans=='2':
 		payloads['Host']=f'{cfront_domain}'
-	elif str(ansi)=='3':
+	elif ans=='3':
 		payloads['Host']=f'{cflare_domain}'
-	elif str(ansi)=='q':
+	elif ans=='q':
 		exit()
-	elif str(ansi)=='m':
+	elif ans=='m':
 		menu()
 	else:
 		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 		print('')
 		menu()
-	frontdom = str(payloads['Host'])
+	frontdom = payloads['Host']
 	print('['+colors.GREEN_BG + f' {frontdom} '+ colors.ENDC + '] Selected as Domain Fronting!')
 	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
 	print('')
@@ -191,7 +190,7 @@ def filet():
 	if fileselector.isdigit():
 		print('')
 		print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(fileselector)-1]+' '+colors.ENDC)
-		direct = str(switch['dir'])
+		direct = switch['dir']
 		if direct == '0':
 			file_hosts = str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
 		elif direct == '1':
@@ -251,7 +250,6 @@ def executor():
 		return
  
 def uinput():
-	global Faily, Resultee
 	print('')
 	print('Scanning Finished!')
 	print('1. Go Back to Menu')
@@ -274,7 +272,7 @@ def uinput():
 		menu()
 
 def hacki():
-	global domainlist, subd
+	global domainlist
 	subd = input('\nInput Domain: ')
 	subd = subd.replace('https://','').replace('http://','')
 	r = requests.get('https://api.hackertarget.com/hostsearch/?q=' + subd, allow_redirects=False)
@@ -444,7 +442,7 @@ __  _  ________ ____   ____
 	ans=input(' Choose Option : ').lower()
 	print('')
 	global headers, switch
-	if str(ans)=='1':
+	if ans=='1':
 		print('1. CDN SSL')
 		print('2. CDN SSL IP Rotate')
 		print('3. CDN SSL Host Rotate')
@@ -452,62 +450,62 @@ __  _  ________ ____   ____
 		print('q to Quit')
 		print('m to Menu')
 		print('')
-		ansi=input(' Choose Option : ').lower()
+		ans=input(' Choose Option : ').lower()
 		print('')
 		switch['bloc']='0'
 		switch['proto']='0'
-		if str(ansi)=='1':
+		if ans=='1':
 			switch['crt']='1'
 			switch['rot']='0'
-		elif str(ansi)=='2':
+		elif ans=='2':
 			switch['crt']='1'
 			switch['rot']='2'
-		elif str(ansi)=='3':
+		elif ans=='3':
 			switch['crt']='1'
 			switch['rot']='1'
-		elif str(ansi)=='4':
+		elif ans=='4':
 			switch['crt']='0'
 			switch['rot']='0'
-		elif str(ansi)=='q':
+		elif ans=='q':
 			exit()
-		elif str(ansi)=='m':
+		elif ans=='m':
 			menu()
 		else:
 			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 			print('')
 			menu()
-	elif str(ans)=='2':
+	elif ans=='2':
 		print('1. Local SSL')
 		print('2. Local Direct')
 		print('3. Local SSL ZGrab')
 		print('4. Local Direct ZGrab')
 		print('q to Quit')
 		print('')
-		ansi=input(' Choose Option : ').lower()
+		ans=input(' Choose Option : ').lower()
 		print('')
 		switch['rot']='0'
 		switch['proto']='1'
-		if str(ansi)=='1':
+		if ans=='1':
 			switch['bloc']='0'
 			switch['crt']='1'
-		elif str(ansi)=='2':
+		elif ans=='2':
 			switch['bloc']='0'
 			switch['crt']='0'
-		elif str(ansi)=='3':
+		elif ans=='3':
 			switch['bloc']='1'
 			switch['crt']='1'
-		elif str(ansi)=='4':
+		elif ans=='4':
 			switch['bloc']='1'
 			switch['crt']='0'
-		elif str(ansi)=='q':
+		elif ans=='q':
 			exit()
-		elif str(ansi)=='m':
+		elif ans=='m':
 			menu()
 		else:
 			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 			print('')
 			menu()
-	elif str(ans)=='3':
+	elif ans=='3':
 		print('1. H2 SSL')
 		print('2. H2 SSL IP Rotate')
 		print('3. H2 SSL Host Rotate')
@@ -515,30 +513,30 @@ __  _  ________ ____   ____
 		print('q to Quit')
 		print('m to Menu')
 		print('')
-		ansi=input(' Choose Option : ').lower()
+		ans=input(' Choose Option : ').lower()
 		print('')
 		switch['bloc']='0'
 		switch['proto']='2'
-		if str(ansi)=='1':
+		if ans=='1':
 			switch['crt']='1'
 			switch['rot']='0'
-		elif str(ansi)=='2':
+		elif ans=='2':
 			switch['rot']='2'
-		elif str(ansi)=='3':
+		elif ans=='3':
 			switch['crt']='1'
 			switch['rot']='1'
-		elif str(ansi)=='4':
+		elif ans=='4':
 			switch['crt']='0'
 			switch['rot']='0'
-		elif str(ansi)=='q':
+		elif ans=='q':
 			exit()
-		elif str(ansi)=='m':
+		elif ans=='m':
 			menu()
 		else:
 			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 			print('')
 			menu()
-	elif str(ans)=='4':
+	elif ans=='4':
 		print('1. Local H2C SSL')
 		print('2. Local H2C Direct')
 		print('3. Local H2C SSL ZGrab')
@@ -546,41 +544,41 @@ __  _  ________ ____   ____
 		print('m to Menu')
 		print('q to Quit')
 		print('')
-		ansi=input(' Choose Option : ')
+		ans=input(' Choose Option : ')
 		print('')
 		switch['rot']='0'
 		switch['proto']='3'
-		if str(ansi)=='1':
+		if ans=='1':
 			switch['bloc']='0'
 			switch['crt']='1'
-		elif str(ansi)=='2':
+		elif ans=='2':
 			switch['bloc']='0'
 			switch['crt']='0'
-		elif str(ansi)=='3':
+		elif ans=='3':
 			switch['bloc']='1'
 			switch['crt']='1'
-		elif str(ansi)=='4':
+		elif ans=='4':
 			switch['bloc']='1'
 			switch['crt']='0'
-		elif str(ansi)=='q':
+		elif ans=='q':
 			exit()
-		elif str(ansi)=='m':
+		elif ans=='m':
 			menu()
 		else:
 			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 			print('')
 			menu()
-	elif str(ans)=='4':
+	elif ans=='4':
 		switch['proto']='4'
 		switch['bloc']='0'
 		switch['crt']='1'
 		switch['rot']='0'
-	elif str(ans)=='5':
+	elif ans=='5':
 		switch['proto']='5'
 		switch['bloc']='0'
 		switch['crt']='0'
 		switch['rot']='0'
-	elif str(ans)=='q':
+	elif ans=='q':
 		exit()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
@@ -591,11 +589,10 @@ __  _  ________ ____   ____
 	print('Q to Quit')
 	print('M to Menu')
 	print('')
-	opsi=input(' Choose Option :  ').lower()
+	ans=input(' Choose Option :  ').lower()
 	print('')
-	if str(opsi)=='1':
+	if ans=='1':
 		def text():
-			global tag
 			if (switch['proto']=='0') or (switch['proto']=='2'):
 				doma()
 			filet()
@@ -604,9 +601,8 @@ __  _  ________ ____   ____
 			uinput()
 			text()
 		text()
-	elif str(opsi)=='2':
+	elif ans=='2':
 		def enum():
-			global tag
 			if (switch['proto']=='0') or (switch['proto']=='2'):
 				doma()
 			hacki()
@@ -615,11 +611,11 @@ __  _  ________ ____   ____
 			uinput()
 			enum()
 		enum()
-	elif str(opsi)=='m':
+	elif ans=='m':
 		menu()
-	elif str(opsi)=='q':
+	elif ans=='q':
 		exit()
-	elif 3 <= int(opsi) < 6:
+	elif 3 <= int(ans) < 6:
 		print(' [' + colors.RED_BG + ' This Feature is not Implemented yet... ' + colors.ENDC + '] ')
 	else:
 		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
