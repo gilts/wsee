@@ -22,10 +22,9 @@ import csv
 import ssl
 import json
 import socket
-import traceback
 import subprocess
 import requests,re
-import os, fnmatch; os.system('clear')
+import os, fnmatch
 from time import sleep
 from threading import Thread
 from netaddr import IPNetwork
@@ -33,7 +32,6 @@ from collections import defaultdict
 from os.path import abspath, dirname
 from pkg_resources import parse_version
 from multiprocessing import Process, Manager, Value, Queue, cpu_count
-from requests.exceptions import ReadTimeout, Timeout, ConnectionError, ChunkedEncodingError, TooManyRedirects, InvalidURL
 
 hostpath = 'host'
 expected_response = 101
@@ -55,15 +53,18 @@ def pinger():
 	try:
 		requ = requests.get("http://zendesk4.grabtaxi.com", headers={'Host': cflare_domain, 'Connection': 'Upgrade', 'Upgrade': 'WebSocket', 'Sec-WebSocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Accept': 'GLWt4W8Ogwo6lmX9ZGa314RMRr0=', 'Sec-WebSocket-Version': '13'})
 		if requ.status_code == expected_response:
+			Run.value = 1
 			return
 		elif requ.status_code != expected_response:
 			print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
 			sleep(10)
 			pinger()
+			Run.value = 0
 	except requests.ConnectionError:
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
 		sleep(10)
 		pinger()
+		Run.value = 0
 
 def checker():
 	with open('.wsee/CONFIG') as f:
@@ -206,28 +207,29 @@ def filet():
 
 def executor():
 	with Manager() as manager:
-		global Faily, Resultee, appendix
+		global Faily, Resultee, appendix, Run
 		procount = cpu_count()
 		appendix = Queue()
 		Faily=Value('i',0)
 		Resultee=Value('d',0)
+		Run = Value('f', 1)
 		def filement():
-			pinger()
-			if switch['type']=='txt':
-				with open(switch['loc'], 'r') as f:
-					for liner in f:
-						appendix.put(liner.strip())
-			elif switch['type']=='csv':
-				with open(switch['loc'], 'r') as f:
-					reader = csv.reader(csv_file)
-					for row in reader:
-						for (i,v) in enumerate(row):
-							columns[i].append(v)
-					appendix.put(columns[9]+columns[3])
-			elif switch['type']=='enum':
-				apppendix.put(domainlist)
-			for i in range(procount):
-				appendix.put('ENDED')
+			if Run.value:
+				if switch['type']=='txt':
+					with open(switch['loc'], 'r') as f:
+						for liner in f:
+							appendix.put(liner.strip())
+				elif switch['type']=='csv':
+					with open(switch['loc'], 'r') as f:
+						reader = csv.reader(csv_file)
+						for row in reader:
+							for (i,v) in enumerate(row):
+								columns[i].append(v)
+						appendix.put(columns[9]+columns[3])
+				elif switch['type']=='enum':
+					apppendix.put(domainlist)
+				for i in range(procount):
+					appendix.put('ENDED')
 		filament = Thread(target=filement)
 		filament.start()
 		pingu = Thread(target=pinger)
@@ -350,7 +352,7 @@ def engine(appendix,Resultee,Faily):
 							with Resultee.get_lock():
 								Resultee.value +=1
 						elif int(resu[0]) != expected_response:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
 					else:
@@ -360,7 +362,7 @@ def engine(appendix,Resultee,Faily):
 							with Resultee.get_lock():
 								Resultee.value +=1
 						elif int(resu[0]) != 200:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
 				sock.close()
@@ -378,7 +380,6 @@ def engine(appendix,Resultee,Faily):
 					Faily.value +=1
 			except Exception as e:
 				print(e)
-				traceback.print_exc()
 				pass
 
 def grabber(appendix,Resultee,Faily):
@@ -413,7 +414,6 @@ def grabber(appendix,Resultee,Faily):
 						Faily.value +=1
 			except Exception as e:
 				print(e)
-				traceback.print_exc()
 				print(' [' + colors.RED_BG+'Check Your ZGrab Installation!'+colors.ENDC+'] ' + onliner)
 				menu()
 
