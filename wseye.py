@@ -51,20 +51,18 @@ class colors:
 
 def pinger():
 	try:
-		requ = requests.get("http://zendesk4.grabtaxi.com", headers={'Host': cflare_domain, 'Connection': 'Upgrade', 'Upgrade': 'WebSocket', 'Sec-WebSocket-Key': 'dXP3jD9Ipw0B2EmWrMDTEw==', 'Sec-Websocket-Accept': 'GLWt4W8Ogwo6lmX9ZGa314RMRr0=', 'Sec-WebSocket-Version': '13'})
-		if requ.status_code == expected_response:
-			Run.value = 1
-			return
-		elif requ.status_code != expected_response:
-			print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
-			sleep(10)
-			pinger()
-			Run.value = 0
+		requests.head("http://telkomsel.com", timeout=3)
+		Run.value = 1
+	except requests.HTTPError:
+		print("["+colors.RED_BG+" LookUp Failed! "+colors.ENDC+"]")
+		sleep(10)
+		Run.value = 0
+		pinger()
 	except requests.ConnectionError:
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
 		sleep(10)
-		pinger()
 		Run.value = 0
+		pinger()
 
 def checker():
 	with open('.wsee/CONFIG') as f:
