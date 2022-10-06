@@ -34,6 +34,7 @@ from pkg_resources import parse_version
 from multiprocessing import Process, Manager, Value, Queue, cpu_count
 
 hostpath = 'host'
+output = 'output'
 expected_response = 101
 cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
@@ -150,6 +151,7 @@ def filet():
 	print('2. Check Files in Current Folder')
 	print('3. Check Files in Termux Host')
 	print('4. Check Files in Termux')
+	print('5. Custom Path')
 	print('q to Quit')
 	print('m to Menu')
 	print('')
@@ -166,6 +168,10 @@ def filet():
 	elif ans=='4':
 		files = os.listdir('./storage/shared/')
 		switch['dir']='3'
+	elif ans=='5':
+		path = input(' Input your Folder: ')
+		files = os.listdir(path)
+		switch['dir']='4'
 	elif ans=='q':
 		exit()
 	elif ans=='m':
@@ -198,6 +204,8 @@ def filet():
 			file_hosts = './storage/shared/' + str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
 		elif direct == '3':
 			file_hosts = './storage/shared/' + str(txtfiles[int(fileselector)-1])
+		elif direct == '4':
+			file_hosts = path
 		switch['loc']=file_hosts
 	else:
 		menu()
@@ -313,7 +321,7 @@ def engine(appendix,Resultee,Faily):
 							sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 						elif switch['proto']=='0':
 							print('Proto 0 WS CDN')
-							sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
+							sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					elif switch['rot']=='0':
 						print('Route to Normal')
 						if switch['proto']=='2':
@@ -321,17 +329,17 @@ def engine(appendix,Resultee,Faily):
 							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 						elif switch['proto']=='0':
 							print('Proto 0 WS CDN')
-							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
+							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				elif switch['crt']=='0':
 					sock.connect((onliner, 80))
 					if switch['proto']=='2':
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 					elif switch['proto']=='0':
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				if switch['proto']=='3':		
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 				elif switch['proto']=='1':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				elif 4 <= int(switch['proto']) < 5:
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n', encoding='utf-8'))
 				sock.settimeout(5)
@@ -346,7 +354,7 @@ def engine(appendix,Resultee,Faily):
 					if 0 <= int(switch['proto']) < 3:
 						if int(resu[0]) == expected_response:
 							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{switch["nametag"]}.txt', 'a'))
+							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
 							with Resultee.get_lock():
 								Resultee.value +=1
 						elif int(resu[0]) != expected_response:
@@ -356,7 +364,7 @@ def engine(appendix,Resultee,Faily):
 					else:
 						if int(resu[0]) == 200:
 							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{switch["nametag"]}.txt', 'a'))
+							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
 							with Resultee.get_lock():
 								Resultee.value +=1
 						elif int(resu[0]) != 200:
@@ -624,5 +632,7 @@ if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
 	if not os.path.exists(hostpath):
 		os.makedirs(hostpath)
+	if not os.path.exists(output):
+		os.makedirs(output)
 	checker()
 	menu()
