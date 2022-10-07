@@ -21,6 +21,7 @@ Derived details <https://www.apache.org/licenses/LICENSE-2.0>
 import csv
 import ssl
 import json
+import base64
 import socket
 import subprocess
 import requests,re
@@ -306,42 +307,45 @@ def engine(appendix,Resultee,Faily):
 					cont.set_ciphers(cipher)
 					sock = cont.wrap_socket(sock, server_hostname = onliner)
 					sock.connect((onliner, 443))
-					if 1 <= int(switch['proto']) < 2:
-						print('Route to Rotate 1/2')
-						if switch['rot']=='1':
-							print('Rotate 1 Host')
-							sock = cont.wrap_socket(sock, server_hostname = onliner)
-							sock.connect((f'{payloads["Proxy"]}', 443))
-						elif switch['rot']=='2':
-							print('Rotate 2 Proxy')
-							sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
-							sock.connect((onliner, 443))
+					if switch['rot']=='2':
+						print('Route to Rotate 2')
+						print('Rotate 2 Proxy')
+						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
+						sock.connect((onliner, 443))
 						if switch['proto']=='2':
 							print('Proto 2 H2 CDN')
-							sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+							sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["SNI"])}\r\n\r\n', encoding='utf-8'))
 						elif switch['proto']=='0':
 							print('Proto 0 WS CDN')
 							sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-					elif switch['rot']=='0':
+					if 0 <= int(switch['rot']) < 1:
+						print('Route to Rotate 0/1')
+						if switch['rot']=='0':
+							sock = cont.wrap_socket(sock, server_hostname = onliner)
+							sock.connect((onliner, 443))
+						elif switch['rot']=='1':
+							print('Rotate 1 Host')
+							sock = cont.wrap_socket(sock, server_hostname = onliner)
+							sock.connect((payloads["Proxy"], 443))
 						print('Route to Normal')
 						if switch['proto']=='2':
 							print('Proto 2 H2 CDN')
-							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
 						elif switch['proto']=='0':
 							print('Proto 0 WS CDN')
 							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				elif switch['crt']=='0':
 					sock.connect((onliner, 80))
 					if switch['proto']=='2':
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
 					elif switch['proto']=='0':
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				if switch['proto']=='3':		
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
 				elif switch['proto']=='1':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				elif 4 <= int(switch['proto']) < 5:
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n', encoding='utf-8'))
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nAccept: */*\r\nAccept-Encoding: *\r\nAccept-Language: *\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\r\n\r\n', encoding='utf-8'))
 				sock.settimeout(5)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 				line = str(sock.recv(13))
@@ -450,7 +454,7 @@ __  _  ________ ____   ____
 	global headers, switch
 	if ans=='1':
 		print('1. CDN SSL')
-		print('2. CDN SSL IP Rotate')
+		print('2. CDN SSL Proxy Rotate')
 		print('3. CDN SSL Host Rotate')
 		print('4. CDN Direct')
 		print('q to Quit')
@@ -630,8 +634,6 @@ __  _  ________ ____   ____
 
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
-	if not os.path.exists(hostpath):
-		os.makedirs(hostpath)
 	if not os.path.exists(output):
 		os.makedirs(output)
 	checker()
