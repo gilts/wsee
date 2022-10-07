@@ -28,7 +28,6 @@ import requests,re
 import os, fnmatch
 from time import sleep
 from threading import Thread
-from netaddr import IPNetwork
 from collections import defaultdict
 from os.path import abspath, dirname
 from pkg_resources import parse_version
@@ -594,8 +593,6 @@ __  _  ________ ____   ____
 	print('2. Scan Online (HackerTarget)')
 	print('3. CloudFlare CIDR')
 	print('4. CloudFront CIDR')
-	print('5. Telkomsel CIDR')
-	print('6. XL Axiata CIDR')
 	print('Q to Quit')
 	print('M to Menu')
 	print('')
@@ -625,8 +622,6 @@ __  _  ________ ____   ____
 		menu()
 	elif ans=='q':
 		exit()
-	elif 3 <= int(ans) < 6:
-		print(' [' + colors.RED_BG + ' This Feature is not Implemented yet... ' + colors.ENDC + '] ')
 	else:
 		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 		print('')
