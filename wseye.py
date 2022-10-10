@@ -101,6 +101,9 @@ def checker():
 			return
 
 def option():
+	global file_hosts
+	if switch['dir']=='5':
+		switch['loc'] = './bin/cidr/cflare.txt'
 	if switch['rot']=='1':
 		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
 		prox = input(' Proxy : ')
@@ -144,7 +147,7 @@ def doma():
 	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
 	print('')
 	return
-
+	
 def filet():
 	num_file = 1
 	print('1. Check Files in Host Folder')
@@ -212,50 +215,49 @@ def filet():
 	return
 
 def executor():
-	with Manager() as manager:
-		global Faily, Resultee, appendix, Run
-		procount = cpu_count()
-		appendix = Queue()
-		Faily=Value('i',0)
-		Resultee=Value('d',0)
-		Run = Value('f', 1)
-		def filement():
-			if Run.value:
-				if switch['type']=='txt':
-					with open(switch['loc'], 'r') as f:
-						for liner in f:
-							appendix.put(liner.strip())
-				elif switch['type']=='csv':
-					with open(switch['loc'], 'r') as f:
-						reader = csv.reader(csv_file)
-						for row in reader:
-							for (i,v) in enumerate(row):
-								columns[i].append(v)
-						appendix.put(columns[9]+columns[3])
-				elif switch['type']=='enum':
-					apppendix.put(domainlist)
-				for i in range(procount):
-					appendix.put('ENDED')
-		filament = Thread(target=filement)
-		filament.start()
-		pingu = Thread(target=pinger)
-		pingu.start()
-		processes = []
-		for process_num in range(procount):
-			if switch['bloc']=='0':
-				p = Process(target=engine, args=(appendix,Resultee,Faily))
-			elif switch['bloc']=='1':
-				p = Process(target=grabber, args=(appendix,Resultee,Faily))
-			p.start()
-			processes.append(p)
-		for p in processes:
-			p.join()
-		filament.join()
-		pingu.join()
-		print('')
-		print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
-		print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
-		return
+	global Faily, Resultee, appendix, Run
+	procount = cpu_count()
+	appendix = Queue()
+	Faily=Value('i',0)
+	Resultee=Value('d',0)
+	Run = Value('f', 1)
+	def filement():
+		if Run.value:
+			if switch['type']=='txt':
+				with open(switch['loc'], 'r') as f:
+					for liner in f:
+						appendix.put(liner.strip())
+			elif switch['type']=='csv':
+				with open(switch['loc'], 'r') as f:
+					reader = csv.reader(csv_file)
+					for row in reader:
+						for (i,v) in enumerate(row):
+							columns[i].append(v)
+					appendix.put(columns[9]+columns[3])
+			elif switch['type']=='enum':
+				apppendix.put(domainlist)
+			for i in range(procount):
+				appendix.put('ENDED')
+	filament = Thread(target=filement)
+	filament.start()
+	pingu = Thread(target=pinger)
+	pingu.start()
+	processes = []
+	for process_num in range(procount):
+		if switch['bloc']=='0':
+			p = Process(target=engine, args=(appendix,Resultee,Faily))
+		elif switch['bloc']=='1':
+			p = Process(target=grabber, args=(appendix,Resultee,Faily))
+		p.start()
+		processes.append(p)
+	for p in processes:
+		p.join()
+	filament.join()
+	pingu.join()
+	print('')
+	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
+	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
+	return
  
 def uinput():
 	print('')
@@ -362,9 +364,9 @@ def engine(appendix,Resultee,Faily):
 								Resultee.value +=1
 						elif int(resu[0]) != expected_response:
 							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						with Faily.get_lock():
-							Faily.value +=1
-					else:
+							with Faily.get_lock():
+								Faily.value +=1
+					elif 4 <= int(switch['proto']) < 5:
 						if int(resu[0]) == 200:
 							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
@@ -372,14 +374,14 @@ def engine(appendix,Resultee,Faily):
 								Resultee.value +=1
 						elif int(resu[0]) != 200:
 							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						with Faily.get_lock():
-							Faily.value +=1
+							with Faily.get_lock():
+								Faily.value +=1
 				sock.close()
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 				with Faily.get_lock():
 					Faily.value +=1
-			except(socket.gaierror, socket.timeout):
+			except(socket.gaierror) or (socket.timeout):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
 				with Faily.get_lock():
 					Faily.value +=1
@@ -591,8 +593,6 @@ __  _  ________ ____   ____
 		exit()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
-	print('3. CloudFlare CIDR')
-	print('4. CloudFront CIDR')
 	print('Q to Quit')
 	print('M to Menu')
 	print('')
