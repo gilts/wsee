@@ -40,6 +40,7 @@ cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
+appendix = Queue()
 columns = defaultdict(list)
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
 switch = { 'bloc': '', 'crt': '', 'rot': '', 'proto': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
@@ -101,9 +102,7 @@ def checker():
 			return
 
 def option():
-	global file_hosts
-	if switch['dir']=='5':
-		switch['loc'] = './bin/cidr/cflare.txt'
+	global file_hostss
 	if switch['rot']=='1':
 		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
 		prox = input(' Proxy : ')
@@ -215,9 +214,8 @@ def filet():
 	return
 
 def executor():
-	global Faily, Resultee, appendix, Run
+	global Faily, Resultee, Run
 	procount = cpu_count()
-	appendix = Queue()
 	Faily=Value('i',0)
 	Resultee=Value('d',0)
 	Run = Value('f', 1)
@@ -238,10 +236,9 @@ def executor():
 				apppendix.put(domainlist)
 			for i in range(procount):
 				appendix.put('ENDED')
-	filament = Thread(target=filement)
-	filament.start()
-	pingu = Thread(target=pinger)
-	pingu.start()
+	if 0 <= int(switch['dir']) < 4:
+		filament = Thread(target=filement)
+		filament.start()
 	processes = []
 	for process_num in range(procount):
 		if switch['bloc']=='0':
@@ -252,8 +249,8 @@ def executor():
 		processes.append(p)
 	for p in processes:
 		p.join()
-	filament.join()
-	pingu.join()
+	if 0 <= int(switch['dir']) < 4:
+		filament.join()
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
@@ -301,6 +298,9 @@ def engine(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
+				print(switch)
+				print(payloads)
+				print(payloads['Host'])
 				sock = socket.socket()
 				if switch['crt']=='1':
 					print('Using SSL')
@@ -319,7 +319,7 @@ def engine(appendix,Resultee,Faily):
 						elif switch['proto']=='0':
 							print('Proto 0 WS CDN')
 							sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-					if 0 <= int(switch['rot']) < 1:
+					elif 0 <= int(switch['rot']) < 1:
 						print('Route to Rotate 0/1')
 						if switch['rot']=='0':
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
