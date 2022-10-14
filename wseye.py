@@ -309,18 +309,18 @@ def wsee(appendix,Resultee,Faily):
 			try:
 				pinger()
 				cont.set_ciphers(cipher)
-				if switch['rot']=='2':
+				if switch['rot']=='3':
 					sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 					sock.connect((onliner, 443))
 					sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-				elif (0 <= int(switch['rot']) < 1) or (switch['rot']=='3'):
-					if (switch['rot']=='0') or (switch['rot']=='3'):
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
-						sock.connect((onliner, 443))
-					elif switch['rot']=='1':
+				elif 0 <= int(switch['rot']) < 2:
+					if switch['rot']=='1':
 						sock = cont.wrap_socket(sock, server_hostname = onliner)
 						sock.connect((payloads["Proxy"], 443))
-					if switch['rot']=='3':
+					else:
+						sock = cont.wrap_socket(sock, server_hostname = onliner)
+						sock.connect((onliner, 443))
+					if switch['rot']=='2':
 						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					else:
 						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
@@ -368,8 +368,8 @@ def wsrect(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				sock.connect((onliner, 80)
-				if switch['rot']=='0':
+				sock.connect((onliner, 80))
+				if switch['rot'] == '0':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				else:
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
@@ -418,18 +418,18 @@ def h2see(appendix,Resultee,Faily):
 			try:
 				pinger()
 				cont.set_ciphers(cipher)
-				if switch['rot']=='2':
+				if switch['rot']=='3':
 					sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 					sock.connect((onliner, 443))
 					sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["SNI"])}\r\n\r\n', encoding='utf-8'))
-				elif (0 <= int(switch['rot']) < 1) or (switch['rot']=='3'):
-					if (switch['rot']=='0') or (switch['rot']=='3'):
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
-						sock.connect((onliner, 443))
-					elif switch['rot']=='1':
+				elif (0 <= int(switch['rot']) < 2):
+					if switch['rot']=='1':
 						sock = cont.wrap_socket(sock, server_hostname = onliner)
 						sock.connect((payloads["Proxy"], 443))
-					if switch['rot']=='3':
+					else:
+						sock = cont.wrap_socket(sock, server_hostname = onliner)
+						sock.connect((onliner, 443))
+					if switch['rot']=='2':
 						sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
 					else:
 						sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
@@ -477,7 +477,7 @@ def h2srect(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				sock.connect((onliner, 80)
+				sock.connect((onliner, 80))
 				if switch['rot']=='0':
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
 				else:
@@ -641,7 +641,7 @@ __  _  ________ ____   ____
 			switch['rot']='0'
 		elif ans=='2':
 			switch['bloc']='1'
-			switch['rot']='2'
+			switch['rot']='3'
 		elif ans=='3':
 			switch['bloc']='1'
 			switch['rot']='1'
@@ -667,7 +667,7 @@ __  _  ________ ____   ____
 		print('')
 		if ans=='1':
 			switch['bloc']='1'
-			switch['rot']='3'
+			switch['rot']='2'
 		elif ans=='2':
 			switch['bloc']='2'
 			switch['rot']='1'
@@ -687,7 +687,7 @@ __  _  ________ ____   ____
 			menu()
 	elif ans=='3':
 		print('1. H2 SSL')
-		print('2. H2 SSL IP Rotate')
+		print('2. H2 SSL Proxy Rotate')
 		print('3. H2 SSL Host Rotate')
 		print('4. H2C Direct')
 		print('q to Quit')
@@ -700,7 +700,7 @@ __  _  ________ ____   ____
 			switch['rot']='0'
 		elif ans=='2':
 			switch['bloc']='3'
-			switch['rot']='2'
+			switch['rot']='3'
 		elif ans=='3':
 			switch['bloc']='3'
 			switch['rot']='1'
@@ -727,7 +727,7 @@ __  _  ________ ____   ____
 		print('')
 		if ans=='1':
 			switch['bloc']='3'
-			switch['rot']='3'
+			switch['rot']='2'
 		elif ans=='2':
 			switch['bloc']='4'
 			switch['rot']='1'
