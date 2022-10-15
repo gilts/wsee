@@ -55,7 +55,8 @@ class colors:
 
 def pinger():
 	try:
-		requests.head("http://telkomsel.com", timeout=3)
+		resp = requests.head("http://telkomsel.com", timeout=3)
+		print(resp)
 		Run.value = 1
 	except requests.HTTPError:
 		print("["+colors.RED_BG+" LookUp Failed! "+colors.ENDC+"]")
@@ -308,21 +309,27 @@ def wsee(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
+				print('Using WS SSL')
 				cont.set_ciphers(cipher)
 				if switch['rot']=='3':
+					print('Rotate Proxy')
 					sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 					sock.connect((onliner, 443))
 					sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				elif 0 <= int(switch['rot']) < 2:
 					if switch['rot']=='1':
+						print('Rotate Host')
 						sock = cont.wrap_socket(sock, server_hostname = onliner)
 						sock.connect((payloads["Proxy"], 443))
 					else:
+						print('Rotate 0/2 Normal/Local')
 						sock = cont.wrap_socket(sock, server_hostname = onliner)
 						sock.connect((onliner, 443))
 					if switch['rot']=='2':
+						print('Sending Payload WS SSL Local')
 						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					else:
+						print('Sending Payload WS SSL Normal')
 						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				sock.settimeout(5)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -333,16 +340,15 @@ def wsee(appendix,Resultee,Faily):
 					with Faily.get_lock():
 						Faily.value +=1
 				else:
-					if 0 <= int(switch['proto']) < 3:
-						if int(resu[0]) == expected_response:
-							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-							with Resultee.get_lock():
-								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
-							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							with Faily.get_lock():
-								Faily.value +=1
+					if int(resu[0]) == expected_response:
+						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+						with Resultee.get_lock():
+							Resultee.value +=1
+					elif int(resu[0]) != expected_response:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						with Faily.get_lock():
+							Faily.value +=1
 				sock.close()
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
@@ -368,10 +374,13 @@ def wsrect(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
+				print('Using WS Direct')
 				sock.connect((onliner, 80))
 				if switch['rot'] == '0':
+					print('Sending Payload WS Direct Normal')
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				else:
+					print('Sending payload WS Direct Local')
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 				sock.settimeout(5)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -382,16 +391,15 @@ def wsrect(appendix,Resultee,Faily):
 					with Faily.get_lock():
 						Faily.value +=1
 				else:
-					if 0 <= int(switch['proto']) < 3:
-						if int(resu[0]) == expected_response:
-							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-							with Resultee.get_lock():
-								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
-							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							with Faily.get_lock():
-								Faily.value +=1
+					if int(resu[0]) == expected_response:
+						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+						with Resultee.get_lock():
+							Resultee.value +=1
+					elif int(resu[0]) != expected_response:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						with Faily.get_lock():
+							Faily.value +=1
 				sock.close()
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
@@ -417,21 +425,27 @@ def h2see(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
+				print('Using H2C SSL')
 				cont.set_ciphers(cipher)
 				if switch['rot']=='3':
+					print('Rotate Proxy')
 					sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 					sock.connect((onliner, 443))
 					sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["SNI"])}\r\n\r\n', encoding='utf-8'))
 				elif (0 <= int(switch['rot']) < 2):
 					if switch['rot']=='1':
+						print('Rotate Host')
 						sock = cont.wrap_socket(sock, server_hostname = onliner)
 						sock.connect((payloads["Proxy"], 443))
 					else:
+						print('Rotate 0/2 Normal/Local')
 						sock = cont.wrap_socket(sock, server_hostname = onliner)
 						sock.connect((onliner, 443))
 					if switch['rot']=='2':
+						print('Sending Payload H2 SSL Local')
 						sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
 					else:
+						print('Sending Payload H2 SSL Normal')
 						sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
 				sock.settimeout(5)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -442,16 +456,15 @@ def h2see(appendix,Resultee,Faily):
 					with Faily.get_lock():
 						Faily.value +=1
 				else:
-					if 0 <= int(switch['proto']) < 3:
-						if int(resu[0]) == expected_response:
-							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-							with Resultee.get_lock():
-								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
-							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							with Faily.get_lock():
-								Faily.value +=1
+					if int(resu[0]) == expected_response:
+						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+						with Resultee.get_lock():
+							Resultee.value +=1
+					elif int(resu[0]) != expected_response:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						with Faily.get_lock():
+							Faily.value +=1
 				sock.close()
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
@@ -479,8 +492,10 @@ def h2srect(appendix,Resultee,Faily):
 				pinger()
 				sock.connect((onliner, 80))
 				if switch['rot']=='0':
+					print('Sending Payload H2 Direct Normal')
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
 				else:
+					print('Sending Payload H2 Direct Local')
 					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
 				sock.settimeout(5)
 				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -491,16 +506,15 @@ def h2srect(appendix,Resultee,Faily):
 					with Faily.get_lock():
 						Faily.value +=1
 				else:
-					if 0 <= int(switch['proto']) < 3:
-						if int(resu[0]) == expected_response:
-							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-							with Resultee.get_lock():
-								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
-							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							with Faily.get_lock():
-								Faily.value +=1
+					if int(resu[0]) == expected_response:
+						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+						with Resultee.get_lock():
+							Resultee.value +=1
+					elif int(resu[0]) != expected_response:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						with Faily.get_lock():
+							Faily.value +=1
 				sock.close()
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
@@ -525,6 +539,7 @@ def nowsee(appendix,Resultee,Faily):
 			break
 		else:
 			try:
+				pinger()
 				if switch['rot']=='0':
 					cont.set_ciphers(cipher)
 					sock = cont.wrap_socket(sock, server_hostname = onliner)
@@ -541,16 +556,15 @@ def nowsee(appendix,Resultee,Faily):
 					with Faily.get_lock():
 						Faily.value +=1
 				else:
-					if 0 <= int(switch['proto']) < 3:
-						if int(resu[0]) == 200:
-							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-							with Resultee.get_lock():
-								Resultee.value +=1
-						elif int(resu[0]) != 200:
-							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							with Faily.get_lock():
-								Faily.value +=1
+					if int(resu[0]) == 200:
+						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+						with Resultee.get_lock():
+							Resultee.value +=1
+					elif int(resu[0]) != 200:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						with Faily.get_lock():
+							Faily.value +=1
 				sock.close()
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
@@ -646,7 +660,7 @@ __  _  ________ ____   ____
 			switch['bloc']='1'
 			switch['rot']='1'
 		elif ans=='4':
-			switch['bloc']='0'
+			switch['bloc']='2'
 			switch['rot']='0'
 		elif ans=='q':
 			exit()
@@ -719,7 +733,7 @@ __  _  ________ ____   ____
 		print('1. Local H2C SSL')
 		print('2. Local H2C Direct')
 		print('3. Local H2C SSL ZGrab')
-		print('3. Local H2C Direct ZGrab')
+		print('4. Local H2C Direct ZGrab')
 		print('m to Menu')
 		print('q to Quit')
 		print('')
@@ -745,14 +759,17 @@ __  _  ________ ____   ____
 			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 			print('')
 			menu()
-	elif ans=='4':
-		switch['proto']='5'
-		switch['rot']='0'
 	elif ans=='5':
-		switch['proto']='5'
+		switch['bloc']='5'
+		switch['rot']='0'
+	elif ans=='6':
+		switch['bloc']='5'
 		switch['rot']='`1'
 	elif ans=='q':
 		exit()
+	print()
+	print(switch)
+	print()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
 	print('Q to Quit')
@@ -762,7 +779,7 @@ __  _  ________ ____   ____
 	print('')
 	if ans=='1':
 		def text():
-			if (switch['proto']=='0') or (switch['proto']=='2'):
+			if (switch['bloc']=='1') or (switch['bloc']=='3'):
 				doma()
 			filet()
 			option()
@@ -772,7 +789,7 @@ __  _  ________ ____   ____
 		text()
 	elif ans=='2':
 		def enum():
-			if (switch['proto']=='0') or (switch['proto']=='2'):
+			if (switch['bloc']=='1') or (switch['bloc']=='3'):
 				doma()
 			hacki()
 			option()
