@@ -41,7 +41,7 @@ cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
 appendix = Queue()
-sock = socket.socket()
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 columns = defaultdict(list)
 cont = ssl.create_default_context()
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
@@ -52,57 +52,6 @@ class colors:
 	RED_BG = '\033[41m\033[1m'
 	GREEN_BG = '\033[42m'
 	ENDC = '\033[m'
-
-def pinger():
-	try:
-		resp = requests.head("http://telkomsel.com", timeout=3)
-		print(resp)
-		Run.value = 1
-	except requests.HTTPError:
-		print("["+colors.RED_BG+" LookUp Failed! "+colors.ENDC+"]")
-		sleep(10)
-		Run.value = 0
-		pinger()
-	except requests.ConnectionError:
-		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
-		sleep(10)
-		Run.value = 0
-		pinger()
-
-def checker():
-	with open('.wsee/CONFIG') as f:
-		data = json.load(f)
-		if data['config']['update-wsee'] == True:
-			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
-			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-			if parse_version(resp.text) > parse_version("1.10.0"):
-				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
-				print('1) Ignore Update')
-				print('2) Apply Update')
-				ans=input(' Choose : ')
-				if ans=='2':
-					os.remove('wsee.py')
-					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
-					with open('wsee.py', 'a') as pd:
-						pd.write(upd.text)
-						print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-						pd.close()
-						f.close()
-					print('[' + colors.GREEN_BG + ' Updated! ' + colors.ENDC + ']')
-					exit()
-				else:
-					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-					f.close()
-					return
-			else:
-				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
-				sleep(3)
-				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-				f.close()
-				return
-		else:
-			f.close()
-			return
 
 def option():
 	global file_hosts
@@ -149,6 +98,28 @@ def doma():
 	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
 	print('')
 	return
+
+def uinput():
+	print('')
+	print('Scanning Finished!')
+	print('1. Go Back to Menu')
+	print('2. Scanning Again')
+	print('3. Quit Instead')
+	print('')
+	ans=input('Choose Option: ')
+	if ans=='1':
+		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+		menu()
+	elif ans=='2':
+		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+		return
+	elif ans=='3':
+		exit()
+	else:
+		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
+		print('')
+		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+		menu()
 	
 def filet():
 	num_file = 1
@@ -216,6 +187,18 @@ def filet():
 		menu()
 	return
 
+def hacki():
+	global domainlist
+	subd = input('\nInput Domain: ')
+	subd = subd.replace('https://','').replace('http://','')
+	r = requests.get('https://api.hackertarget.com/hostsearch/?q=' + subd, allow_redirects=False)
+	if r.text == 'error invalid host':
+		exit('ERR: error invalid host')
+	else:
+		switch['type']='enum'
+		domainlist = re.findall('(.*?),',r.text)
+		return
+
 def executor():
 	global Faily, Resultee, Run
 	procount = cpu_count()
@@ -266,40 +249,17 @@ def executor():
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 	return
- 
-def uinput():
-	print('')
-	print('Scanning Finished!')
-	print('1. Go Back to Menu')
-	print('2. Scanning Again')
-	print('3. Quit Instead')
-	print('')
-	ans=input('Choose Option: ')
-	if ans=='1':
-		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-		menu()
-	elif ans=='2':
-		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-		return
-	elif ans=='3':
-		exit()
-	else:
-		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-		print('')
-		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-		menu()
 
-def hacki():
-	global domainlist
-	subd = input('\nInput Domain: ')
-	subd = subd.replace('https://','').replace('http://','')
-	r = requests.get('https://api.hackertarget.com/hostsearch/?q=' + subd, allow_redirects=False)
-	if r.text == 'error invalid host':
-		exit('ERR: error invalid host')
-	else:
-		switch['type']='enum'
-		domainlist = re.findall('(.*?),',r.text)
-		return
+def pinger():
+	try:
+		sock.settimeout(3)
+		sock.connect(('8.8.8.8',53))
+		Run.value = 1
+	except socket.error:
+		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
+		sleep(10)
+		Run.value = 0
+		pinger()
 
 def wsee(appendix,Resultee,Faily):
 	while True:
@@ -614,6 +574,41 @@ def grabber(appendix,Resultee,Faily):
 				print(e)
 				print(' [' + colors.RED_BG+'Check Your ZGrab Installation!'+colors.ENDC+'] ' + onliner)
 				menu()
+
+def checker():
+	with open('.wsee/CONFIG') as f:
+		data = json.load(f)
+		if data['config']['update-wsee'] == True:
+			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
+			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+			if parse_version(resp.text) > parse_version("1.10.0"):
+				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
+				print('1) Ignore Update')
+				print('2) Apply Update')
+				ans=input(' Choose : ')
+				if ans=='2':
+					os.remove('wsee.py')
+					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
+					with open('wsee.py', 'a') as pd:
+						pd.write(upd.text)
+						print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+						pd.close()
+						f.close()
+					print('[' + colors.GREEN_BG + ' Updated! ' + colors.ENDC + ']')
+					exit()
+				else:
+					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+					f.close()
+					return
+			else:
+				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
+				sleep(3)
+				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+				f.close()
+				return
+		else:
+			f.close()
+			return
 
 def menu():
 	print('''
