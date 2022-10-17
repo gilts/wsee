@@ -53,6 +53,31 @@ class colors:
 	GREEN_BG = '\033[42m'
 	ENDC = '\033[m'
 
+''' User-Input Section '''
+# Takes Domain Fronting
+def doma():
+	print('1. Custom Domain')
+	print('2. Default CloudFront')
+	print('3. Default CloudFlare')
+	print('')
+	ans=input(' Choose Option : ').lower()
+	print('')
+	if ans=='1':
+		domain=input(' Domain : ')
+		payloads['Host']=f'{domain}'
+	elif ans=='2':
+		payloads['Host']=f'{cfront_domain}'
+	elif ans=='3':
+		payloads['Host']=f'{cflare_domain}'
+	else:
+		uinput()
+	frontdom = payloads['Host']
+	print('['+colors.GREEN_BG + f' {frontdom} '+ colors.ENDC + '] Selected as Domain Fronting!')
+	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
+	print('')
+	return
+
+# Rot Switch control
 def option():
 	global file_hosts
 	if switch['rot']=='1':
@@ -69,50 +94,17 @@ def option():
 	switch['nametag'] = nametag
 	return
 
-def doma():
-	print('1. Custom Domain')
-	print('2. Default CloudFront')
-	print('3. Default CloudFlare')
-	print('Q to Quit')
-	print('M to Menu')
-	print('')
-	ans=input(' Choose Option : ').lower()
-	print('')
-	if ans=='1':
-		domain=input(' Domain : ')
-		payloads['Host']=f'{domain}'
-	elif ans=='2':
-		payloads['Host']=f'{cfront_domain}'
-	elif ans=='3':
-		payloads['Host']=f'{cflare_domain}'
-	elif ans=='q':
-		exit()
-	elif ans=='m':
-		menu()
-	else:
-		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-		print('')
-		menu()
-	frontdom = payloads['Host']
-	print('['+colors.GREEN_BG + f' {frontdom} '+ colors.ENDC + '] Selected as Domain Fronting!')
-	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
-	print('')
-	return
-
+# Outrange input as finish
 def uinput():
 	print('')
-	print('Scanning Finished!')
+	print('['+colors.RED_BG+' Target Block Exceeded ' + colors.ENDC + ']' )
 	print('1. Go Back to Menu')
-	print('2. Scanning Again')
-	print('3. Quit Instead')
+	print('2. Quit Instead')
 	print('')
 	ans=input('Choose Option: ')
 	if ans=='1':
 		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 		menu()
-	elif ans=='2':
-		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-		return
 	elif ans=='3':
 		exit()
 	else:
@@ -120,7 +112,9 @@ def uinput():
 		print('')
 		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 		menu()
-	
+
+''' Reading List Section '''
+# Reading from Files
 def filet():
 	num_file = 1
 	print('1. Check Files in Host Folder')
@@ -128,8 +122,6 @@ def filet():
 	print('3. Check Files in Termux Host')
 	print('4. Check Files in Termux')
 	print('5. Custom Path')
-	print('q to Quit')
-	print('m to Menu')
 	print('')
 	ans=input(' Choose : ').lower()
 	if ans=='1':
@@ -148,14 +140,8 @@ def filet():
 		path = input(' Input your Folder: ')
 		files = os.listdir(path)
 		switch['dir']='4'
-	elif ans=='q':
-		exit()
-	elif ans=='m':
-		menu()
 	else:
-		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-		print('')
-		menu()
+		uinput()
 	print(' [' + colors.RED_BG + ' Files Found ' + colors.ENDC + '] ')
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
@@ -183,10 +169,11 @@ def filet():
 		elif direct == '4':
 			file_hosts = path
 		switch['loc']=file_hosts
+		return
 	else:
-		menu()
-	return
+		uinput()
 
+# Reading from Online enumeration
 def hacki():
 	global domainlist
 	subd = input('\nInput Domain: ')
@@ -199,6 +186,29 @@ def hacki():
 		domainlist = re.findall('(.*?),',r.text)
 		return
 
+# Reading cidr from bin
+def procid():
+	print('[' + colors.RED_BG + ' Choose list of CIDR ' + colors.ENDC + ']')
+	with open(file_hosts, 'r') as liner:
+		for f in liner:
+			print( str(num_line),str(f.strip()))
+			num_line=num_line+1
+			txtfiles.append(str(f.strip()))
+	print('')
+	print(' M back to Menu ')
+	lineselector = input(' Choose Target Files : ')
+	if lineselector.isdigit():
+		print('')
+		print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(lineselector)-1]+' '+colors.ENDC)
+		print('')
+		for ip in IPNetwork(txtfiles[int(lineselector)-1]):
+			appendix.put(str(ip))
+			return
+	else:
+		uinput()
+
+''' Main Control Section '''
+# Running Process and Reading list
 def executor():
 	global Faily, Resultee, Run
 	procount = cpu_count()
@@ -250,6 +260,8 @@ def executor():
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 	return
 
+''' Main Process '''
+# Ping DNS if connection is up
 def pinger():
 	try:
 		sock.settimeout(3)
@@ -261,6 +273,7 @@ def pinger():
 		Run.value = 0
 		pinger()
 
+# Websocket SSL: Takes CDN/Local
 def wsee(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -326,6 +339,7 @@ def wsee(appendix,Resultee,Faily):
 				print(e)
 				pass
 
+# Websocket Direct: Takes CDN/Local
 def wsrect(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -377,6 +391,7 @@ def wsrect(appendix,Resultee,Faily):
 				print(e)
 				pass
 
+# H2C SSL: Takes CDN/Local
 def h2see(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -442,6 +457,7 @@ def h2see(appendix,Resultee,Faily):
 				print(e)
 				pass
 
+# H2 Direct: Takes CDN/Local
 def h2srect(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -492,6 +508,7 @@ def h2srect(appendix,Resultee,Faily):
 				print(e)
 				pass
 
+# Normal Mode: Takes TLS/Proxy
 def nowsee(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -542,6 +559,7 @@ def nowsee(appendix,Resultee,Faily):
 				print(e)
 				pass
 
+# ZGrab Mode: Only Local; Takes 443/80
 def grabber(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -575,6 +593,8 @@ def grabber(appendix,Resultee,Faily):
 				print(' [' + colors.RED_BG+'Check Your ZGrab Installation!'+colors.ENDC+'] ' + onliner)
 				menu()
 
+''' Frontier Section '''
+# Check for Updates / Bin
 def checker():
 	with open('.wsee/CONFIG') as f:
 		data = json.load(f)
@@ -610,6 +630,7 @@ def checker():
 			f.close()
 			return
 
+# Main Menu; Handles everything.
 def menu():
 	print('''
 
@@ -630,7 +651,6 @@ __  _  ________ ____   ____
 	print('4. Local H2C')
 	print('5. TLS/SSL')
 	print('6. Direct/Proxy')
-	print('q to Quit')
 	print('')
 	ans=input(' Choose Option : ').lower()
 	print('')
@@ -640,8 +660,6 @@ __  _  ________ ____   ____
 		print('2. CDN SSL Proxy Rotate')
 		print('3. CDN SSL Host Rotate')
 		print('4. CDN Direct')
-		print('q to Quit')
-		print('m to Menu')
 		print('')
 		ans=input(' Choose Option : ').lower()
 		print('')
@@ -657,20 +675,13 @@ __  _  ________ ____   ____
 		elif ans=='4':
 			switch['bloc']='2'
 			switch['rot']='0'
-		elif ans=='q':
-			exit()
-		elif ans=='m':
-			menu()
 		else:
-			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-			print('')
-			menu()
+			uinput()
 	elif ans=='2':
 		print('1. Local SSL')
 		print('2. Local Direct')
 		print('3. Local SSL ZGrab')
 		print('4. Local Direct ZGrab')
-		print('q to Quit')
 		print('')
 		ans=input(' Choose Option : ').lower()
 		print('')
@@ -686,21 +697,13 @@ __  _  ________ ____   ____
 		elif ans=='4':
 			switch['bloc']='0'
 			switch['rot']='1'
-		elif ans=='q':
-			exit()
-		elif ans=='m':
-			menu()
 		else:
-			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-			print('')
-			menu()
+			uinput()
 	elif ans=='3':
 		print('1. H2 SSL')
 		print('2. H2 SSL Proxy Rotate')
 		print('3. H2 SSL Host Rotate')
 		print('4. H2C Direct')
-		print('q to Quit')
-		print('m to Menu')
 		print('')
 		ans=input(' Choose Option : ').lower()
 		print('')
@@ -716,21 +719,13 @@ __  _  ________ ____   ____
 		elif ans=='4':
 			switch['bloc']='4'
 			switch['rot']='0'
-		elif ans=='q':
-			exit()
-		elif ans=='m':
-			menu()
 		else:
-			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-			print('')
-			menu()
+			uinput()
 	elif ans=='4':
 		print('1. Local H2C SSL')
 		print('2. Local H2C Direct')
 		print('3. Local H2C SSL ZGrab')
 		print('4. Local H2C Direct ZGrab')
-		print('m to Menu')
-		print('q to Quit')
 		print('')
 		ans=input(' Choose Option : ')
 		print('')
@@ -746,29 +741,21 @@ __  _  ________ ____   ____
 		elif ans=='4':
 			switch['bloc']='0'
 			switch['rot']='3'
-		elif ans=='q':
-			exit()
-		elif ans=='m':
-			menu()
 		else:
-			print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-			print('')
-			menu()
+			uinput(0
 	elif ans=='5':
 		switch['bloc']='5'
 		switch['rot']='0'
 	elif ans=='6':
 		switch['bloc']='5'
 		switch['rot']='`1'
-	elif ans=='q':
-		exit()
+	else:
+		uinput()
 	print()
 	print(switch)
 	print()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
-	print('Q to Quit')
-	print('M to Menu')
 	print('')
 	ans=input(' Choose Option :  ').lower()
 	print('')
@@ -792,14 +779,8 @@ __  _  ________ ____   ____
 			uinput()
 			enum()
 		enum()
-	elif ans=='m':
-		menu()
-	elif ans=='q':
-		exit()
 	else:
-		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-		print('')
-		menu()
+		uinput()
 
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
