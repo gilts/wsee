@@ -188,6 +188,7 @@ def hacki():
 
 # Reading cidr from bin
 def procid():
+	num_line=1
 	print('[' + colors.RED_BG + ' Choose list of CIDR ' + colors.ENDC + ']')
 	with open(file_hosts, 'r') as liner:
 		for f in liner:
@@ -761,7 +762,7 @@ __  _  ________ ____   ____
 	print('')
 	if ans=='1':
 		def text():
-			if (switch['bloc']=='1') or (switch['bloc']=='3'):
+			if not switch['bloc']=='0' or switch['bloc']=='5':
 				doma()
 			filet()
 			option()
@@ -771,7 +772,7 @@ __  _  ________ ____   ____
 		text()
 	elif ans=='2':
 		def enum():
-			if (switch['bloc']=='1') or (switch['bloc']=='3'):
+			if not switch['bloc']=='0' or switch['bloc']=='5':
 				doma()
 			hacki()
 			option()
