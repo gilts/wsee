@@ -41,9 +41,7 @@ cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
 appendix = Queue()
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 columns = defaultdict(list)
-cont = ssl.create_default_context()
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
 switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
@@ -265,12 +263,14 @@ def executor():
 # Ping DNS if connection is up
 def pinger():
 	try:
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.settimeout(3)
 		sock.connect(('8.8.8.8',53))
 		Run.value = 1
-	except socket.error:
+	except socket.error as e:
+		print(e)
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
-		sleep(10)
+		sleep(3)
 		Run.value = 0
 		pinger()
 
@@ -284,6 +284,8 @@ def wsee(appendix,Resultee,Faily):
 			try:
 				pinger()
 				print('Using WS SSL')
+				sock = socket.socket()
+				cont = ssl.create_default_context()
 				cont.set_ciphers(cipher)
 				if switch['rot']=='3':
 					print('Rotate Proxy')
@@ -350,6 +352,7 @@ def wsrect(appendix,Resultee,Faily):
 			try:
 				pinger()
 				print('Using WS Direct')
+				sock = socket.socket()
 				sock.connect((onliner, 80))
 				if switch['rot'] == '0':
 					print('Sending Payload WS Direct Normal')
@@ -402,6 +405,8 @@ def h2see(appendix,Resultee,Faily):
 			try:
 				pinger()
 				print('Using H2C SSL')
+				sock = socket.socket()
+				cont = ssl.create_default_context()
 				cont.set_ciphers(cipher)
 				if switch['rot']=='3':
 					print('Rotate Proxy')
@@ -467,6 +472,7 @@ def h2srect(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
+				sock = socket.socket()
 				sock.connect((onliner, 80))
 				if switch['rot']=='0':
 					print('Sending Payload H2 Direct Normal')
@@ -518,6 +524,8 @@ def nowsee(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
+				sock = socket.socket()
+				cont = ssl.create_default_context()
 				if switch['rot']=='0':
 					cont.set_ciphers(cipher)
 					sock = cont.wrap_socket(sock, server_hostname = onliner)
@@ -743,7 +751,7 @@ __  _  ________ ____   ____
 			switch['bloc']='0'
 			switch['rot']='3'
 		else:
-			uinput(0
+			uinput()
 	elif ans=='5':
 		switch['bloc']='5'
 		switch['rot']='0'
