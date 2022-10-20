@@ -184,28 +184,6 @@ def hacki():
 		domainlist = re.findall('(.*?),',r.text)
 		return
 
-# Reading cidr from bin
-def procid():
-	num_line=1
-	print('[' + colors.RED_BG + ' Choose list of CIDR ' + colors.ENDC + ']')
-	with open(file_hosts, 'r') as liner:
-		for f in liner:
-			print( str(num_line),str(f.strip()))
-			num_line=num_line+1
-			txtfiles.append(str(f.strip()))
-	print('')
-	print(' M back to Menu ')
-	lineselector = input(' Choose Target Files : ')
-	if lineselector.isdigit():
-		print('')
-		print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(lineselector)-1]+' '+colors.ENDC)
-		print('')
-		for ip in IPNetwork(txtfiles[int(lineselector)-1]):
-			appendix.put(str(ip))
-			return
-	else:
-		uinput()
-
 ''' Main Control Section '''
 # Running Process and Reading list
 def executor():
@@ -265,7 +243,8 @@ def pinger():
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.settimeout(3)
-		sock.connect(('8.8.8.8',53))
+		sock.connect(('9.9.9.9',53))
+		sock.close()
 		Run.value = 1
 	except socket.error as e:
 		print(e)
