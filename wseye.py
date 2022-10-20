@@ -94,14 +94,20 @@ def option():
 
 # Outrange input as finish
 def uinput():
+	global switcher, payloads
 	print('')
 	print('['+colors.RED_BG+' Target Block Exceeded ' + colors.ENDC + ']' )
 	print('1. Go Back to Menu')
-	print('2. Quit Instead')
+	print('2. Reset All Input')
+	print('3. Quit Instead')
 	print('')
 	ans=input('Choose Option: ')
 	if ans=='1':
 		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+		menu()
+	elif ans=='2':
+		payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
+		switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
 		menu()
 	elif ans=='3':
 		exit()
@@ -254,6 +260,11 @@ def pinger():
 		pinger()
 
 # Websocket SSL: Takes CDN/Local
+'''	Rot 3: Rotate Proxy Mode
+	Rot 2: Local Mode
+	Rot 1: Rotate Host Mode
+	Rot 0: Normal Mode '''
+
 def wsee(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -322,6 +333,9 @@ def wsee(appendix,Resultee,Faily):
 				pass
 
 # Websocket Direct: Takes CDN/Local
+'''	Rot 1: Local Mode
+	Rot 0: Normal Mode '''
+
 def wsrect(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -375,6 +389,11 @@ def wsrect(appendix,Resultee,Faily):
 				pass
 
 # H2C SSL: Takes CDN/Local
+'''	Rot 3: Rotate Proxy Mode
+	Rot 2: Local Mode
+	Rot 1: Rotate Host Mode
+	Rot 0: Normal Mode '''
+
 def h2see(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -443,6 +462,9 @@ def h2see(appendix,Resultee,Faily):
 				pass
 
 # H2 Direct: Takes CDN/Local
+'''	Rot 1: Local Mode
+	Rot 0: Normal Mode '''
+
 def h2srect(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
@@ -495,6 +517,9 @@ def h2srect(appendix,Resultee,Faily):
 				pass
 
 # Normal Mode: Takes TLS/Proxy
+'''	Rot 1: Proxy Mode
+	Rot 0: TLS/SSL Mode '''
+
 def nowsee(appendix,Resultee,Faily):
 	while True:
 		onliner = appendix.get()
