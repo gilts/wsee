@@ -135,10 +135,10 @@ def filet():
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
 		switch['dir']='1'
 	elif ans=='3':
-		files = os.listdir('./storage/shared/' + hostpath)
+		files = os.listdir('$home/storage/shared/' + hostpath)
 		switch['dir']='2'
 	elif ans=='4':
-		files = os.listdir('./storage/shared/')
+		files = os.listdir('$home/storage/shared/')
 		switch['dir']='3'
 	elif ans=='5':
 		path = input(' Input your Folder: ')
