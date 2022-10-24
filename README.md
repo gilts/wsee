@@ -13,6 +13,7 @@ A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple t
 - New `Rotate` Mode feature; Now you can rotate `proxy` and `hostname` individually. This is useful if the target only accept specific proxy or ssl masking.
 - Auto script updater handled with config located in `.wsee/CONFIG`
 - Also include `Normal` mode, to find SSL/Direct bugs without protocol or domain fronting.
+- `HeartBeat` when attempt to send a request, this prevent connection lost interrupt in mid-scan.
 - New Enhancement each Updates
 
 # How it works
