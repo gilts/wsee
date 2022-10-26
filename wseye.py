@@ -135,10 +135,10 @@ def filet():
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
 		switch['dir']='1'
 	elif ans=='3':
-		files = os.listdir('$home/storage/shared/' + hostpath)
+		files = os.listdir('./storage/shared/' + hostpath)
 		switch['dir']='2'
 	elif ans=='4':
-		files = os.listdir('$home/storage/shared/')
+		files = os.listdir('./storage/shared/')
 		switch['dir']='3'
 	elif ans=='5':
 		path = input(' Input your Folder: ')
@@ -611,37 +611,30 @@ def grabber(appendix,Resultee,Faily):
 def checker():
 	with open('.wsee/CONFIG') as f:
 		data = json.load(f)
-		if data['config']['update-wsee'] == True:
-			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
-			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-			if parse_version(resp.text) > parse_version("1.10.0"):
-				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
-				print('1) Ignore Update')
-				print('2) Apply Update')
-				ans=input(' Choose : ')
-				if ans=='2':
-					os.remove('wsee.py')
-					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
-					with open('wsee.py', 'a') as pd:
-						pd.write(upd.text)
-						print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-						pd.close()
-						f.close()
-					print('[' + colors.GREEN_BG + ' Updated! ' + colors.ENDC + ']')
-					exit()
-				else:
+	if data['config']['update-wsee'] == True:
+		print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
+		resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+		if parse_version(resp.text) > parse_version("1.10.0"):
+			print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
+			print('1) Ignore Update')
+			print('2) Apply Update')
+			ans=input(' Choose : ')
+			if ans=='2':
+				os.remove('wsee.py')
+				upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
+				with open('wsee.py', 'a') as pd:
+					pd.write(upd.text)
 					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-					f.close()
-					return
-			else:
-				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
+				print('[' + colors.GREEN_BG + ' Script Updated! ' + colors.ENDC + ']')
 				sleep(3)
 				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-				f.close()
-				return
+				exit()
+			else:
+				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 		else:
-			f.close()
-			return
+			print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
+			sleep(3)
+			print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 
 # Main Menu; Handles everything.
 def menu():
@@ -773,25 +766,19 @@ __  _  ________ ____   ____
 	ans=input(' Choose Option :  ').lower()
 	print('')
 	if ans=='1':
-		def text():
-			if not switch['bloc']=='0' or switch['bloc']=='5':
-				doma()
-			filet()
-			option()
-			executor()
-			uinput()
-			text()
-		text()
+		if not switch['bloc']=='0' or switch['bloc']=='5':
+			doma()
+		filet()
+		option()
+		executor()
+		uinput()
 	elif ans=='2':
-		def enum():
-			if not switch['bloc']=='0' or switch['bloc']=='5':
-				doma()
-			hacki()
-			option()
-			executor()
-			uinput()
-			enum()
-		enum()
+		if not switch['bloc']=='0' or switch['bloc']=='5':
+			doma()
+		hacki()
+		option()
+		executor()
+		uinput()
 	else:
 		uinput()
 
