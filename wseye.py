@@ -40,8 +40,14 @@ cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
-appendix = Queue()
 columns = defaultdict(list)
+
+total = []
+Faily=Value('i',0)
+appendix = Queue()
+Resultee=Value('d',0)
+procount = cpu_count()
+
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
 switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'numtotal': 0, 'numline': 0, 'nametag': 'result'}
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
@@ -191,61 +197,62 @@ def hacki():
 		return
 
 ''' Main Control Section '''
-# Running Process and Reading passed list		
-def executor():
-	global Faily, Resultee, Run
-	procount = cpu_count()
-	Faily=Value('i',0)
-	Resultee=Value('d',0)
-	Run = Value('f', 1)
-	if not switch['type']=='cust':
-		def filement():
-			if Run.value:
-				if switch['type']=='txt':
-					with open(switch['loc'], 'r') as f:
-						for liner in f:
-							appendix.put(liner.strip())
-				elif switch['type']=='csv':
-					with open(switch['loc'], 'r') as f:
-						reader = csv.reader(csv_file)
-						for row in reader:
-							for (i,v) in enumerate(row):
-								columns[i].append(v)
-						appendix.put(columns[9]+columns[3])
-				elif switch['type']=='enum':
-					apppendix.put(domainlist)
-				elif switch['type']=='range':
-					for ip in IPNetwork(switch['loc']):
-						appendix.put(str(ip))
-				for i in range(procount):
-					appendix.put('ENDED')
-		filament = Thread(target=filement)
-		filament.start()
-	processes = []
-	for maxi in range(procount):
-		if switch['bloc']=='0':
-			p = Process(target=grabber, args=(maxi,appendix,Resultee,Faily))
-		elif switch['bloc']=='1':
-			p = Process(target=wsee, args=(maxi,appendix,Resultee,Faily))
-		elif switch['bloc']=='2':
-			p = Process(target=wsrect, args=(maxi,appendix,Resultee,Faily))
-		elif switch['bloc']=='3':
-			p = Process(target=h2see, args=(maxi,appendix,Resultee,Faily))
-		elif switch['bloc']=='4':
-			p = Process(target=h2srect, args=(maxi,appendix,Resultee,Faily))
-		elif switch['bloc']=='5':
-			p = Process(target=nowsee, args=(maxi,appendix,Resultee,Faily))
-		p.start()
-		processes.append(p)
-	for p in processes:
-		p.join()
-	if not switch['type']=='cust':
-		filament.join()
+
+# Appendix n lines
+def itter(filename, n):
+	with open(filename) as f:
+		for line in f:
+			yield [line] + list(islice(f, n-1))
+
+# Running Process and Reading text list
+def serv():
+	if switch['type']=='txt':
+		for line in itter(switch['loc'], n=procount):
+			for i in line:
+				appendix.put(str(re.sub('\n','',i)))
+			for i in range(procount):
+				appendix.put('ENDED')
+				executor()
+	elif switch['type']=='csv':
+		with open(switch['loc'], 'r') as f:
+			reader = csv.reader(csv_file)
+			for row in reader:
+				for (i,v) in enumerate(row):
+					columns[i].append(v)
+			appendix.put(columns[9]+columns[3])
+		for i in range(procount):
+			appendix.put('ENDED')
+			executor()
+	elif switch['type']=='cust':
+		appendix.put(str(switch['loc']))
+		for i in range(procount):
+			appendix.put('ENDED')
+			executor()
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 	print('')
 	return
+
+# Running Process
+def executor():
+	for process_num in range(procount):
+		if switch['bloc']=='0':
+			p = Process(target=grabber, args=(appendix,Resultee,Faily))
+		elif switch['bloc']=='1':
+			p = Process(target=wsee, args=(appendix,Resultee,Faily))
+		elif switch['bloc']=='2':
+			p = Process(target=wsrect, args=(appendix,Resultee,Faily))
+		elif switch['bloc']=='3':
+			p = Process(target=h2see, args=(appendix,Resultee,Faily))
+		elif switch['bloc']=='4':
+			p = Process(target=h2srect, args=(appendix,Resultee,Faily))
+		elif switch['bloc']=='5':
+			p = Process(target=nowsee, args=(appendix,Resultee,Faily))
+		p.start()
+		processes.append(p)
+	for p in processes:
+		p.join()
 
 ''' Main Process '''
 # Ping DNS if connection is up
@@ -756,19 +763,18 @@ __  _  ________ ____   ____
 			doma()
 		filet()
 		option()
-		executor()
+		serv()
 		uinput()
 	elif ans=='2':
 		if not switch['bloc']=='0' or switch['bloc']=='5':
 			doma()
 		hacki()
 		option()
-		executor()
+		serv()
 		uinput()
-	elif ans=='3':
+	elif ans=='5':
 		print('1. Input Custom Domain')
 		print('2. Input Custom IP')
-		print('3. Input Custom CIDR')
 		print('')
 		ans = input(' Choose Target: ')
 		print('')
@@ -776,11 +782,13 @@ __  _  ________ ____   ____
 		if not switch['bloc']=='0' or switch['bloc']=='5':
 			doma()
 		option()
-		if ans == '3':
+		if ans == '1':
+			cus = input(' Input your Domain : ')
 			switch['loc']=ans
-			procid()
-		else:
-			appendix.put(ans)
+			executor()
+		elif ans == '2':
+			cus = input(' Input your IP : ')
+			switch['loc']=ans
 			executor()
 		uinput()
 	else:
