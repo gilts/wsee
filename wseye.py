@@ -183,6 +183,27 @@ def filet():
 	else:
 		uinput()
 
+# Reading Lines
+def liner():
+	num_line=1
+	print('[' + colors.RED_BG + ' Choose list of CIDR ' + colors.ENDC + ']')
+	with open(switch['loc'], 'r') as liner:
+		for f in liner:
+			print( str(num_line),str(f.strip()))
+			num_line=num_line+1
+			txtfiles.append(str(f.strip()))
+	print('')
+	print(' M back to Menu ')
+	lineselector = input(' Choose Target Lines : ')
+	print('')
+	print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(lineselector)-1]+' '+colors.ENDC)
+	print('')
+	if lineselector.isdigit():
+		switch['loc']=txtfiles[int(lineselector)-1]
+		return
+	else:
+		uinput()
+
 # Reading from Online enumeration
 def hacki():
 	global domainlist
@@ -197,7 +218,6 @@ def hacki():
 		return
 
 ''' Main Control Section '''
-
 # Appendix n lines
 def itter(filename, n):
 	with open(filename) as f:
@@ -641,7 +661,8 @@ __  _  ________ ____   ____
 \ \/ \/ /  ___// __ \_/ __ \ 
  \     /\___ \\  ___/\  ___/ 
   \/\_//____  >\___  >\___  >
-			\/     \/     \/  
+            \/     \/     \/  
+
 	''')
 	print('    [' + colors.RED_BG + ' Domain : Fronting ' + colors.ENDC + ']')
 	print('     ['+colors.RED_BG+' Author ' + colors.ENDC + ':' + colors.GREEN_BG + ' Kiynox ' + colors.ENDC + ']')
@@ -761,10 +782,25 @@ __  _  ________ ____   ____
 	if ans=='1':
 		if not switch['bloc']=='0' or switch['bloc']=='5':
 			doma()
-		filet()
 		option()
-		serv()
-		uinput()
+		print('1. Scan Local Files')
+		print('3. Scan Local Lines')
+		print()
+		ans=input(' Choose Option :  ').lower()
+		print()
+		if ans == '1':
+			switch['type']='txt'
+			filet()
+			serv()
+			uinput()
+		elif ans == '2':
+			switch['type']='cust'
+			filet()
+			liner()
+			serv()
+			uinput()
+		else:
+			uinput()
 	elif ans=='2':
 		if not switch['bloc']=='0' or switch['bloc']=='5':
 			doma()
@@ -772,7 +808,7 @@ __  _  ________ ____   ____
 		option()
 		serv()
 		uinput()
-	elif ans=='5':
+	elif ans=='3':
 		print('1. Input Custom Domain')
 		print('2. Input Custom IP')
 		print('')
