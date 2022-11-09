@@ -27,6 +27,7 @@ import subprocess
 import requests,re
 import os, fnmatch
 from time import sleep
+from itertools import islice
 from threading import Thread
 from collections import defaultdict
 from os.path import abspath, dirname
@@ -45,6 +46,7 @@ columns = defaultdict(list)
 total = []
 Faily=Value('i',0)
 appendix = Queue()
+Run = Value('f', 1)
 Resultee=Value('d',0)
 procount = cpu_count()
 
@@ -88,7 +90,7 @@ def option():
 		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
 		prox = input(' Proxy : ')
 		payloads['Proxy']=prox
-	elif switch['rot']=='2':
+	elif switch['rot']=='3':
 		print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
 		bugger = input(' SNI : ')
 		payloads['SNI']=bugger
@@ -218,6 +220,7 @@ def hacki():
 		return
 
 ''' Main Control Section '''
+
 # Appendix n lines
 def itter(filename, n):
 	with open(filename) as f:
@@ -256,22 +259,22 @@ def serv():
 
 # Running Process
 def executor():
-	for process_num in range(procount):
+	for i in range(procount):
 		if switch['bloc']=='0':
-			p = Process(target=grabber, args=(appendix,Resultee,Faily))
+			p = Process(target=grabber, args=(i,appendix,Resultee,Faily))
 		elif switch['bloc']=='1':
-			p = Process(target=wsee, args=(appendix,Resultee,Faily))
+			p = Process(target=wsee, args=(i,appendix,Resultee,Faily))
 		elif switch['bloc']=='2':
-			p = Process(target=wsrect, args=(appendix,Resultee,Faily))
+			p = Process(target=wsrect, args=(i,appendix,Resultee,Faily))
 		elif switch['bloc']=='3':
-			p = Process(target=h2see, args=(appendix,Resultee,Faily))
+			p = Process(target=h2see, args=(i,appendix,Resultee,Faily))
 		elif switch['bloc']=='4':
-			p = Process(target=h2srect, args=(appendix,Resultee,Faily))
+			p = Process(target=h2srect, args=(i,appendix,Resultee,Faily))
 		elif switch['bloc']=='5':
-			p = Process(target=nowsee, args=(appendix,Resultee,Faily))
+			p = Process(target=nowsee, args=(i,appendix,Resultee,Faily))
 		p.start()
-		processes.append(p)
-	for p in processes:
+		total.append(p)
+	for p in total:
 		p.join()
 
 ''' Main Process '''
@@ -668,166 +671,166 @@ __  _  ________ ____   ____
 	print('     ['+colors.RED_BG+' Author ' + colors.ENDC + ':' + colors.GREEN_BG + ' Kiynox ' + colors.ENDC + ']')
 	print('')
 
-	print('1. CDN Websocket')
-	print('2. Local Websocket')
-	print('3. CDN H2C')
-	print('4. Local H2C')
-	print('5. TLS/SSL')
-	print('6. Direct/Proxy')
-	print('')
-	ans=input(' Choose Option : ').lower()
-	print('')
-	if ans=='1':
-		print('1. CDN SSL')
-		print('2. CDN SSL Proxy Rotate')
-		print('3. CDN SSL Host Rotate')
-		print('4. CDN Direct')
+	try:
+		print('1. CDN Websocket')
+		print('2. Local Websocket')
+		print('3. CDN H2C')
+		print('4. Local H2C')
+		print('5. TLS/SSL')
+		print('6. Direct/Proxy')
 		print('')
 		ans=input(' Choose Option : ').lower()
 		print('')
 		if ans=='1':
-			switch['bloc']='1'
-			switch['rot']='0'
+			print('1. CDN SSL')
+			print('2. CDN SSL Proxy Rotate')
+			print('3. CDN SSL Host Rotate')
+			print('4. CDN Direct')
+			print('')
+			ans=input(' Choose Option : ').lower()
+			print('')
+			if ans=='1':
+				switch['bloc']='1'
+				switch['rot']='0'
+			elif ans=='2':
+				switch['bloc']='1'
+				switch['rot']='3'
+			elif ans=='3':
+				switch['bloc']='1'
+				switch['rot']='1'
+			elif ans=='4':
+				switch['bloc']='2'
+				switch['rot']='0'
 		elif ans=='2':
-			switch['bloc']='1'
-			switch['rot']='3'
+			print('1. Local SSL')
+			print('2. Local Direct')
+			print('3. Local SSL ZGrab')
+			print('4. Local Direct ZGrab')
+			print('')
+			ans=input(' Choose Option : ').lower()
+			print('')
+			if ans=='1':
+				switch['bloc']='1'
+				switch['rot']='2'
+			elif ans=='2':
+				switch['bloc']='2'
+				switch['rot']='1'
+			elif ans=='3':
+				switch['bloc']='0'
+				switch['rot']='0'
+			elif ans=='4':
+				switch['bloc']='0'
+				switch['rot']='1'
 		elif ans=='3':
-			switch['bloc']='1'
-			switch['rot']='1'
+			print('1. H2 SSL')
+			print('2. H2 SSL Proxy Rotate')
+			print('3. H2 SSL Host Rotate')
+			print('4. H2C Direct')
+			print('')
+			ans=input(' Choose Option : ').lower()
+			print('')
+			if ans=='1':
+				switch['bloc']='3'
+				switch['rot']='0'
+			elif ans=='2':
+				switch['bloc']='3'
+				switch['rot']='3'
+			elif ans=='3':
+				switch['bloc']='3'
+				switch['rot']='1'
+			elif ans=='4':
+				switch['bloc']='4'
+				switch['rot']='0'
 		elif ans=='4':
-			switch['bloc']='2'
+			print('1. Local H2C SSL')
+			print('2. Local H2C Direct')
+			print('3. Local H2C SSL ZGrab')
+			print('4. Local H2C Direct ZGrab')
+			print('')
+			ans=input(' Choose Option : ')
+			print('')
+			if ans=='1':
+				switch['bloc']='3'
+				switch['rot']='2'
+			elif ans=='2':
+				switch['bloc']='4'
+				switch['rot']='1'
+			elif ans=='3':
+				switch['bloc']='0'
+				switch['rot']='2'
+			elif ans=='4':
+				switch['bloc']='0'
+				switch['rot']='3'
+		elif ans=='5':
+			switch['bloc']='5'
 			switch['rot']='0'
-		else:
-			uinput()
-	elif ans=='2':
-		print('1. Local SSL')
-		print('2. Local Direct')
-		print('3. Local SSL ZGrab')
-		print('4. Local Direct ZGrab')
+		elif ans=='6':
+			switch['bloc']='5'
+			switch['rot']='`1'
+		print('1. Scan File (.txt)')
+		print('2. Scan Online (HackerTarget)')
+		print('3. Scan Input')
 		print('')
-		ans=input(' Choose Option : ').lower()
-		print('')
-		if ans=='1':
-			switch['bloc']='1'
-			switch['rot']='2'
-		elif ans=='2':
-			switch['bloc']='2'
-			switch['rot']='1'
-		elif ans=='3':
-			switch['bloc']='0'
-			switch['rot']='0'
-		elif ans=='4':
-			switch['bloc']='0'
-			switch['rot']='1'
-		else:
-			uinput()
-	elif ans=='3':
-		print('1. H2 SSL')
-		print('2. H2 SSL Proxy Rotate')
-		print('3. H2 SSL Host Rotate')
-		print('4. H2C Direct')
-		print('')
-		ans=input(' Choose Option : ').lower()
-		print('')
-		if ans=='1':
-			switch['bloc']='3'
-			switch['rot']='0'
-		elif ans=='2':
-			switch['bloc']='3'
-			switch['rot']='3'
-		elif ans=='3':
-			switch['bloc']='3'
-			switch['rot']='1'
-		elif ans=='4':
-			switch['bloc']='4'
-			switch['rot']='0'
-		else:
-			uinput()
-	elif ans=='4':
-		print('1. Local H2C SSL')
-		print('2. Local H2C Direct')
-		print('3. Local H2C SSL ZGrab')
-		print('4. Local H2C Direct ZGrab')
-		print('')
-		ans=input(' Choose Option : ')
-		print('')
-		if ans=='1':
-			switch['bloc']='3'
-			switch['rot']='2'
-		elif ans=='2':
-			switch['bloc']='4'
-			switch['rot']='1'
-		elif ans=='3':
-			switch['bloc']='0'
-			switch['rot']='2'
-		elif ans=='4':
-			switch['bloc']='0'
-			switch['rot']='3'
-		else:
-			uinput()
-	elif ans=='5':
-		switch['bloc']='5'
-		switch['rot']='0'
-	elif ans=='6':
-		switch['bloc']='5'
-		switch['rot']='`1'
-	else:
-		uinput()
-	print('1. Scan File (.txt)')
-	print('2. Scan Online (HackerTarget)')
-	print('3. Scan Input')
-	print('')
-	ans=input(' Choose Option :  ').lower()
-	print('')
-	if ans=='1':
-		if not switch['bloc']=='0' or switch['bloc']=='5':
-			doma()
-		option()
-		print('1. Scan Local Files')
-		print('3. Scan Local Lines')
-		print()
 		ans=input(' Choose Option :  ').lower()
-		print()
-		if ans == '1':
-			switch['type']='txt'
-			filet()
+		print('')
+		if ans=='1':
+			if not switch['bloc']=='0' or switch['bloc']=='5':
+				doma()
+			print(switch)
+			option()
+			print('1. Scan Local Files')
+			print('2. Scan Local CIDR Files')
+			print('3. Scan Local Lines')
+			print('4. Scan Local CIDR Lines')
+			print()
+			ans=input(' Choose Option :  ').lower()
+			print()
+			if ans == '1':
+				switch['type']='txt'
+				filet()
+				serv()
+			elif ans == '2':
+				switch['type']='txt'
+				filet()
+				arange()
+			elif ans == '3':
+				switch['type']='cust'
+				filet()
+				liner()
+				serv()
+			elif ans == '4':
+				switch['type']='cust'
+				filet()
+				liner()
+				arange()
+			uinput()
+		elif ans=='2':
+			if not switch['bloc']=='0' or switch['bloc']=='5':
+				doma()
+			hacki()
+			option()
 			serv()
 			uinput()
-		elif ans == '2':
+		elif ans=='3':
+			print('1. Input Custom Domain')
+			print('2. Input Custom IP')
+			print('')
+			ans = input(' Choose Target: ')
+			print('')
 			switch['type']='cust'
-			filet()
-			liner()
-			serv()
+			if not switch['bloc']=='0' or switch['bloc']=='5':
+				doma()
+			option()
+			if ans == '1':
+				cus = input(' Input your Domain : ')
+				switch['loc']=ans
+				serv()
+			elif ans == '2':
+				cus = input(' Input your IP : ')
+				switch['loc']=ans
+				serv()
 			uinput()
-		else:
-			uinput()
-	elif ans=='2':
-		if not switch['bloc']=='0' or switch['bloc']=='5':
-			doma()
-		hacki()
-		option()
-		serv()
-		uinput()
-	elif ans=='3':
-		print('1. Input Custom Domain')
-		print('2. Input Custom IP')
-		print('')
-		ans = input(' Choose Target: ')
-		print('')
-		switch['type']='cust'
-		if not switch['bloc']=='0' or switch['bloc']=='5':
-			doma()
-		option()
-		if ans == '1':
-			cus = input(' Input your Domain : ')
-			switch['loc']=ans
-			executor()
-		elif ans == '2':
-			cus = input(' Input your IP : ')
-			switch['loc']=ans
-			executor()
-		uinput()
-	else:
+	except Exception:
 		uinput()
 
 if __name__ == '__main__':
