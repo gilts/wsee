@@ -43,13 +43,6 @@ cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 txtfiles= []
 columns = defaultdict(list)
 
-total = []
-Faily=Value('i',0)
-appendix = Queue()
-Run = Value('f', 1)
-Resultee=Value('d',0)
-procount = cpu_count()
-
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
 switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'numtotal': 0, 'numline': 0, 'nametag': 'result'}
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
@@ -75,8 +68,6 @@ def doma():
 		payloads['Host']=f'{cfront_domain}'
 	elif ans=='3':
 		payloads['Host']=f'{cflare_domain}'
-	else:
-		uinput()
 	frontdom = payloads['Host']
 	print('['+colors.GREEN_BG + f' {frontdom} '+ colors.ENDC + '] Selected as Domain Fronting!')
 	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
@@ -90,10 +81,12 @@ def option():
 		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
 		prox = input(' Proxy : ')
 		payloads['Proxy']=prox
+		print('')
 	elif switch['rot']=='3':
 		print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
 		bugger = input(' SNI : ')
 		payloads['SNI']=bugger
+		print('')
 	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
 	nametag = input(' Output as : ')
 	print('')
@@ -152,8 +145,6 @@ def filet():
 		path = input(' Input your Folder: ')
 		files = os.listdir(path)
 		switch['dir']='4'
-	else:
-		uinput()
 	print(' [' + colors.RED_BG + ' Files Found ' + colors.ENDC + '] ')
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
@@ -182,8 +173,6 @@ def filet():
 			file_hosts = path
 		switch['loc']=file_hosts
 		return
-	else:
-		uinput()
 
 # Reading Lines
 def liner():
@@ -203,8 +192,6 @@ def liner():
 	if lineselector.isdigit():
 		switch['loc']=txtfiles[int(lineselector)-1]
 		return
-	else:
-		uinput()
 
 # Reading from Online enumeration
 def hacki():
@@ -229,13 +216,34 @@ def itter(filename, n):
 
 # Running Process and Reading text list
 def serv():
+	global appendix, Faily, Resultee, maxi
+	Faily=Value('i',0)
+	maxi = cpu_count()
+	appendix = Queue()
+	Resultee=Value('d',0)
+	total = []
 	if switch['type']=='txt':
-		for line in itter(switch['loc'], n=procount):
+		for line in itter(switch['loc'], n=maxi):
 			for i in line:
 				appendix.put(str(re.sub('\n','',i)))
-			for i in range(procount):
+			for i in range(maxi):
 				appendix.put('ENDED')
-				executor()
+				if switch['bloc']=='0':
+					p = Process(target=grabber, args=(appendix,Resultee,Faily))
+				elif switch['bloc']=='1':
+					p = Process(target=wsee, args=(appendix,Resultee,Faily))
+				elif switch['bloc']=='2':
+					p = Process(target=wsrect, args=(appendix,Resultee,Faily))
+				elif switch['bloc']=='3':
+					p = Process(target=h2see, args=(appendix,Resultee,Faily))
+				elif switch['bloc']=='4':
+					p = Process(target=h2srect, args=(appendix,Resultee,Faily))
+				elif switch['bloc']=='5':
+					p = Process(target=nowsee, args=(appendix,Resultee,Faily))
+				p.start()
+				total.append(p)
+			for p in total:
+				p.join()
 	elif switch['type']=='csv':
 		with open(switch['loc'], 'r') as f:
 			reader = csv.reader(csv_file)
@@ -243,39 +251,49 @@ def serv():
 				for (i,v) in enumerate(row):
 					columns[i].append(v)
 			appendix.put(columns[9]+columns[3])
-		for i in range(procount):
+		for i in range(maxi):
 			appendix.put('ENDED')
-			executor()
+			if switch['bloc']=='0':
+				p = Process(target=grabber, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='1':
+				p = Process(target=wsee, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='2':
+				p = Process(target=wsrect, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='3':
+				p = Process(target=h2see, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='4':
+				p = Process(target=h2srect, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='5':
+				p = Process(target=nowsee, args=(appendix,Resultee,Faily))
+			p.start()
+			total.append(p)
+		for p in total:
+			p.join()
 	elif switch['type']=='cust':
 		appendix.put(str(switch['loc']))
-		for i in range(procount):
+		for i in range(maxi):
 			appendix.put('ENDED')
-			executor()
+			if switch['bloc']=='0':
+				p = Process(target=grabber, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='1':
+				p = Process(target=wsee, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='2':
+				p = Process(target=wsrect, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='3':
+				p = Process(target=h2see, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='4':
+				p = Process(target=h2srect, args=(appendix,Resultee,Faily))
+			elif switch['bloc']=='5':
+				p = Process(target=nowsee, args=(appendix,Resultee,Faily))
+			p.start()
+			total.append(p)
+		for p in total:
+			p.join()
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 	print('')
 	return
-
-# Running Process
-def executor():
-	for i in range(procount):
-		if switch['bloc']=='0':
-			p = Process(target=grabber, args=(i,appendix,Resultee,Faily))
-		elif switch['bloc']=='1':
-			p = Process(target=wsee, args=(i,appendix,Resultee,Faily))
-		elif switch['bloc']=='2':
-			p = Process(target=wsrect, args=(i,appendix,Resultee,Faily))
-		elif switch['bloc']=='3':
-			p = Process(target=h2see, args=(i,appendix,Resultee,Faily))
-		elif switch['bloc']=='4':
-			p = Process(target=h2srect, args=(i,appendix,Resultee,Faily))
-		elif switch['bloc']=='5':
-			p = Process(target=nowsee, args=(i,appendix,Resultee,Faily))
-		p.start()
-		total.append(p)
-	for p in total:
-		p.join()
 
 ''' Main Process '''
 # Ping DNS if connection is up
@@ -285,12 +303,11 @@ def pinger():
 		sock.settimeout(3)
 		sock.connect(('9.9.9.9',53))
 		sock.close()
-		Run.value = 1
+		return
 	except socket.error as e:
 		print(e)
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
 		sleep(3)
-		Run.value = 0
 		pinger()
 
 # Websocket SSL: Takes CDN/Local
@@ -344,6 +361,7 @@ def wsee(appendix,Resultee,Faily):
 						with Faily.get_lock():
 							Faily.value +=1
 				sock.close()
+				break
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 				with Faily.get_lock():
@@ -776,7 +794,6 @@ __  _  ________ ____   ____
 		if ans=='1':
 			if not switch['bloc']=='0' or switch['bloc']=='5':
 				doma()
-			print(switch)
 			option()
 			print('1. Scan Local Files')
 			print('2. Scan Local CIDR Files')
@@ -830,7 +847,8 @@ __  _  ________ ____   ____
 				switch['loc']=ans
 				serv()
 			uinput()
-	except Exception:
+	except Exception as e:
+		print(e)
 		uinput()
 
 if __name__ == '__main__':
