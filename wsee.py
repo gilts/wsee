@@ -27,6 +27,7 @@ import subprocess
 import requests,re
 import os, fnmatch
 from time import sleep
+from itertools import islice
 from threading import Thread
 from collections import defaultdict
 from os.path import abspath, dirname
@@ -40,10 +41,11 @@ cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
-appendix = Queue()
+maxi = cpu_count()
 columns = defaultdict(list)
+
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
-switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
+switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'numtotal': 0, 'numline': 0, 'nametag': 'result'}
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
 class colors:
@@ -82,10 +84,12 @@ def option():
 		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
 		prox = input(' Proxy : ')
 		payloads['Proxy']=prox
-	elif switch['rot']=='2':
+		print('')
+	elif switch['rot']=='3':
 		print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
 		bugger = input(' SNI : ')
 		payloads['SNI']=bugger
+		print('')
 	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
 	nametag = input(' Output as : ')
 	print('')
@@ -174,8 +178,26 @@ def filet():
 			file_hosts = path
 		switch['loc']=file_hosts
 		return
-	else:
-		uinput()
+
+# Reading Lines
+def liner():
+	switch['type']='cust'
+	num_line=1
+	print('[' + colors.RED_BG + ' Choose list of CIDR ' + colors.ENDC + ']')
+	with open(switch['loc'], 'r') as liner:
+		for f in liner:
+			print( str(num_line),str(f.strip()))
+			num_line=num_line+1
+			txtfiles.append(str(f.strip()))
+	print('')
+	print(' M back to Menu ')
+	lineselector = input(' Choose Target Lines : ')
+	print('')
+	print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(lineselector)-1]+' '+colors.ENDC)
+	print('')
+	if lineselector.isdigit():
+		switch['loc']=txtfiles[int(lineselector)-1]
+		return
 
 # Reading from Online enumeration
 def hacki():
@@ -191,35 +213,11 @@ def hacki():
 		return
 
 ''' Main Control Section '''
-# Running Process and Reading list
+# Running Process
 def executor():
-	global Faily, Resultee, Run
-	procount = cpu_count()
-	Faily=Value('i',0)
-	Resultee=Value('d',0)
-	Run = Value('f', 1)
-	def filement():
-		if Run.value:
-			if switch['type']=='txt':
-				with open(switch['loc'], 'r') as f:
-					for liner in f:
-						appendix.put(liner.strip())
-			elif switch['type']=='csv':
-				with open(switch['loc'], 'r') as f:
-					reader = csv.reader(csv_file)
-					for row in reader:
-						for (i,v) in enumerate(row):
-							columns[i].append(v)
-					appendix.put(columns[9]+columns[3])
-			elif switch['type']=='enum':
-				apppendix.put(domainlist)
-			for i in range(procount):
-				appendix.put('ENDED')
-	if 0 <= int(switch['dir']) < 4:
-		filament = Thread(target=filement)
-		filament.start()
-	processes = []
-	for process_num in range(procount):
+	total = []
+	for i in range(maxi):
+		appendix.put('ENDED')
 		if switch['bloc']=='0':
 			p = Process(target=grabber, args=(appendix,Resultee,Faily))
 		elif switch['bloc']=='1':
@@ -233,30 +231,53 @@ def executor():
 		elif switch['bloc']=='5':
 			p = Process(target=nowsee, args=(appendix,Resultee,Faily))
 		p.start()
-		processes.append(p)
-	for p in processes:
+		total.append(p)
+	for p in total:
 		p.join()
-	if 0 <= int(switch['dir']) < 4:
-		filament.join()
+	p.terminate()
+
+# Running Process and Reading text list
+def serv():
+	global appendix, Faily, Resultee
+	Faily=Value('i',0)
+	appendix = Queue()
+	Resultee=Value('d',0)
+	if switch['type']=='txt':
+		with open(switch['loc'], 'r') as f:
+			for line in f:
+				liner = [line] + list(islice(f, maxi-1))
+				for i in liner:
+					appendix.put(str(re.sub('\n', '', i.strip())))
+				executor()
+	elif switch['type']=='csv':
+		with open(switch['loc'], 'r') as f:
+			reader = csv.reader(csv_file)
+			for row in reader:
+				for (i,v) in enumerate(row):
+					columns[i].append(v)
+			appendix.put(columns[9]+columns[3])
+		executor()
+	elif switch['type']=='cust':
+		appendix.put(str(switch['loc']))
+		executor()
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
+	print('')
 	return
 
 ''' Main Process '''
 # Ping DNS if connection is up
 def pinger():
 	try:
-		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock.settimeout(3)
-		sock.connect(('9.9.9.9',53))
-		sock.close()
-		Run.value = 1
+		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+			sock.settimeout(3)
+			sock.connect(('9.9.9.9',53))
+		return
 	except socket.error as e:
 		print(e)
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
 		sleep(3)
-		Run.value = 0
 		pinger()
 
 # Websocket SSL: Takes CDN/Local
@@ -273,43 +294,42 @@ def wsee(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				sock = socket.socket()
-				cont = ssl.create_default_context()
-				cont.set_ciphers(cipher)
-				if switch['rot']=='3':
-					sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
-					sock.connect((onliner, 443))
-					sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-				elif 0 <= int(switch['rot']) < 2:
-					if switch['rot']=='1':
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
-						sock.connect((payloads["Proxy"], 443))
-					else:
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
+				with socket.socket() as sock:
+					sock.settimeout(5)
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					cont = ssl.create_default_context()
+					cont.set_ciphers(cipher)
+					if switch['rot']=='3':
+						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
-					if switch['rot']=='2':
-						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-					else:
-						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-				sock.settimeout(5)
-				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-				line = str(sock.recv(13))
-				resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-				if not resu:
-					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
-					with Faily.get_lock():
-						Faily.value +=1
-				else:
-					if int(resu[0]) == expected_response:
-						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-						with Resultee.get_lock():
-							Resultee.value +=1
-					elif int(resu[0]) != expected_response:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+					elif 0 <= int(switch['rot']) < 2:
+						if switch['rot']=='1':
+							sock = cont.wrap_socket(sock, server_hostname = onliner)
+							sock.connect((payloads["Proxy"], 443))
+						else:
+							sock = cont.wrap_socket(sock, server_hostname = onliner)
+							sock.connect((onliner, 443))
+						if switch['rot']=='2':
+							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+						else:
+							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+					line = str(sock.recv(13))
+					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+					if not resu:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
-				sock.close()
+					else:
+						if int(resu[0]) == expected_response:
+							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+							with Resultee.get_lock():
+								Resultee.value +=1
+						elif int(resu[0]) != expected_response:
+							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							with Faily.get_lock():
+								Faily.value +=1
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 				with Faily.get_lock():
@@ -338,31 +358,30 @@ def wsrect(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				sock = socket.socket()
-				sock.connect((onliner, 80))
-				if switch['rot'] == '0':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-				else:
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-				sock.settimeout(5)
-				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-				line = str(sock.recv(13))
-				resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-				if not resu:
-					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
-					with Faily.get_lock():
-						Faily.value +=1
-				else:
-					if int(resu[0]) == expected_response:
-						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-						with Resultee.get_lock():
-							Resultee.value +=1
-					elif int(resu[0]) != expected_response:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+				with socket.socket() as sock:
+					sock.settimeout(5)
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					sock.connect((onliner, 80))
+					if switch['rot'] == '0':
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+					else:
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+					line = str(sock.recv(13))
+					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+					if not resu:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
-				sock.close()
+					else:
+						if int(resu[0]) == expected_response:
+							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+							with Resultee.get_lock():
+								Resultee.value +=1
+						elif int(resu[0]) != expected_response:
+							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							with Faily.get_lock():
+								Faily.value +=1
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 				with Faily.get_lock():
@@ -393,43 +412,42 @@ def h2see(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				sock = socket.socket()
-				cont = ssl.create_default_context()
-				cont.set_ciphers(cipher)
-				if switch['rot']=='3':
-					sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
-					sock.connect((onliner, 443))
-					sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["SNI"])}\r\n\r\n', encoding='utf-8'))
-				elif (0 <= int(switch['rot']) < 2):
-					if switch['rot']=='1':
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
-						sock.connect((payloads["Proxy"], 443))
-					else:
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
+				with socket.socket() as sock:
+					sock.settimeout(5)
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					cont = ssl.create_default_context()
+					cont.set_ciphers(cipher)
+					if switch['rot']=='3':
+						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
-					if switch['rot']=='2':
-						sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
-					else:
-						sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
-				sock.settimeout(5)
-				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-				line = str(sock.recv(13))
-				resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-				if not resu:
-					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
-					with Faily.get_lock():
-						Faily.value +=1
-				else:
-					if int(resu[0]) == expected_response:
-						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-						with Resultee.get_lock():
-							Resultee.value +=1
-					elif int(resu[0]) != expected_response:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+						sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["SNI"])}\r\n\r\n', encoding='utf-8'))
+					elif (0 <= int(switch['rot']) < 2):
+						if switch['rot']=='1':
+							sock = cont.wrap_socket(sock, server_hostname = onliner)
+							sock.connect((payloads["Proxy"], 443))
+						else:
+							sock = cont.wrap_socket(sock, server_hostname = onliner)
+							sock.connect((onliner, 443))
+						if switch['rot']=='2':
+							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
+						else:
+							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
+					line = str(sock.recv(13))
+					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+					if not resu:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
-				sock.close()
+					else:
+						if int(resu[0]) == expected_response:
+							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+							with Resultee.get_lock():
+								Resultee.value +=1
+						elif int(resu[0]) != expected_response:
+							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							with Faily.get_lock():
+								Faily.value +=1
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 				with Faily.get_lock():
@@ -458,31 +476,30 @@ def h2srect(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				sock = socket.socket()
-				sock.connect((onliner, 80))
-				if switch['rot']=='0':
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
-				else:
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
-				sock.settimeout(5)
-				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-				line = str(sock.recv(13))
-				resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-				if not resu:
-					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
-					with Faily.get_lock():
-						Faily.value +=1
-				else:
-					if int(resu[0]) == expected_response:
-						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-						with Resultee.get_lock():
-							Resultee.value +=1
-					elif int(resu[0]) != expected_response:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+				with socket.socket() as sock:
+					sock.settimeout(5)
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					sock.connect((onliner, 80))
+					if switch['rot']=='0':
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
+					else:
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
+					line = str(sock.recv(13))
+					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+					if not resu:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
-				sock.close()
+					else:
+						if int(resu[0]) == expected_response:
+							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+							with Resultee.get_lock():
+								Resultee.value +=1
+						elif int(resu[0]) != expected_response:
+							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							with Faily.get_lock():
+								Faily.value +=1
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 				with Faily.get_lock():
@@ -511,34 +528,33 @@ def nowsee(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				sock = socket.socket()
-				cont = ssl.create_default_context()
-				if switch['rot']=='0':
-					cont.set_ciphers(cipher)
-					sock = cont.wrap_socket(sock, server_hostname = onliner)
-					sock.connect((onliner, 443))
-				else:
-					sock.connect((onliner, 80))
-				sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nAccept: */*\r\nAccept-Encoding: *\r\nAccept-Language: *\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\r\n\r\n', encoding='utf-8'))
-				sock.settimeout(5)
-				sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-				line = str(sock.recv(13))
-				resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-				if not resu:
-					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
-					with Faily.get_lock():
-						Faily.value +=1
-				else:
-					if int(resu[0]) == 200:
-						print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-						print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-						with Resultee.get_lock():
-							Resultee.value +=1
-					elif int(resu[0]) != 200:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+				with socket.socket() as sock:
+					sock.settimeout(5)
+					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+					cont = ssl.create_default_context()
+					if switch['rot']=='0':
+						cont.set_ciphers(cipher)
+						sock = cont.wrap_socket(sock, server_hostname = onliner)
+						sock.connect((onliner, 443))
+					else:
+						sock.connect((onliner, 80))
+					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nAccept: */*\r\nAccept-Encoding: *\r\nAccept-Language: *\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\r\n\r\n', encoding='utf-8'))
+					line = str(sock.recv(13))
+					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+					if not resu:
+						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
 						with Faily.get_lock():
 							Faily.value +=1
-				sock.close()
+					else:
+						if int(resu[0]) == 200:
+							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
+							with Resultee.get_lock():
+								Resultee.value +=1
+						elif int(resu[0]) != 200:
+							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							with Faily.get_lock():
+								Faily.value +=1
 			except(ssl.SSLError):
 				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
 				with Faily.get_lock():
@@ -597,7 +613,7 @@ def checker():
 		if data['config']['update-wsee'] == True:
 			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
 			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-			if parse_version(resp.text) > parse_version("1.12.0"):
+			if parse_version(resp.text) > parse_version("1.13.0"):
 				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
 				print('1) Ignore Update')
 				print('2) Apply Update')
@@ -608,28 +624,24 @@ def checker():
 					with open('wsee.py', 'a') as pd:
 						pd.write(upd.text)
 						print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-						pd.close()
-						f.close()
-					print('[' + colors.GREEN_BG + ' Updated! ' + colors.ENDC + ']')
+					print('[' + colors.GREEN_BG + ' Script Updated! ' + colors.ENDC + ']')
+					sleep(3)
+					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
 					exit()
 				else:
 					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-					f.close()
 					return
 			else:
 				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
 				sleep(3)
 				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-				f.close()
 				return
 		else:
-			f.close()
 			return
 
 # Main Menu; Handles everything.
 def menu():
 	print('''
-
 __  _  ________ ____   ____  
 \ \/ \/ /  ___// __ \_/ __ \ 
  \     /\___ \\  ___/\  ___/ 
@@ -640,7 +652,6 @@ __  _  ________ ____   ____
 	print('    [' + colors.RED_BG + ' Domain : Fronting ' + colors.ENDC + ']')
 	print('     ['+colors.RED_BG+' Author ' + colors.ENDC + ':' + colors.GREEN_BG + ' Kiynox ' + colors.ENDC + ']')
 	print('')
-
 	print('1. CDN Websocket')
 	print('2. Local Websocket')
 	print('3. CDN H2C')
@@ -650,7 +661,6 @@ __  _  ________ ____   ____
 	print('')
 	ans=input(' Choose Option : ').lower()
 	print('')
-	global headers, switch
 	if ans=='1':
 		print('1. CDN SSL')
 		print('2. CDN SSL Proxy Rotate')
@@ -747,35 +757,69 @@ __  _  ________ ____   ____
 		switch['rot']='`1'
 	else:
 		uinput()
-	print()
-	print(switch)
-	print()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
+	print('3. Scan Input')
 	print('')
 	ans=input(' Choose Option :  ').lower()
 	print('')
 	if ans=='1':
-		def text():
-			if not switch['bloc']=='0' or switch['bloc']=='5':
-				doma()
+		if not switch['bloc']=='0' or switch['bloc']=='5':
+			doma()
+		option()
+		print('1. Scan Local Files')
+		print('2. Scan Local CIDR Files')
+		print('3. Scan Local Lines')
+		print('4. Scan Local CIDR Lines')
+		print()
+		ans=input(' Choose Option :  ').lower()
+		print()
+		if ans == '1':
 			filet()
-			option()
-			executor()
+			serv()
+		elif ans == '2':
+			filet()
+			arange()
+		elif ans == '3':
+			filet()
+			liner()
+			serv()
+		elif ans == '4':
+			filet()
+			liner()
+			arange()
+		else:
 			uinput()
-			text()
-		text()
+		uinput()
 	elif ans=='2':
-		def enum():
-			if not switch['bloc']=='0' or switch['bloc']=='5':
-				doma()
-			hacki()
-			option()
-			executor()
+		if not switch['bloc']=='0' or switch['bloc']=='5':
+			doma()
+		hacki()
+		option()
+		serv()
+		uinput()
+	elif ans=='3':
+		print('1. Input Custom Domain')
+		print('2. Input Custom IP')
+		print('')
+		ans = input(' Choose Target: ')
+		print('')
+		switch['type']='cust'
+		if not switch['bloc']=='0' or switch['bloc']=='5':
+			doma()
+		option()
+		if ans == '1':
+			cus = input(' Input your Domain : ')
+			switch['loc']=ans
+			switch['type']='cust'
+			serv()
+		elif ans == '2':
+			cus = input(' Input your IP : ')
+			switch['loc']=ans
+			switch['type']='cust'
+			serv()
+		else:
 			uinput()
-			enum()
-		enum()
-	else:
 		uinput()
 
 if __name__ == '__main__':

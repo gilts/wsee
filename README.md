@@ -1,5 +1,5 @@
 # wsee
-A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific protocol, indicated via `101` statuses. Can be used for **Bug  Hunters** to find any delicate domain related to CDN. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
+A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific protocol, indicated via `101` statuses. Can be used for **Bug  Hunters** to find any delicate domain related to `CDN`, `Websocket` and `HTTP/2`. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
 
 ## Features
 - `wsee: to go` an Easy to use, scans whenever needed with Clean interactive Python script. Usable across any device that supports for `python`. PS: Even work on `Termux` and `WSL`.
