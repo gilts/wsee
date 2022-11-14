@@ -29,6 +29,7 @@ import os, fnmatch
 from time import sleep
 from itertools import islice
 from threading import Thread
+from netaddr import IPNetwork
 from collections import defaultdict
 from os.path import abspath, dirname
 from pkg_resources import parse_version
@@ -36,6 +37,7 @@ from multiprocessing import Process, Manager, Value, Queue, cpu_count
 
 hostpath = 'host'
 output = 'output'
+work_at_time = 20
 expected_response = 101
 cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
@@ -45,7 +47,7 @@ maxi = cpu_count()
 columns = defaultdict(list)
 
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
-switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'numtotal': 0, 'numline': 0, 'nametag': 'result'}
+switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'type': '', 'loc': '', 'numtotal': 0, 'numline': 0, 'nametag': 'result'}
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
 class colors:
@@ -80,12 +82,12 @@ def doma():
 # Rot Switch control
 def option():
 	global file_hosts
-	if switch['rot']=='1':
+	if switch['rot']==1:
 		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
 		prox = input(' Proxy : ')
 		payloads['Proxy']=prox
 		print('')
-	elif switch['rot']=='3':
+	elif switch['rot']==3:
 		print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
 		bugger = input(' SNI : ')
 		payloads['SNI']=bugger
@@ -134,28 +136,28 @@ def filet():
 	ans=input(' Choose : ').lower()
 	if ans=='1':
 		files = os.listdir(hostpath)
-		switch['dir']='0'
+		switch['dir']=0
 	elif ans=='2':
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
-		switch['dir']='1'
+		switch['dir']=1
 	elif ans=='3':
 		files = os.listdir('$home/storage/shared/' + hostpath)
-		switch['dir']='2'
+		switch['dir']=2
 	elif ans=='4':
 		files = os.listdir('$home/storage/shared/')
-		switch['dir']='3'
+		switch['dir']=3
 	elif ans=='5':
 		path = input(' Input your Folder: ')
 		files = os.listdir(path)
-		switch['dir']='4'
+		switch['dir']=4
 	else:
 		uinput()
 	print(' [' + colors.RED_BG + ' Files Found ' + colors.ENDC + '] ')
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
-			switch['type']='txt'
+			switch['type']=0
 		elif fnmatch.fnmatch(f, '*.csv'):
-			switch['type']='csv'
+			switch['type']=1
 		print( str(num_file),str(f))
 		num_file=num_file+1
 		txtfiles.append(str(f))
@@ -166,15 +168,15 @@ def filet():
 		print('')
 		print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(fileselector)-1]+' '+colors.ENDC)
 		direct = switch['dir']
-		if direct == '0':
+		if direct == 0:
 			file_hosts = str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
-		elif direct == '1':
+		elif direct == 1:
 			file_hosts = str(txtfiles[int(fileselector)-1])
-		elif direct == '2':
+		elif direct == 2:
 			file_hosts = './storage/shared/' + str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
-		elif direct == '3':
+		elif direct == 3:
 			file_hosts = './storage/shared/' + str(txtfiles[int(fileselector)-1])
-		elif direct == '4':
+		elif direct == 4:
 			file_hosts = path
 		switch['loc']=file_hosts
 		return
@@ -208,7 +210,7 @@ def hacki():
 	if r.text == 'error invalid host':
 		exit('ERR: error invalid host')
 	else:
-		switch['type']='enum'
+		switch['type']=3
 		domainlist = re.findall('(.*?),',r.text)
 		return
 
@@ -218,17 +220,17 @@ def executor():
 	total = []
 	for i in range(maxi):
 		appendix.put('ENDED')
-		if switch['bloc']=='0':
+		if switch['bloc']==0:
 			p = Process(target=grabber, args=(appendix,Resultee,Faily))
-		elif switch['bloc']=='1':
+		elif switch['bloc']==1:
 			p = Process(target=wsee, args=(appendix,Resultee,Faily))
-		elif switch['bloc']=='2':
+		elif switch['bloc']==2:
 			p = Process(target=wsrect, args=(appendix,Resultee,Faily))
-		elif switch['bloc']=='3':
+		elif switch['bloc']==3:
 			p = Process(target=h2see, args=(appendix,Resultee,Faily))
-		elif switch['bloc']=='4':
+		elif switch['bloc']==4:
 			p = Process(target=h2srect, args=(appendix,Resultee,Faily))
-		elif switch['bloc']=='5':
+		elif switch['bloc']==5:
 			p = Process(target=nowsee, args=(appendix,Resultee,Faily))
 		p.start()
 		total.append(p)
@@ -242,14 +244,14 @@ def serv():
 	Faily=Value('i',0)
 	appendix = Queue()
 	Resultee=Value('d',0)
-	if switch['type']=='txt':
+	if switch['type']==0:
 		with open(switch['loc'], 'r') as f:
 			for line in f:
-				liner = [line] + list(islice(f, maxi-1))
+				liner = [line] + list(islice(f, work_at_time-1))
 				for i in liner:
 					appendix.put(str(re.sub('\n', '', i.strip())))
 				executor()
-	elif switch['type']=='csv':
+	elif switch['type']==1:
 		with open(switch['loc'], 'r') as f:
 			reader = csv.reader(csv_file)
 			for row in reader:
@@ -257,7 +259,7 @@ def serv():
 					columns[i].append(v)
 			appendix.put(columns[9]+columns[3])
 		executor()
-	elif switch['type']=='cust':
+	elif switch['type']==2:
 		appendix.put(str(switch['loc']))
 		executor()
 	print('')
@@ -299,18 +301,18 @@ def wsee(appendix,Resultee,Faily):
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					cont = ssl.create_default_context()
 					cont.set_ciphers(cipher)
-					if switch['rot']=='3':
+					if switch['rot']==3:
 						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-					elif 0 <= int(switch['rot']) < 2:
+					elif 0 <= switch['rot'] < 2:
 						if switch['rot']=='1':
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((payloads["Proxy"], 443))
 						else:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((onliner, 443))
-						if switch['rot']=='2':
+						if switch['rot']==2:
 							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 						else:
 							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
@@ -362,7 +364,7 @@ def wsrect(appendix,Resultee,Faily):
 					sock.settimeout(5)
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.connect((onliner, 80))
-					if switch['rot'] == '0':
+					if switch['rot'] == 0:
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					else:
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
@@ -417,18 +419,18 @@ def h2see(appendix,Resultee,Faily):
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					cont = ssl.create_default_context()
 					cont.set_ciphers(cipher)
-					if switch['rot']=='3':
+					if switch['rot']==3:
 						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["SNI"])}\r\n\r\n', encoding='utf-8'))
-					elif (0 <= int(switch['rot']) < 2):
-						if switch['rot']=='1':
+					elif (0 <= switch['rot'] < 2):
+						if switch['rot']==1:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((payloads["Proxy"], 443))
 						else:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((onliner, 443))
-						if switch['rot']=='2':
+						if switch['rot']==2:
 							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
 						else:
 							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
@@ -480,7 +482,7 @@ def h2srect(appendix,Resultee,Faily):
 					sock.settimeout(5)
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.connect((onliner, 80))
-					if switch['rot']=='0':
+					if switch['rot']==0:
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
 					else:
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
@@ -532,7 +534,7 @@ def nowsee(appendix,Resultee,Faily):
 					sock.settimeout(5)
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					cont = ssl.create_default_context()
-					if switch['rot']=='0':
+					if switch['rot']==0:
 						cont.set_ciphers(cipher)
 						sock = cont.wrap_socket(sock, server_hostname = onliner)
 						sock.connect((onliner, 443))
@@ -580,13 +582,13 @@ def grabber(appendix,Resultee,Faily):
 		else:
 			try:
 				pinger()
-				if switch['rot']=='0':
+				if switch['rot']==0:
 					commando=f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-				elif switch['rot']=='1':
+				elif switch['rot']==1:
 					commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-				elif switch['rot']=='2':
+				elif switch['rot']==2:
 					commando=f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-				elif switch['rot']=='3':
+				elif switch['rot']==3:
 					commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 				commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 				commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
@@ -670,17 +672,17 @@ __  _  ________ ____   ____
 		ans=input(' Choose Option : ').lower()
 		print('')
 		if ans=='1':
-			switch['bloc']='1'
-			switch['rot']='0'
+			switch['bloc']=1
+			switch['rot']=0
 		elif ans=='2':
-			switch['bloc']='1'
-			switch['rot']='3'
+			switch['bloc']=1
+			switch['rot']=3
 		elif ans=='3':
-			switch['bloc']='1'
-			switch['rot']='1'
+			switch['bloc']=1
+			switch['rot']=1
 		elif ans=='4':
-			switch['bloc']='2'
-			switch['rot']='0'
+			switch['bloc']=2
+			switch['rot']=0
 		else:
 			uinput()
 	elif ans=='2':
@@ -692,17 +694,17 @@ __  _  ________ ____   ____
 		ans=input(' Choose Option : ').lower()
 		print('')
 		if ans=='1':
-			switch['bloc']='1'
-			switch['rot']='2'
+			switch['bloc']=1
+			switch['rot']=2
 		elif ans=='2':
-			switch['bloc']='2'
-			switch['rot']='1'
+			switch['bloc']=2
+			switch['rot']=1
 		elif ans=='3':
-			switch['bloc']='0'
-			switch['rot']='0'
+			switch['bloc']=0
+			switch['rot']=0
 		elif ans=='4':
-			switch['bloc']='0'
-			switch['rot']='1'
+			switch['bloc']=0
+			switch['rot']=1
 		else:
 			uinput()
 	elif ans=='3':
@@ -714,17 +716,17 @@ __  _  ________ ____   ____
 		ans=input(' Choose Option : ').lower()
 		print('')
 		if ans=='1':
-			switch['bloc']='3'
-			switch['rot']='0'
+			switch['bloc']=3
+			switch['rot']=0
 		elif ans=='2':
-			switch['bloc']='3'
-			switch['rot']='3'
+			switch['bloc']=3
+			switch['rot']=3
 		elif ans=='3':
-			switch['bloc']='3'
-			switch['rot']='1'
+			switch['bloc']=3
+			switch['rot']=1
 		elif ans=='4':
-			switch['bloc']='4'
-			switch['rot']='0'
+			switch['bloc']=4
+			switch['rot']=0
 		else:
 			uinput()
 	elif ans=='4':
@@ -736,25 +738,25 @@ __  _  ________ ____   ____
 		ans=input(' Choose Option : ')
 		print('')
 		if ans=='1':
-			switch['bloc']='3'
-			switch['rot']='2'
+			switch['bloc']=3
+			switch['rot']=2
 		elif ans=='2':
-			switch['bloc']='4'
-			switch['rot']='1'
+			switch['bloc']=4
+			switch['rot']=1
 		elif ans=='3':
-			switch['bloc']='0'
-			switch['rot']='2'
+			switch['bloc']=0
+			switch['rot']=2
 		elif ans=='4':
-			switch['bloc']='0'
-			switch['rot']='3'
+			switch['bloc']=0
+			switch['rot']=3
 		else:
 			uinput()
 	elif ans=='5':
-		switch['bloc']='5'
-		switch['rot']='0'
+		switch['bloc']=5
+		switch['rot']=0
 	elif ans=='6':
-		switch['bloc']='5'
-		switch['rot']='`1'
+		switch['bloc']=5
+		switch['rot']=1
 	else:
 		uinput()
 	print('1. Scan File (.txt)')
@@ -764,13 +766,11 @@ __  _  ________ ____   ____
 	ans=input(' Choose Option :  ').lower()
 	print('')
 	if ans=='1':
-		if not switch['bloc']=='0' or switch['bloc']=='5':
+		if not switch['bloc']==0 or switch['bloc']==5:
 			doma()
 		option()
 		print('1. Scan Local Files')
-		print('2. Scan Local CIDR Files')
-		print('3. Scan Local Lines')
-		print('4. Scan Local CIDR Lines')
+		print('2. Scan Local Lines')
 		print()
 		ans=input(' Choose Option :  ').lower()
 		print()
@@ -779,20 +779,13 @@ __  _  ________ ____   ____
 			serv()
 		elif ans == '2':
 			filet()
-			arange()
-		elif ans == '3':
-			filet()
 			liner()
 			serv()
-		elif ans == '4':
-			filet()
-			liner()
-			arange()
 		else:
 			uinput()
 		uinput()
 	elif ans=='2':
-		if not switch['bloc']=='0' or switch['bloc']=='5':
+		if not switch['bloc']==0 or switch['bloc']==5:
 			doma()
 		hacki()
 		option()
@@ -805,18 +798,21 @@ __  _  ________ ____   ____
 		ans = input(' Choose Target: ')
 		print('')
 		switch['type']='cust'
-		if not switch['bloc']=='0' or switch['bloc']=='5':
-			doma()
-		option()
 		if ans == '1':
 			cus = input(' Input your Domain : ')
 			switch['loc']=ans
 			switch['type']='cust'
+			if not switch['bloc']==0 or switch['bloc']==5:
+				doma()
+			option()
 			serv()
 		elif ans == '2':
 			cus = input(' Input your IP : ')
 			switch['loc']=ans
 			switch['type']='cust'
+			if not switch['bloc']==0 or switch['bloc']==5:
+				doma()
+			option()
 			serv()
 		else:
 			uinput()
