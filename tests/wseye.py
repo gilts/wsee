@@ -29,7 +29,6 @@ import os, fnmatch
 from time import sleep
 from itertools import islice
 from threading import Thread
-from netaddr import IPNetwork
 from collections import defaultdict
 from os.path import abspath, dirname
 from pkg_resources import parse_version
@@ -82,16 +81,17 @@ def doma():
 # Rot Switch control
 def option():
 	global file_hosts
-	if switch['rot']==1:
-		print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
-		prox = input(' Proxy : ')
-		payloads['Proxy']=prox
-		print('')
-	elif switch['rot']==3:
-		print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
-		bugger = input(' SNI : ')
-		payloads['SNI']=bugger
-		print('')
+	if switch['bloc'] == 1 or switch['bloc'] == 3:
+		if switch['rot']==1:
+			print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
+			prox = input(' Proxy : ')
+			payloads['Proxy']=prox
+			print('')
+		elif switch['rot']==3:
+			print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
+			bugger = input(' SNI : ')
+			payloads['SNI']=bugger
+			print('')
 	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
 	nametag = input(' Output as : ')
 	print('')
@@ -239,6 +239,11 @@ def executor():
 	p.terminate()
 
 # Running Process and Reading text list
+''' Type 0: takes txt
+	Type 1: takes csv
+	Type 2: takes input
+	Type 3: takes online enum '''
+
 def serv():
 	global appendix, Faily, Resultee
 	Faily=Value('i',0)
@@ -262,6 +267,9 @@ def serv():
 	elif switch['type']==2:
 		appendix.put(str(switch['loc']))
 		executor()
+	elif switch['type']==3:
+		apppendix.put(domainlist)
+		executor()
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
@@ -269,7 +277,7 @@ def serv():
 	return
 
 ''' Main Process '''
-# Ping DNS if connection is up
+# Ping DNS over TCP to check connection
 def pinger():
 	try:
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -761,7 +769,7 @@ __  _  ________ ____   ____
 		uinput()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
-	print('3. Scan Input')
+	print('5. Scan Input')
 	print('')
 	ans=input(' Choose Option :  ').lower()
 	print('')
@@ -770,7 +778,7 @@ __  _  ________ ____   ____
 			doma()
 		option()
 		print('1. Scan Local Files')
-		print('2. Scan Local Lines')
+		print('3. Scan Local Lines')
 		print()
 		ans=input(' Choose Option :  ').lower()
 		print()
