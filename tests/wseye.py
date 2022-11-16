@@ -46,7 +46,7 @@ maxi = cpu_count()
 columns = defaultdict(list)
 
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
-switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'type': '', 'loc': '', 'numtotal': 0, 'numline': 0, 'nametag': 'result'}
+switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'nametag': 'result', 'type': '', 'loc': ''}
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
 class colors:
@@ -76,7 +76,6 @@ def doma():
 	print('['+colors.GREEN_BG + f' {frontdom} '+ colors.ENDC + '] Selected as Domain Fronting!')
 	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
 	print('')
-	return
 
 # Rot Switch control
 def option():
@@ -96,7 +95,6 @@ def option():
 	nametag = input(' Output as : ')
 	print('')
 	switch['nametag'] = nametag
-	return
 
 # Outrange input as finish
 def uinput():
@@ -179,7 +177,6 @@ def filet():
 		elif direct == 4:
 			file_hosts = path
 		switch['loc']=file_hosts
-		return
 
 # Reading Lines
 def liner():
@@ -199,7 +196,6 @@ def liner():
 	print('')
 	if lineselector.isdigit():
 		switch['loc']=txtfiles[int(lineselector)-1]
-		return
 
 # Reading from Online enumeration
 def hacki():
@@ -212,7 +208,6 @@ def hacki():
 	else:
 		switch['type']=3
 		domainlist = re.findall('(.*?),',r.text)
-		return
 
 ''' Main Control Section '''
 # Running Process
@@ -274,7 +269,6 @@ def serv():
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 	print('')
-	return
 
 ''' Main Process '''
 # Ping DNS over TCP to check connection
@@ -283,7 +277,6 @@ def pinger():
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 			sock.settimeout(3)
 			sock.connect(('9.9.9.9',53))
-		return
 	except socket.error as e:
 		print(e)
 		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
@@ -526,61 +519,6 @@ def h2srect(appendix,Resultee,Faily):
 				print(e)
 				pass
 
-# Normal Mode: Takes TLS/Proxy
-'''	Rot 1: Proxy Mode
-	Rot 0: TLS/SSL Mode '''
-
-def nowsee(appendix,Resultee,Faily):
-	while True:
-		onliner = appendix.get()
-		if onliner == 'ENDED':
-			break
-		else:
-			try:
-				pinger()
-				with socket.socket() as sock:
-					sock.settimeout(5)
-					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-					cont = ssl.create_default_context()
-					if switch['rot']==0:
-						cont.set_ciphers(cipher)
-						sock = cont.wrap_socket(sock, server_hostname = onliner)
-						sock.connect((onliner, 443))
-					else:
-						sock.connect((onliner, 80))
-					sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nAccept: */*\r\nAccept-Encoding: *\r\nAccept-Language: *\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\r\n\r\n', encoding='utf-8'))
-					line = str(sock.recv(13))
-					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-					if not resu:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
-						with Faily.get_lock():
-							Faily.value +=1
-					else:
-						if int(resu[0]) == 200:
-							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-							with Resultee.get_lock():
-								Resultee.value +=1
-						elif int(resu[0]) != 200:
-							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							with Faily.get_lock():
-								Faily.value +=1
-			except(ssl.SSLError):
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
-				with Faily.get_lock():
-					Faily.value +=1
-			except(socket.gaierror) or (socket.timeout):
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
-				with Faily.get_lock():
-					Faily.value +=1
-			except(socket.error):
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
-				with Faily.get_lock():
-					Faily.value +=1
-			except Exception as e:
-				print(e)
-				pass
-
 # ZGrab Mode: Only Local; Takes 443/80
 def grabber(appendix,Resultee,Faily):
 	while True:
@@ -640,12 +578,10 @@ def checker():
 					exit()
 				else:
 					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-					return
 			else:
 				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
 				sleep(3)
 				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
-				return
 		else:
 			return
 
@@ -666,8 +602,6 @@ __  _  ________ ____   ____
 	print('2. Local Websocket')
 	print('3. CDN H2C')
 	print('4. Local H2C')
-	print('5. TLS/SSL')
-	print('6. Direct/Proxy')
 	print('')
 	ans=input(' Choose Option : ').lower()
 	print('')
@@ -759,17 +693,11 @@ __  _  ________ ____   ____
 			switch['rot']=3
 		else:
 			uinput()
-	elif ans=='5':
-		switch['bloc']=5
-		switch['rot']=0
-	elif ans=='6':
-		switch['bloc']=5
-		switch['rot']=1
 	else:
 		uinput()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
-	print('5. Scan Input')
+	print('3. Scan Input')
 	print('')
 	ans=input(' Choose Option :  ').lower()
 	print('')
@@ -808,18 +736,18 @@ __  _  ________ ____   ____
 		switch['type']='cust'
 		if ans == '1':
 			cus = input(' Input your Domain : ')
-			switch['loc']=ans
-			switch['type']='cust'
-			if not switch['bloc']==0 or switch['bloc']==5:
-				doma()
+			print()
+			switch['loc']=cus
+			switch['type']=2
+			doma()
 			option()
 			serv()
 		elif ans == '2':
 			cus = input(' Input your IP : ')
-			switch['loc']=ans
-			switch['type']='cust'
-			if not switch['bloc']==0 or switch['bloc']==5:
-				doma()
+			print()
+			switch['loc']=cus
+			switch['type']=2
+			doma()
 			option()
 			serv()
 		else:
