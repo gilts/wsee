@@ -34,7 +34,7 @@ from os.path import abspath, dirname
 from pkg_resources import parse_version
 from multiprocessing import Process, Manager, Value, Queue, cpu_count
 
-hostpath = 'host'
+inpute = 'input'
 output = 'output'
 work_at_time = 20
 expected_response = 101
@@ -107,7 +107,7 @@ def uinput():
 	print('')
 	ans=input('Choose Option: ')
 	if ans=='1':
-		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+		print("\033c\033[3J\033[2J\033[0m\033[H")
 		menu()
 	elif ans=='2':
 		payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
@@ -118,7 +118,7 @@ def uinput():
 	else:
 		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 		print('')
-		print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+		print("\033c\033[3J\033[2J\033[0m\033[H")
 		menu()
 
 ''' Reading List Section '''
@@ -133,13 +133,13 @@ def filet():
 	print('')
 	ans=input(' Choose : ').lower()
 	if ans=='1':
-		files = os.listdir(hostpath)
+		files = os.listdir(inpute)
 		switch['dir']=0
 	elif ans=='2':
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
 		switch['dir']=1
 	elif ans=='3':
-		files = os.listdir('$home/storage/shared/' + hostpath)
+		files = os.listdir('$home/storage/shared/' + inpute)
 		switch['dir']=2
 	elif ans=='4':
 		files = os.listdir('$home/storage/shared/')
@@ -167,11 +167,11 @@ def filet():
 		print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(fileselector)-1]+' '+colors.ENDC)
 		direct = switch['dir']
 		if direct == 0:
-			file_hosts = str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
+			file_hosts = inpute +'/'+ str(txtfiles[int(fileselector)-1])
 		elif direct == 1:
 			file_hosts = str(txtfiles[int(fileselector)-1])
 		elif direct == 2:
-			file_hosts = './storage/shared/' + str(hostpath) +'/'+ str(txtfiles[int(fileselector)-1])
+			file_hosts = './storage/shared/' + inpute +'/'+ str(txtfiles[int(fileselector)-1])
 		elif direct == 3:
 			file_hosts = './storage/shared/' + str(txtfiles[int(fileselector)-1])
 		elif direct == 4:
@@ -561,7 +561,9 @@ def checker():
 		if data['config']['update-wsee'] == True:
 			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
 			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-			if parse_version(resp.text) > parse_version("1.10.0"):
+			with open('./.wsee/CONFIG') as f:
+				verlocal = f.read()
+			if parse_version(resp.text) > parse_version(verlocal):
 				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
 				print('1) Ignore Update')
 				print('2) Apply Update')
@@ -571,17 +573,17 @@ def checker():
 					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
 					with open('wsee.py', 'a') as pd:
 						pd.write(upd.text)
-						print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+						print("\033c\033[3J\033[2J\033[0m\033[H")
 					print('[' + colors.GREEN_BG + ' Script Updated! ' + colors.ENDC + ']')
 					sleep(3)
-					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+					print("\033c\033[3J\033[2J\033[0m\033[H")
 					exit()
 				else:
-					print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+					print("\033c\033[3J\033[2J\033[0m\033[H")
 			else:
 				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
 				sleep(3)
-				print (u"{}[2J{}[;H".format(chr(27), chr(27)), end="")
+				print("\033c\033[3J\033[2J\033[0m\033[H")
 		else:
 			return
 
