@@ -42,6 +42,7 @@ cflare_domain = 'id-herza.sshws.net'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
+txtlines= []
 maxi = cpu_count()
 columns = defaultdict(list)
 
@@ -57,12 +58,11 @@ class colors:
 ''' User-Input Section '''
 # Takes Domain Fronting
 def doma():
-	print('1. Custom Domain')
+	print('1. Custom SSH Address')
 	print('2. Default CloudFront')
 	print('3. Default CloudFlare')
 	print('')
-	ans=input(' Choose Option : ').lower()
-	print('')
+	ans=input(' Choose SSH : ').lower()
 	if ans=='1':
 		domain=input(' Domain : ')
 		payloads['Host']=f'{domain}'
@@ -72,9 +72,10 @@ def doma():
 		payloads['Host']=f'{cflare_domain}'
 	else:
 		uinput()
+	print('')
 	frontdom = payloads['Host']
-	print('['+colors.GREEN_BG + f' {frontdom} '+ colors.ENDC + '] Selected as Domain Fronting!')
-	print('['+colors.RED_BG+' Warning! ' + colors.ENDC + '] : [' + colors.RED_BG + ' INVALID ' + colors.ENDC + '] Domain Will Give 0 Result!' )
+	print(' Selected ['+colors.GREEN_BG+f' {frontdom} '+colors.ENDC+'] as Domain Fronting!')
+	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
 	print('')
 
 # Rot Switch control
@@ -82,17 +83,17 @@ def option():
 	global file_hosts
 	if switch['bloc'] == 1 or switch['bloc'] == 3:
 		if switch['rot']==1:
-			print('[' + colors.RED_BG + ' Input your Proxy ' + colors.ENDC + ']')
-			prox = input(' Proxy : ')
+			print('[' + colors.RED_BG + ' Proxy / IP ' + colors.ENDC + ']')
+			prox = input(' Input Proxy : ')
 			payloads['Proxy']=prox
 			print('')
 		elif switch['rot']==3:
-			print('[' + colors.RED_BG + ' Input your BugHost ' + colors.ENDC + ']')
-			bugger = input(' SNI : ')
+			print('[' + colors.RED_BG + ' Hostname / SNI ' + colors.ENDC + ']')
+			bugger = input(' Input Hostname : ')
 			payloads['SNI']=bugger
 			print('')
-	print('[' + colors.RED_BG + ' Input your Output File Name ' + colors.ENDC + ']')
-	nametag = input(' Output as : ')
+	print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
+	nametag = input(' Input File Name : ')
 	print('')
 	switch['nametag'] = nametag
 
@@ -105,7 +106,7 @@ def uinput():
 	print('2. Reset All Input')
 	print('3. Quit Instead')
 	print('')
-	ans=input('Choose Option: ')
+	ans=input(' Choose Option: ')
 	if ans=='1':
 		print("\033c\033[3J\033[2J\033[0m\033[H")
 		menu()
@@ -125,13 +126,14 @@ def uinput():
 # Reading from Files
 def filet():
 	num_file = 1
-	print('1. Check Files in Host Folder')
-	print('2. Check Files in Current Folder')
-	print('3. Check Files in Termux Host')
-	print('4. Check Files in Termux')
-	print('5. Custom Path')
+	print('1. Scan Files in Input Folder')
+	print('2. Scan Files in Current Folder')
+	print('3. Scan Files in Termux Host')
+	print('4. Scan Files in Termux')
+	print('5. Scan Custom Path')
 	print('')
-	ans=input(' Choose : ').lower()
+	ans=input(' Choose Scan Input : ').lower()
+	print('')
 	if ans=='1':
 		files = os.listdir(inpute)
 		switch['dir']=0
@@ -164,7 +166,8 @@ def filet():
 	fileselector = input(' Choose Target Files : ')
 	if fileselector.isdigit():
 		print('')
-		print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(fileselector)-1]+' '+colors.ENDC)
+		print(' Chosen File : ' + colors.RED_BG + ' '+txtfiles[int(fileselector)-1]+' '+colors.ENDC)
+		print('')
 		direct = switch['dir']
 		if direct == 0:
 			file_hosts = inpute +'/'+ str(txtfiles[int(fileselector)-1])
@@ -180,22 +183,22 @@ def filet():
 
 # Reading Lines
 def liner():
-	switch['type']='cust'
+	switch['type']=2
 	num_line=1
-	print('[' + colors.RED_BG + ' Choose list of CIDR ' + colors.ENDC + ']')
+	print('[' + colors.RED_BG + ' List of String based on Lines ' + colors.ENDC + ']')
 	with open(switch['loc'], 'r') as liner:
 		for f in liner:
-			print( str(num_line),str(f.strip()))
+			print(str(num_line),str(f.strip()))
 			num_line=num_line+1
-			txtfiles.append(str(f.strip()))
+			txtlines.append(str(f.strip()))
 	print('')
 	print(' M back to Menu ')
 	lineselector = input(' Choose Target Lines : ')
 	print('')
-	print(' Target Chosen : ' + colors.RED_BG + ' '+txtfiles[int(lineselector)-1]+' '+colors.ENDC)
+	print(' Chosen Line : ' + colors.RED_BG + ' '+txtlines[int(lineselector)-1]+' '+colors.ENDC)
 	print('')
 	if lineselector.isdigit():
-		switch['loc']=txtfiles[int(lineselector)-1]
+		switch['loc']=txtlines[int(lineselector)-1]
 
 # Reading from Online enumeration
 def hacki():
@@ -267,7 +270,7 @@ def serv():
 		executor()
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
-	print(' Successfull Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
+	print(' Success Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 	print('')
 
 ''' Main Process '''
@@ -605,7 +608,7 @@ __  _  ________ ____   ____
 	print('3. CDN H2C')
 	print('4. Local H2C')
 	print('')
-	ans=input(' Choose Option : ').lower()
+	ans=input(' Choose Modes : ').lower()
 	print('')
 	if ans=='1':
 		print('1. CDN SSL')
@@ -613,7 +616,7 @@ __  _  ________ ____   ____
 		print('3. CDN SSL Host Rotate')
 		print('4. CDN Direct')
 		print('')
-		ans=input(' Choose Option : ').lower()
+		ans=input(' Choose Modes : ').lower()
 		print('')
 		if ans=='1':
 			switch['bloc']=1
@@ -635,7 +638,7 @@ __  _  ________ ____   ____
 		print('3. Local SSL ZGrab')
 		print('4. Local Direct ZGrab')
 		print('')
-		ans=input(' Choose Option : ').lower()
+		ans=input(' Choose Modes : ').lower()
 		print('')
 		if ans=='1':
 			switch['bloc']=1
@@ -657,7 +660,7 @@ __  _  ________ ____   ____
 		print('3. H2 SSL Host Rotate')
 		print('4. H2C Direct')
 		print('')
-		ans=input(' Choose Option : ').lower()
+		ans=input(' Choose Modes : ').lower()
 		print('')
 		if ans=='1':
 			switch['bloc']=3
@@ -679,7 +682,7 @@ __  _  ________ ____   ____
 		print('3. Local H2C SSL ZGrab')
 		print('4. Local H2C Direct ZGrab')
 		print('')
-		ans=input(' Choose Option : ')
+		ans=input(' Choose Modes : ')
 		print('')
 		if ans=='1':
 			switch['bloc']=3
@@ -699,9 +702,9 @@ __  _  ________ ____   ____
 		uinput()
 	print('1. Scan File (.txt)')
 	print('2. Scan Online (HackerTarget)')
-	print('3. Scan Input')
+	print('3. Scan Custom Input')
 	print('')
-	ans=input(' Choose Option :  ').lower()
+	ans=input(' Choose Scan Input :  ').lower()
 	print('')
 	if ans=='1':
 		if not switch['bloc']==0 or switch['bloc']==5:
@@ -710,7 +713,7 @@ __  _  ________ ____   ____
 		print('1. Scan Local Files')
 		print('3. Scan Local Lines')
 		print()
-		ans=input(' Choose Option :  ').lower()
+		ans=input(' Choose Scan Input :  ').lower()
 		print()
 		if ans == '1':
 			filet()
@@ -730,14 +733,13 @@ __  _  ________ ____   ____
 		serv()
 		uinput()
 	elif ans=='3':
-		print('1. Input Custom Domain')
-		print('2. Input Custom IP')
+		print('1. Custom Hostname/SNI Input')
+		print('2. Custom Proxy/IP Input')
 		print('')
-		ans = input(' Choose Target: ')
+		ans = input(' Choose Scan Input: ')
 		print('')
-		switch['type']='cust'
 		if ans == '1':
-			cus = input(' Input your Domain : ')
+			cus = input(' Input Hostname : ')
 			print()
 			switch['loc']=cus
 			switch['type']=2
@@ -745,7 +747,7 @@ __  _  ________ ____   ____
 			option()
 			serv()
 		elif ans == '2':
-			cus = input(' Input your IP : ')
+			cus = input(' Input IP : ')
 			print()
 			switch['loc']=cus
 			switch['type']=2
@@ -758,7 +760,5 @@ __  _  ________ ____   ____
 
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
-	if not os.path.exists(output):
-		os.makedirs(output)
 	checker()
 	menu()
