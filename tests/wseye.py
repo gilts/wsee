@@ -38,7 +38,7 @@ inpute = 'input'
 output = 'output'
 work_at_time = 20
 expected_response = 101
-cflare_domain = 'id-herza.sshws.net'
+cflare_domain = 'id3.sshws.me'
 cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
 
 txtfiles= []
@@ -83,12 +83,12 @@ def option():
 	global file_hosts
 	if switch['bloc'] == 1 or switch['bloc'] == 3:
 		if switch['rot']==1:
-			print('[' + colors.RED_BG + ' Proxy / IP ' + colors.ENDC + ']')
+			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
 			prox = input(' Input Proxy : ')
 			payloads['Proxy']=prox
 			print('')
 		elif switch['rot']==3:
-			print('[' + colors.RED_BG + ' Hostname / SNI ' + colors.ENDC + ']')
+			print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
 			bugger = input(' Input Hostname : ')
 			payloads['SNI']=bugger
 			print('')
@@ -271,7 +271,6 @@ def serv():
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Success Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
-	print('')
 
 ''' Main Process '''
 # Ping DNS over TCP to check connection
@@ -310,9 +309,9 @@ def wsee(appendix,Resultee,Faily):
 						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					elif 0 <= switch['rot'] < 2:
-						if switch['rot']=='1':
+						if switch['rot']==1:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
-							sock.connect((payloads["Proxy"], 443))
+							sock.connect((f'{payloads["Proxy"]}', 443))
 						else:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((onliner, 443))
@@ -733,8 +732,8 @@ __  _  ________ ____   ____
 		serv()
 		uinput()
 	elif ans=='3':
-		print('1. Custom Hostname/SNI Input')
-		print('2. Custom Proxy/IP Input')
+		print('1. Scan Custom Hostname/SNI')
+		print('2. Scan Custom Proxy/IP')
 		print('')
 		ans = input(' Choose Scan Input: ')
 		print('')
