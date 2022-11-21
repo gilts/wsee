@@ -21,7 +21,6 @@ Derived details <https://www.apache.org/licenses/LICENSE-2.0>
 import csv
 import ssl
 import json
-import base64
 import socket
 import subprocess
 import requests,re
@@ -177,9 +176,11 @@ def filet():
 			file_hosts = './storage/shared/' + inpute +'/'+ str(txtfiles[int(fileselector)-1])
 		elif direct == 3:
 			file_hosts = './storage/shared/' + str(txtfiles[int(fileselector)-1])
-		elif direct == 4:
+		else:
 			file_hosts = path
 		switch['loc']=file_hosts
+	else:
+		uinput()
 
 # Reading Lines
 def liner():
@@ -199,6 +200,8 @@ def liner():
 	print('')
 	if lineselector.isdigit():
 		switch['loc']=txtlines[int(lineselector)-1]
+	else:
+		uinput()
 
 # Reading from Online enumeration
 def hacki():
@@ -228,7 +231,7 @@ def executor():
 			p = Process(target=h2see, args=(appendix,Resultee,Faily))
 		elif switch['bloc']==4:
 			p = Process(target=h2srect, args=(appendix,Resultee,Faily))
-		elif switch['bloc']==5:
+		else:
 			p = Process(target=nowsee, args=(appendix,Resultee,Faily))
 		p.start()
 		total.append(p)
@@ -265,7 +268,7 @@ def serv():
 	elif switch['type']==2:
 		appendix.put(str(switch['loc']))
 		executor()
-	elif switch['type']==3:
+	else:
 		apppendix.put(domainlist)
 		executor()
 	print('')
@@ -308,7 +311,7 @@ def wsee(appendix,Resultee,Faily):
 						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-					elif 0 <= switch['rot'] < 2:
+					else:
 						if switch['rot']==1:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((f'{payloads["Proxy"]}', 443))
@@ -331,7 +334,7 @@ def wsee(appendix,Resultee,Faily):
 							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
 							with Resultee.get_lock():
 								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
+						else:
 							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 							with Faily.get_lock():
 								Faily.value +=1
@@ -383,7 +386,7 @@ def wsrect(appendix,Resultee,Faily):
 							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
 							with Resultee.get_lock():
 								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
+						else:
 							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 							with Faily.get_lock():
 								Faily.value +=1
@@ -425,8 +428,8 @@ def h2see(appendix,Resultee,Faily):
 					if switch['rot']==3:
 						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
-						sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["SNI"])}\r\n\r\n', encoding='utf-8'))
-					elif (0 <= switch['rot'] < 2):
+						sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+					else:
 						if switch['rot']==1:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((payloads["Proxy"], 443))
@@ -434,9 +437,9 @@ def h2see(appendix,Resultee,Faily):
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((onliner, 443))
 						if switch['rot']==2:
-							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
+							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 						else:
-							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(onliner)}\r\n\r\n', encoding='utf-8'))
+							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 					line = str(sock.recv(13))
 					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 					if not resu:
@@ -446,10 +449,11 @@ def h2see(appendix,Resultee,Faily):
 					else:
 						if int(resu[0]) == expected_response:
 							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+							print(output)
 							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
 							with Resultee.get_lock():
 								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
+						else:
 							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 							with Faily.get_lock():
 								Faily.value +=1
@@ -486,9 +490,9 @@ def h2srect(appendix,Resultee,Faily):
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.connect((onliner, 80))
 					if switch['rot']==0:
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 					else:
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: {base64.encode(payloads["Host"])}\r\n\r\n', encoding='utf-8'))
+						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 					line = str(sock.recv(13))
 					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 					if not resu:
@@ -501,7 +505,7 @@ def h2srect(appendix,Resultee,Faily):
 							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
 							with Resultee.get_lock():
 								Resultee.value +=1
-						elif int(resu[0]) != expected_response:
+						else:
 							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
 							with Faily.get_lock():
 								Faily.value +=1
@@ -536,7 +540,7 @@ def grabber(appendix,Resultee,Faily):
 					commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 				elif switch['rot']==2:
 					commando=f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-				elif switch['rot']==3:
+				else:
 					commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 				commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 				commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
@@ -546,7 +550,7 @@ def grabber(appendix,Resultee,Faily):
 					print(rege[1], file=open(f'{switch["nametag"]}.txt', 'a'))
 					with Resultee.get_lock():
 						Resultee.value +=1
-				elif rege[0]!=f'{expected_response}':
+				else:
 					print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner)
 					with Faily.get_lock():
 						Faily.value +=1
@@ -755,6 +759,8 @@ __  _  ________ ____   ____
 			serv()
 		else:
 			uinput()
+		uinput()
+	else:
 		uinput()
 
 if __name__ == '__main__':
