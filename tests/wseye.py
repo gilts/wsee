@@ -75,7 +75,6 @@ def doma():
 	frontdom = payloads['Host']
 	print(' Selected ['+colors.GREEN_BG+f' {frontdom} '+colors.ENDC+'] as Domain Fronting!')
 	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
-	print('')
 
 # Rot Switch control
 def option():
@@ -85,12 +84,11 @@ def option():
 			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
 			prox = input(' Input Proxy : ')
 			payloads['Proxy']=prox
-			print('')
 		elif switch['rot']==3:
 			print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
 			bugger = input(' Input Hostname : ')
 			payloads['SNI']=bugger
-			print('')
+	print('')
 	print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
 	nametag = input(' Input File Name : ')
 	print('')
@@ -227,12 +225,8 @@ def executor():
 			p = Process(target=wsee, args=(appendix,Resultee,Faily))
 		elif switch['bloc']==2:
 			p = Process(target=wsrect, args=(appendix,Resultee,Faily))
-		elif switch['bloc']==3:
-			p = Process(target=h2see, args=(appendix,Resultee,Faily))
-		elif switch['bloc']==4:
-			p = Process(target=h2srect, args=(appendix,Resultee,Faily))
 		else:
-			p = Process(target=nowsee, args=(appendix,Resultee,Faily))
+			p = Process(target=h2srect, args=(appendix,Resultee,Faily))
 		p.start()
 		total.append(p)
 	for p in total:
@@ -269,7 +263,8 @@ def serv():
 		appendix.put(str(switch['loc']))
 		executor()
 	else:
-		apppendix.put(domainlist)
+		for domain in domainlist:
+			appendix.put(domain)
 		executor()
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
@@ -383,73 +378,6 @@ def wsrect(appendix,Resultee,Faily):
 					else:
 						if int(resu[0]) == expected_response:
 							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
-							with Resultee.get_lock():
-								Resultee.value +=1
-						else:
-							print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							with Faily.get_lock():
-								Faily.value +=1
-			except(ssl.SSLError):
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
-				with Faily.get_lock():
-					Faily.value +=1
-			except(socket.gaierror) or (socket.timeout):
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
-				with Faily.get_lock():
-					Faily.value +=1
-			except(socket.error):
-				print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
-				with Faily.get_lock():
-					Faily.value +=1
-			except Exception as e:
-				print(e)
-				pass
-
-# H2C SSL: Takes CDN/Local
-'''	Rot 3: Rotate Proxy Mode
-	Rot 2: Local Mode
-	Rot 1: Rotate Host Mode
-	Rot 0: Normal Mode '''
-
-def h2see(appendix,Resultee,Faily):
-	while True:
-		onliner = appendix.get()
-		if onliner == 'ENDED':
-			break
-		else:
-			try:
-				pinger()
-				with socket.socket() as sock:
-					sock.settimeout(5)
-					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-					cont = ssl.create_default_context()
-					cont.set_ciphers(cipher)
-					if switch['rot']==3:
-						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
-						sock.connect((onliner, 443))
-						sock.sendall(bytes(f'GET h2c://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-					else:
-						if switch['rot']==1:
-							sock = cont.wrap_socket(sock, server_hostname = onliner)
-							sock.connect((payloads["Proxy"], 443))
-						else:
-							sock = cont.wrap_socket(sock, server_hostname = onliner)
-							sock.connect((onliner, 443))
-						if switch['rot']==2:
-							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-						else:
-							sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
-					line = str(sock.recv(13))
-					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-					if not resu:
-						print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' EMPTY '+colors.ENDC+']')
-						with Faily.get_lock():
-							Faily.value +=1
-					else:
-						if int(resu[0]) == expected_response:
-							print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-							print(output)
 							print(onliner, file=open(f'{output}/{switch["nametag"]}.txt', 'a'))
 							with Resultee.get_lock():
 								Resultee.value +=1
@@ -608,16 +536,15 @@ __  _  ________ ____   ____
 	print('')
 	print('1. CDN Websocket')
 	print('2. Local Websocket')
-	print('3. CDN H2C')
-	print('4. Local H2C')
+	print('3. HTTP/2 Socket')
 	print('')
 	ans=input(' Choose Modes : ').lower()
 	print('')
 	if ans=='1':
-		print('1. CDN SSL')
-		print('2. CDN SSL Proxy Rotate')
-		print('3. CDN SSL Host Rotate')
-		print('4. CDN Direct')
+		print('1. [Fronting] Websocket SSL')
+		print('2. [Fronting] Websocket Proxy Rotate')
+		print('3. [Fronting] Websocket Host Rotate')
+		print('4. [Fronting] Websocket Direct')
 		print('')
 		ans=input(' Choose Modes : ').lower()
 		print('')
@@ -636,10 +563,10 @@ __  _  ________ ____   ____
 		else:
 			uinput()
 	elif ans=='2':
-		print('1. Local SSL')
-		print('2. Local Direct')
-		print('3. Local SSL ZGrab')
-		print('4. Local Direct ZGrab')
+		print('1. [Local] Websocket SSL')
+		print('2. [Local] Websocket Direct')
+		print('3. [Local] Websocket SSL ZGrab')
+		print('4. [Local] Websocket Direct ZGrab')
 		print('')
 		ans=input(' Choose Modes : ').lower()
 		print('')
@@ -658,10 +585,8 @@ __  _  ________ ____   ____
 		else:
 			uinput()
 	elif ans=='3':
-		print('1. H2 SSL')
-		print('2. H2 SSL Proxy Rotate')
-		print('3. H2 SSL Host Rotate')
-		print('4. H2C Direct')
+		print('1. [Fronting] HTTP/2 Direct')
+		print('2. [Local] HTTP/2 Direct')
 		print('')
 		ans=input(' Choose Modes : ').lower()
 		print('')
@@ -670,35 +595,7 @@ __  _  ________ ____   ____
 			switch['rot']=0
 		elif ans=='2':
 			switch['bloc']=3
-			switch['rot']=3
-		elif ans=='3':
-			switch['bloc']=3
 			switch['rot']=1
-		elif ans=='4':
-			switch['bloc']=4
-			switch['rot']=0
-		else:
-			uinput()
-	elif ans=='4':
-		print('1. Local H2C SSL')
-		print('2. Local H2C Direct')
-		print('3. Local H2C SSL ZGrab')
-		print('4. Local H2C Direct ZGrab')
-		print('')
-		ans=input(' Choose Modes : ')
-		print('')
-		if ans=='1':
-			switch['bloc']=3
-			switch['rot']=2
-		elif ans=='2':
-			switch['bloc']=4
-			switch['rot']=1
-		elif ans=='3':
-			switch['bloc']=0
-			switch['rot']=2
-		elif ans=='4':
-			switch['bloc']=0
-			switch['rot']=3
 		else:
 			uinput()
 	else:
