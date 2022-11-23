@@ -38,7 +38,7 @@ output = 'output'
 work_at_time = 20
 expected_response = 101
 cflare_domain = 'id3.sshws.me'
-cfront_domain = 'dhxqu5ob0t1lp.cloudfront.net'
+cfront_domain = 'd3heec68s9xyc4.cloudfront.net'
 
 txtfiles= []
 txtlines= []
@@ -76,9 +76,16 @@ def doma():
 	print(' Selected ['+colors.GREEN_BG+f' {frontdom} '+colors.ENDC+'] as Domain Fronting!')
 	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
 
+# Add Output
+	def outfile(): 
+		print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
+		nametag = input(' Input File Name : ')
+		print('')
+
 # Rot Switch control
 def option():
 	global file_hosts
+	switch['nametag'] = nametag
 	if switch['bloc'] == 1 or switch['bloc'] == 3:
 		if switch['rot']==1:
 			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
@@ -89,10 +96,6 @@ def option():
 			bugger = input(' Input Hostname : ')
 			payloads['SNI']=bugger
 	print('')
-	print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
-	nametag = input(' Input File Name : ')
-	print('')
-	switch['nametag'] = nametag
 
 # Outrange input as finish
 def uinput():
@@ -284,10 +287,10 @@ def pinger():
 		pinger()
 
 # Websocket SSL: Takes CDN/Local
-'''	Rot 3: Rotate Proxy Mode
-	Rot 2: Local Mode
-	Rot 1: Rotate Host Mode
-	Rot 0: Normal Mode '''
+''' Rot 0: Rotate Proxy Mode
+	Rot 1: Direct Mode
+	Rot 2: Rotate Host Mode
+	Rot 3: Normal Mode'''
 
 def wsee(appendix,Resultee,Faily):
 	while True:
@@ -302,21 +305,21 @@ def wsee(appendix,Resultee,Faily):
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					cont = ssl.create_default_context()
 					cont.set_ciphers(cipher)
-					if switch['rot']==3:
+					if switch['rot']==0:
 						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+					elif switch['rot']==1:
+						sock.connect((onliner, 80))
+						sock.sendall(bytes(f'GET ws://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					else:
-						if switch['rot']==1:
+						if switch['rot']==2:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((f'{payloads["Proxy"]}', 443))
 						else:
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((onliner, 443))
-						if switch['rot']==2:
-							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
-						else:
-							sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					line = str(sock.recv(13))
 					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 					if not resu:
@@ -364,10 +367,14 @@ def wsrect(appendix,Resultee,Faily):
 				with socket.socket() as sock:
 					sock.settimeout(5)
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-					sock.connect((onliner, 80))
+					cont = ssl.create_default_context()
+					cont.set_ciphers(cipher)
 					if switch['rot'] == 0:
+						sock = cont.wrap_socket(sock, server_hostname = f'{onliner}')
+						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					else:
+						sock.connect((onliner, 80))
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					line = str(sock.recv(13))
 					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -401,8 +408,8 @@ def wsrect(appendix,Resultee,Faily):
 				print(e)
 				pass
 
-# H2 Direct: Takes CDN/Local
-'''	Rot 1: Local Mode
+# Websocket SSL: Takes CDN/Local
+'''	Rot 1: Local
 	Rot 0: Normal Mode '''
 
 def h2srect(appendix,Resultee,Faily):
@@ -418,8 +425,9 @@ def h2srect(appendix,Resultee,Faily):
 					sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 					sock.connect((onliner, 80))
 					if switch['rot']==0:
-						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+						sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 					else:
+						sock.connect((onliner, 80))
 						sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
 					line = str(sock.recv(13))
 					resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -558,10 +566,8 @@ __  _  ________ ____   ____
 			switch['bloc']=1
 			switch['rot']=1
 		elif ans=='4':
-			switch['bloc']=2
+			switch['bloc']=1
 			switch['rot']=0
-		else:
-			uinput()
 	elif ans=='2':
 		print('1. [Local] Websocket SSL')
 		print('2. [Local] Websocket Direct')
@@ -571,8 +577,8 @@ __  _  ________ ____   ____
 		ans=input(' Choose Modes : ').lower()
 		print('')
 		if ans=='1':
-			switch['bloc']=1
-			switch['rot']=2
+			switch['bloc']=2
+			switch['rot']=0
 		elif ans=='2':
 			switch['bloc']=2
 			switch['rot']=1
@@ -607,7 +613,9 @@ __  _  ________ ____   ____
 	ans=input(' Choose Scan Input :  ').lower()
 	print('')
 	if ans=='1':
-		if not switch['bloc']==0 or switch['bloc']==5:
+		filet()
+		outfile()
+		if (switch['bloc']==1 and switch['rot']==2) or (switch['bloc']==2 and switch['rot']==1) or (switch['bloc']==3 and switch['rot']==4) or switch['bloc']==0:
 			doma()
 		option()
 		print('1. Scan Local Files')
@@ -615,20 +623,19 @@ __  _  ________ ____   ____
 		print()
 		ans=input(' Choose Scan Input :  ').lower()
 		print()
-		if ans == '1':
-			filet()
-			serv()
-		elif ans == '2':
-			filet()
+		if ans == '2':
 			liner()
-			serv()
+		elif ans == '1':
+			pass
 		else:
 			uinput()
+		serv()
 		uinput()
 	elif ans=='2':
-		if not switch['bloc']==0 or switch['bloc']==5:
+		if (switch['bloc']==1 and switch['rot']==2) or (switch['bloc']==2 and switch['rot']==1) or (switch['bloc']==3 and switch['rot']==4) or switch['bloc']==0:
 			doma()
 		hacki()
+		outfile()
 		option()
 		serv()
 		uinput()
@@ -640,22 +647,17 @@ __  _  ________ ____   ____
 		print('')
 		if ans == '1':
 			cus = input(' Input Hostname : ')
-			print()
-			switch['loc']=cus
-			switch['type']=2
-			doma()
-			option()
-			serv()
 		elif ans == '2':
 			cus = input(' Input IP : ')
-			print()
-			switch['loc']=cus
-			switch['type']=2
-			doma()
-			option()
-			serv()
 		else:
 			uinput()
+		print()
+		switch['loc']=cus
+		switch['type']=2
+		outfile()
+		doma()
+		option()
+		serv()
 		uinput()
 	else:
 		uinput()
