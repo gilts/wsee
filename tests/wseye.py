@@ -77,21 +77,21 @@ def doma():
 	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
 
 # Add Output
-	def outfile(): 
-		print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
-		nametag = input(' Input File Name : ')
-		print('')
+def outfile(): 
+	print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
+	nametag = input(' Input File Name : ')
+	switch['nametag'] = nametag
+	print('')
 
 # Rot Switch control
 def option():
 	global file_hosts
-	switch['nametag'] = nametag
-	if switch['bloc'] == 1 or switch['bloc'] == 3:
-		if switch['rot']==1:
+	if switch['bloc'] == 1:
+		if switch['rot']==2:
 			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
 			prox = input(' Input Proxy : ')
 			payloads['Proxy']=prox
-		elif switch['rot']==3:
+		elif switch['rot']==0:
 			print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
 			bugger = input(' Input Hostname : ')
 			payloads['SNI']=bugger
@@ -306,17 +306,21 @@ def wsee(appendix,Resultee,Faily):
 					cont = ssl.create_default_context()
 					cont.set_ciphers(cipher)
 					if switch['rot']==0:
+						print('Using Proxy Mode')
 						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					elif switch['rot']==1:
+						print('Using Direct Mode')
 						sock.connect((onliner, 80))
 						sock.sendall(bytes(f'GET ws://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					else:
 						if switch['rot']==2:
+							print('Using Host Mode')
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((f'{payloads["Proxy"]}', 443))
 						else:
+							print('Using Normal Mode')
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
@@ -558,16 +562,16 @@ __  _  ________ ____   ____
 		print('')
 		if ans=='1':
 			switch['bloc']=1
-			switch['rot']=0
+			switch['rot']=3
 		elif ans=='2':
 			switch['bloc']=1
-			switch['rot']=3
+			switch['rot']=0
 		elif ans=='3':
 			switch['bloc']=1
-			switch['rot']=1
+			switch['rot']=2
 		elif ans=='4':
 			switch['bloc']=1
-			switch['rot']=0
+			switch['rot']=1
 	elif ans=='2':
 		print('1. [Local] Websocket SSL')
 		print('2. [Local] Websocket Direct')
@@ -593,6 +597,7 @@ __  _  ________ ____   ____
 	elif ans=='3':
 		print('1. [Fronting] HTTP/2 Direct')
 		print('2. [Local] HTTP/2 Direct')
+		print('3. [Local] HTTP/2 Direct ZGrab')
 		print('')
 		ans=input(' Choose Modes : ').lower()
 		print('')
@@ -602,6 +607,9 @@ __  _  ________ ____   ____
 		elif ans=='2':
 			switch['bloc']=3
 			switch['rot']=1
+		elif ans == '3':
+			switch['bloc']=0
+			switch['rot']=3
 		else:
 			uinput()
 	else:
@@ -613,22 +621,23 @@ __  _  ________ ____   ____
 	ans=input(' Choose Scan Input :  ').lower()
 	print('')
 	if ans=='1':
-		filet()
-		outfile()
-		if (switch['bloc']==1 and switch['rot']==2) or (switch['bloc']==2 and switch['rot']==1) or (switch['bloc']==3 and switch['rot']==4) or switch['bloc']==0:
-			doma()
-		option()
 		print('1. Scan Local Files')
 		print('3. Scan Local Lines')
 		print()
 		ans=input(' Choose Scan Input :  ').lower()
 		print()
-		if ans == '2':
+		if ans == '1':
+			filet()
+			outfile()
+		elif ans == '2':
+			filet()
 			liner()
-		elif ans == '1':
-			pass
+			outfile()
 		else:
 			uinput()
+		if (switch['bloc']==1 and switch['rot']==2) or (switch['bloc']==2 and switch['rot']==1) or (switch['bloc']==3 and switch['rot']==4) or switch['bloc']==0:
+			doma()
+		option()
 		serv()
 		uinput()
 	elif ans=='2':
