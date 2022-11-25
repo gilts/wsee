@@ -86,6 +86,7 @@ def outfile():
 # Rot Switch control
 def option():
 	global file_hosts
+	print('')
 	if switch['bloc'] == 1:
 		if switch['rot']==2:
 			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
@@ -103,23 +104,20 @@ def uinput():
 	print('')
 	print('['+colors.RED_BG+' Target Block Exceeded ' + colors.ENDC + ']' )
 	print('1. Go Back to Menu')
-	print('2. Reset All Input')
-	print('3. Quit Instead')
+	print('2. Quit Instead')
 	print('')
 	ans=input(' Choose Option: ')
 	if ans=='1':
 		print("\033c\033[3J\033[2J\033[0m\033[H")
-		menu()
-	elif ans=='2':
 		payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
 		switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
 		menu()
-	elif ans=='3':
+	elif ans=='2':
+		print("\033c\033[3J\033[2J\033[0m\033[H")
 		exit()
 	else:
 		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
 		print('')
-		print("\033c\033[3J\033[2J\033[0m\033[H")
 		menu()
 
 ''' Reading List Section '''
@@ -306,21 +304,17 @@ def wsee(appendix,Resultee,Faily):
 					cont = ssl.create_default_context()
 					cont.set_ciphers(cipher)
 					if switch['rot']==0:
-						print('Using Proxy Mode')
 						sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 						sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					elif switch['rot']==1:
-						print('Using Direct Mode')
 						sock.connect((onliner, 80))
 						sock.sendall(bytes(f'GET ws://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
 					else:
 						if switch['rot']==2:
-							print('Using Host Mode')
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((f'{payloads["Proxy"]}', 443))
 						else:
-							print('Using Normal Mode')
 							sock = cont.wrap_socket(sock, server_hostname = onliner)
 							sock.connect((onliner, 443))
 						sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
@@ -635,13 +629,13 @@ __  _  ________ ____   ____
 			outfile()
 		else:
 			uinput()
-		if (switch['bloc']==1 and switch['rot']==2) or (switch['bloc']==2 and switch['rot']==1) or (switch['bloc']==3 and switch['rot']==4) or switch['bloc']==0:
+		if switch['bloc']==1:
 			doma()
 		option()
 		serv()
 		uinput()
 	elif ans=='2':
-		if (switch['bloc']==1 and switch['rot']==2) or (switch['bloc']==2 and switch['rot']==1) or (switch['bloc']==3 and switch['rot']==4) or switch['bloc']==0:
+		if switch['bloc']==1:
 			doma()
 		hacki()
 		outfile()
