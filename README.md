@@ -1,5 +1,5 @@
 # wsee
-A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific protocol, indicated via `101` statuses. Can be used for **Bug  Hunters** to find any delicate domain related to `CDN`, `Websocket` and `HTTP/2`. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
+A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific `protocol` or `frontable`, indicated via `101` or `200` statuses. Can be used for **Bug  Hunters** to find any delicate domain related to `CDN`, `Websocket`, `HTTP/2` and `domain-fronting`. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
 
 ## Features
 - `wsee: to go` an Easy to use, scans whenever needed with Clean interactive Python script. Usable across any device that supports for `python`. PS: Even work on `Termux` and `WSL`.
@@ -10,7 +10,8 @@ A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple t
 - Accept `.csv` as wordlist, breaking the barrier of must used `.txt` and made it compatible for other Enumeration Tool Output.
 - Supports for Internal Storage for `Termux` users.
 - Supports for `HTTP/2` Protocol (clear-text only).
-- New `Rotate` Mode feature; Now you can rotate `proxy` and `hostname` individually. This is useful if the target only accept specific proxy or ssl masking.
+- `Rotate Proxy` feature that will brute list of Proxy against single Hostname. Currently only Supports for Proxy that runs on `443`or `80` port (Based on CloudFlare Proxy)
+- `Rotate Hostname` feature that will brute list of Hostname against single Proxy. This is usefull for CDN Distribution IP's that has multiple Domain on a single IP or SSL Masking.
 - Auto script updater handled with config located in `.wsee/CONFIG`
 - Also include `Normal` mode, to find SSL/Direct bugs without protocol or domain fronting.
 - `HeartBeat` when attempt to send a request, this prevent connection lost interrupt in mid-scan.
