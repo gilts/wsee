@@ -38,7 +38,7 @@ output = 'output'
 work_at_time = 20
 expected_response = 101
 cflare_domain = 'id3.sshws.me'
-cfront_domain = 'd3heec68s9xyc4.cloudfront.net'
+cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
 
 txtfiles= []
 txtlines= []
@@ -274,15 +274,19 @@ def serv():
 ''' Main Process '''
 # Ping DNS over TCP to check connection
 def pinger():
-	try:
-		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-			sock.settimeout(3)
-			sock.connect(('9.9.9.9',53))
-	except socket.error as e:
-		print(e)
-		print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
-		sleep(3)
-		pinger()
+	while True:
+		try:
+			sock = socket.socket()
+			sock.connect(('zendesk4.grabtaxi.com', 80))
+			sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+			sock.recv(13)
+			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+			if int(sock[0]) == 101:
+				break
+		except socket.error as e:
+			print(e)
+			print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
+			sleep(3)
 
 # Websocket SSL: Takes CDN/Local
 ''' Rot 0: Rotate Proxy Mode
@@ -501,7 +505,7 @@ def checker():
 		if data['config']['update-wsee'] == True:
 			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
 			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-			with open('./.wsee/CONFIG') as f:
+			with open('./.wsee/VERSION') as f:
 				verlocal = f.read()
 			if parse_version(resp.text) > parse_version(verlocal):
 				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
