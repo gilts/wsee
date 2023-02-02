@@ -45,6 +45,12 @@ txtlines= []
 maxi = cpu_count()
 columns = defaultdict(list)
 
+customPayloads = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\r\nUpgrade-Insecure-Requests: 1\r\nAccept: */*'
+wsPayloads = 'Upgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nPragma: no-cache'
+h2Payloads = 'Upgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: '
+h2Zgrab = "--custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade'"
+wsZgrab = "--custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade'"
+
 payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
 props = { 'nametag': 'result', 'loc': '' }
 switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'type': 0 }
@@ -169,25 +175,23 @@ def filet():
 		print('')
 		direct = switch['dir']
 		if direct == 0:
-			file_hosts = inpute +'/'+ str(txtfiles[int(fileselector)-1])
+			processor = inpute +'/'+ str(txtfiles[int(fileselector)-1])
 		elif direct == 1:
-			file_hosts = str(txtfiles[int(fileselector)-1])
+			processor = str(txtfiles[int(fileselector)-1])
 		elif direct == 2:
-			file_hosts = './storage/shared/' + inpute +'/'+ str(txtfiles[int(fileselector)-1])
+			processor = './storage/shared/' + inpute +'/'+ str(txtfiles[int(fileselector)-1])
 		elif direct == 3:
-			file_hosts = './storage/shared/' + str(txtfiles[int(fileselector)-1])
+			processor = './storage/shared/' + str(txtfiles[int(fileselector)-1])
 		else:
-			file_hosts = path
-		props['loc']=file_hosts
-	else:
-		uinput()
+			processor = path
+	return processor
 
 # Reading Lines
-def liner():
+def liner(processor):
 	switch['type']=2
 	num_line=1
 	print('[' + colors.RED_BG + ' List of String based on Lines ' + colors.ENDC + ']')
-	with open(props['loc'], 'r') as liner:
+	with open(processor, 'r') as liner:
 		for f in liner:
 			print(str(num_line),str(f.strip()))
 			num_line=num_line+1
@@ -199,13 +203,11 @@ def liner():
 	print(' Chosen Line : ' + colors.RED_BG + ' '+txtlines[int(lineselector)-1]+' '+colors.ENDC)
 	print('')
 	if lineselector.isdigit():
-		props['loc']=txtlines[int(lineselector)-1]
-	else:
-		uinput()
+		processor = txtlines[int(lineselector)-1]
+	return processor
 
 # Reading from Online enumeration
 def hacki():
-	global domainlist
 	subd = input('\nInput Domain: ')
 	subd = subd.replace('https://','').replace('http://','')
 	r = requests.get('https://api.hackertarget.com/hostsearch/?q=' + subd, allow_redirects=False)
@@ -213,7 +215,8 @@ def hacki():
 		exit('ERR: error invalid host')
 	else:
 		switch['type']=3
-		domainlist = re.findall('(.*?),',r.text)
+		processor = re.findall('(.*?),',r.text)
+	return processor
 
 ''' Main Control Section '''
 
@@ -222,33 +225,32 @@ def hacki():
 	Type 1: takes csv
 	Type 2: takes input
 	Type 3: takes online enum '''
-def serv():
+def serv(processor):
 	global appendix, Faily, Resultee
 	Faily=Value('i',0)
 	appendix = Queue()
 	Resultee=Value('d',0)
 	if switch['type']==0:
-		with open(props['loc'], 'r') as f:
+		with open(processor, 'r') as f:
 			for line in f:
-				liner = [line] + list(islice(f, work_at_time-1))
-				for i in liner:
-					appendix.put(str(re.sub('\n', '', i.strip())))
-				executor()
+				appendix.put(line.strip())
+		executor(appendix, Faily, Resultee)
 	elif switch['type']==1:
-		with open(props['loc'], 'r') as f:
-			reader = csv.reader(csv_file)
-			for row in reader:
-				for (i,v) in enumerate(row):
-					columns[i].append(v)
-			appendix.put(columns[9]+columns[3])
-		executor()
+		csv_file = open(processor, 'r').read()
+		reader = csv.reader(csv_file)
+		for row in reader:
+			for (i,v) in enumerate(row):
+				columns[i].append(v)
+		appendix.put(columns[9]+columns[3])
+		csv_file.close()
+		executor(appendix, Faily, Resultee)
 	elif switch['type']==2:
-		appendix.put(str(props['loc']))
-		executor()
+		appendix.put(processor)
+		executor(appendix, Faily, Resultee)
 	else:
-		for domain in domainlist:
-			appendix.put(domain)
-		executor()
+		for process in processor:
+			appendix.put(process)
+		executor(appendix, Faily, Resultee)
 	print('')
 	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
 	print(' Success Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
@@ -304,7 +306,7 @@ def pinger():
 		try:
 			sock = socket.socket()
 			sock.connect(('zendesk4.grabtaxi.com', 80))
-			sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+			sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{webSocket}\r\n\r\n', encoding='utf-8'))
 			sock.recv(13)
 			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 			if int(sock[0]) == 101:
@@ -328,10 +330,10 @@ def wsee(onliner,Resultee,Faily):
 	if switch['rot']==0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 		sock.connect((onliner, 443))
-		sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{payloads["SNI"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+		sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	elif switch['rot']==1:
 		sock.connect((onliner, 80))
-		sock.sendall(bytes(f'GET ws://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+		sock.sendall(bytes(f'GET ws://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	else:
 		if switch['rot']==2:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
@@ -339,7 +341,7 @@ def wsee(onliner,Resultee,Faily):
 		else:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
 			sock.connect((onliner, 443))
-		sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: https://{onliner}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+		sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -366,10 +368,10 @@ def wsrect(onliner,Resultee,Faily):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{onliner}')
 		sock.connect((onliner, 443))
-		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nOrigin: http://{payloads["Host"]}\r\nPragma: no-cache\r\n\r\n', encoding='utf-8'))
+		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -393,10 +395,10 @@ def h2srect(onliner,Resultee,Faily):
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	sock.connect((onliner, 80))
 	if switch['rot']==0:
-		sock.sendall(bytes(f'GET h2c://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\nUpgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: \r\n\r\n', encoding='utf-8'))
+		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -413,13 +415,13 @@ def h2srect(onliner,Resultee,Faily):
 # ZGrab Mode: Only Local; Takes 443/80
 def grabber(onliner,Resultee,Faily):
 	if switch['rot']==0:
-		commando=f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando=f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif switch['rot']==1:
-		commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando =f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif switch['rot']==2:
-		commando=f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando=f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	else:
-		commando =f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando =f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 	rege = re.split(r'\n',commando)
@@ -434,38 +436,38 @@ def grabber(onliner,Resultee,Faily):
 			Faily.value +=1
 
 ''' Frontier Section '''
+# Apply Updates
+def updater():
+	print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
+	print('1) Ignore Update')
+	print('2) Apply Update')
+	ans=input(' Choose : ')
+	if ans=='2':
+		os.remove('wsee.py')
+		upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
+		with open('wsee.py', 'a') as pd:
+			pd.write(upd.text)
+		print('[' + colors.GREEN_BG + ' Script Updated! ' + colors.ENDC + ']')
+		sleep(3)
+		exit()
+	else:
+		pass
+
 # Check for Updates / Bin
 def checker():
 	with open('.wsee/CONFIG') as f:
 		data = json.load(f)
-		if data['config']['update-wsee'] == True:
-			print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
-			resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
-			with open('./.wsee/VERSION') as f:
-				verlocal = f.read()
-			if parse_version(resp.text) > parse_version(verlocal):
-				print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
-				print('1) Ignore Update')
-				print('2) Apply Update')
-				ans=input(' Choose : ')
-				if ans=='2':
-					os.remove('wsee.py')
-					upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
-					with open('wsee.py', 'a') as pd:
-						pd.write(upd.text)
-						print("\033c\033[3J\033[2J\033[0m\033[H")
-					print('[' + colors.GREEN_BG + ' Script Updated! ' + colors.ENDC + ']')
-					sleep(3)
-					print("\033c\033[3J\033[2J\033[0m\033[H")
-					exit()
-				else:
-					print("\033c\033[3J\033[2J\033[0m\033[H")
-			else:
-				print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
-				sleep(3)
-				print("\033c\033[3J\033[2J\033[0m\033[H")
+	if data['config']['update-wsee'] == True:
+		print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
+		resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+		with open('./.wsee/VERSION') as f:
+			verlocal = f.read()
+		if parse_version(resp.text) > parse_version(verlocal):
+			updater()
 		else:
-			return
+			print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
+			sleep(3)
+	print("\033c\033[3J\033[2J\033[0m\033[H")
 
 # Main Menu; Handles everything.
 def menu():
@@ -561,26 +563,26 @@ __  _  ________ ____   ____
 		ans=input(' Choose Scan Input :  ').lower()
 		print()
 		if ans == '1':
-			filet()
+			processor = filet()
 			outfile()
 		elif ans == '2':
-			filet()
-			liner()
+			processor = filet()
+			processor = liner(processor)
 			outfile()
 		else:
 			uinput()
 		if switch['bloc']==1:
 			doma()
 		option()
-		serv()
+		serv(processor)
 		uinput()
 	elif ans=='2':
 		if switch['bloc']==1:
 			doma()
-		hacki()
+		processor = hacki()
 		outfile()
 		option()
-		serv()
+		serv(processor)
 		uinput()
 	elif ans=='3':
 		print('1. Scan Custom Hostname/SNI')
@@ -595,12 +597,13 @@ __  _  ________ ____   ____
 		else:
 			uinput()
 		print()
-		props['loc']=cus
+		processor=cus
 		switch['type']=2
 		outfile()
-		doma()
+		if switch['bloc']==1:
+			doma()
 		option()
-		serv()
+		serv(processor)
 		uinput()
 	else:
 		uinput()
