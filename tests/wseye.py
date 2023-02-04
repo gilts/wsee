@@ -23,10 +23,10 @@ import ssl
 import json
 import socket
 import subprocess
-import requests,re
 import os, fnmatch
+import requests, re
 from time import sleep
-from itertools import islice
+from itertools import islice, chain, repeat
 from threading import Thread
 from collections import defaultdict
 from os.path import abspath, dirname
@@ -40,8 +40,8 @@ expected_response = 101
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
 
-txtfiles= []
-txtlines= []
+txtfiles = []
+txtlines = []
 maxi = cpu_count()
 columns = defaultdict(list)
 
@@ -51,8 +51,8 @@ h2Payloads = 'Upgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Setti
 h2Zgrab = "--custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade'"
 wsZgrab = "--custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade'"
 
-payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
-props = { 'nametag': 'result', 'loc': '' }
+payloads = { 'Host': '', 'SNI': '', 'Proxy': '' }
+props = { 'nametag': 'result' }
 switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'type': 0 }
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
@@ -64,45 +64,39 @@ class colors:
 ''' User-Input Section '''
 # Takes Domain Fronting
 def doma():
-	print('1. Custom SSH Address')
-	print('2. Default CloudFront')
-	print('3. Default CloudFlare')
-	print('')
-	ans=input(' Choose SSH : ').lower()
-	if ans=='1':
-		domain=input(' Domain : ')
-		payloads['Host']=f'{domain}'
-	elif ans=='2':
-		payloads['Host']=f'{cfront_domain}'
-	elif ans=='3':
-		payloads['Host']=f'{cflare_domain}'
-	else:
-		uinput()
-	print('')
-	frontdom = payloads['Host']
-	print(' Selected ['+colors.GREEN_BG+f' {frontdom} '+colors.ENDC+'] as Domain Fronting!')
+	inputs = { '1': 'Custom SSH Address', '2': 'Default CloudFront', '3': 'Default CloudFlare' }
+	inputs = user_input(inputs)
+	if inputs == '1':
+		inputs = input(' inputs : ')
+		print('')
+		payloads['Host'] = domain
+	elif inputs == '2':
+		payloads['Host'] = cfront_domain
+	elif inputs == '3':
+		payloads['Host'] = cflare_domain
+	print(' Selected ['+colors.GREEN_BG+f' {payloads["Host"]} '+colors.ENDC+'] as Domain Fronting!')
 	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
+	print('')
 
 # Add Output
 def outfile(): 
 	print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
-	nametag = input(' Input File Name : ')
-	props['nametag'] = nametag
+	inputs = input(' Input File Name : ')
+	props['nametag'] = inputs
 	print('')
 
 # Rot Switch control
 def option():
-	global file_hosts
 	print('')
 	if switch['bloc'] == 1:
-		if switch['rot']==2:
+		if switch['rot'] == 2:
 			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
-			prox = input(' Input Proxy : ')
-			payloads['Proxy']=prox
-		elif switch['rot']==0:
+			inputs = input(' Input Proxy : ')
+			payloads['Proxy'] = inputs
+		elif switch['rot'] == 0:
 			print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
-			bugger = input(' Input Hostname : ')
-			payloads['SNI']=bugger
+			inputs = input(' Input Hostname : ')
+			payloads['SNI'] = bugger
 	print('')
 
 # Outrange input as finish
@@ -127,63 +121,64 @@ def uinput():
 		print('')
 		menu()
 
+# Display Input
+def user_input(inputs):
+	for i,j in inputs.items():
+		print(f'{i}). {j}')
+	prompts = chain(["Choose: "], repeat("Invalid Input, Try Again: "))
+	prompts = map(input, prompts)
+	prompts = next(filter(inputs.__contains__, prompts))
+	print('')
+	return prompts
+
 ''' Reading List Section '''
 # Reading from Files
 def filet():
 	num_file = 1
-	print('1. Scan Files in Input Folder')
-	print('2. Scan Files in Current Folder')
-	print('3. Scan Files in Termux Host')
-	print('4. Scan Files in Termux')
-	print('5. Scan Custom Path')
-	print('')
-	ans=input(' Choose Scan Input : ').lower()
-	print('')
-	if ans=='1':
+	inputs = { '1': 'Scan Files in Input Folder', '2': 'Scan Files in Current Folder', '3': 'Scan Files in Termux Host', '4': 'Scan Files in Termux', '5': 'Scan Custom Path' }
+	inputs = user_input(inputs)
+	if inputs == '1':
 		files = os.listdir(inpute)
-		switch['dir']=0
-	elif ans=='2':
+		switch['dir'] = 0
+	elif inputs == '2':
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
-		switch['dir']=1
-	elif ans=='3':
+		switch['dir'] = 1
+	elif inputs == '3':
 		files = os.listdir('$home/storage/shared/' + inpute)
-		switch['dir']=2
-	elif ans=='4':
+		switch['dir'] = 2
+	elif inputs == '4':
 		files = os.listdir('$home/storage/shared/')
-		switch['dir']=3
-	elif ans=='5':
+		switch['dir'] = 3
+	elif inputs == '5':
 		path = input(' Input your Folder: ')
 		files = os.listdir(path)
-		switch['dir']=4
-	else:
-		uinput()
+		switch['dir'] = 4
 	print(' [' + colors.RED_BG + ' Files Found ' + colors.ENDC + '] ')
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
-			switch['type']=0
+			switch['type'] = 0
 		elif fnmatch.fnmatch(f, '*.csv'):
-			switch['type']=1
-		print( str(num_file),str(f))
-		num_file=num_file+1
+			switch['type'] = 1
+		print(str(num_file), str(f))
+		num_file = num_file + 1
 		txtfiles.append(str(f))
 	print('')
 	print(' M back to Menu ')
-	fileselector = input(' Choose Target Files : ')
-	if fileselector.isdigit():
-		print('')
-		print(' Chosen File : ' + colors.RED_BG + ' '+txtfiles[int(fileselector)-1]+' '+colors.ENDC)
-		print('')
-		direct = switch['dir']
-		if direct == 0:
-			processor = inpute +'/'+ str(txtfiles[int(fileselector)-1])
-		elif direct == 1:
-			processor = str(txtfiles[int(fileselector)-1])
-		elif direct == 2:
-			processor = './storage/shared/' + inpute +'/'+ str(txtfiles[int(fileselector)-1])
-		elif direct == 3:
-			processor = './storage/shared/' + str(txtfiles[int(fileselector)-1])
-		else:
-			processor = path
+	inputs = input(' Choose Target Files : ')
+	print('')
+	print(' Chosen File : ' + colors.RED_BG + ' '+txtfiles[int(inputs)-1]+' '+colors.ENDC)
+	print('')
+	direct = switch['dir']
+	if direct == 0:
+		processor = inpute +'/'+ str(txtfiles[int(inputs)-1])
+	elif direct == 1:
+		processor = str(txtfiles[int(inputs)-1])
+	elif direct == 2:
+		processor = './storage/shared/' + inpute +'/'+ str(txtfiles[int(inputs)-1])
+	elif direct == 3:
+		processor = './storage/shared/' + str(txtfiles[int(inputs)-1])
+	else:
+		processor = path
 	return processor
 
 # Reading Lines
@@ -208,14 +203,15 @@ def liner(processor):
 
 # Reading from Online enumeration
 def hacki():
-	subd = input('\nInput Domain: ')
-	subd = subd.replace('https://','').replace('http://','')
-	r = requests.get('https://api.hackertarget.com/hostsearch/?q=' + subd, allow_redirects=False)
-	if r.text == 'error invalid host':
+	inputs = input('\nInput Domain: ')
+	print('')
+	inputs = inputs.replace('https://','').replace('http://','')
+	response = requests.get('https://api.hackertarget.com/hostsearch/?q=' + inputs)
+	if response.text == 'error invalid host':
 		exit('ERR: error invalid host')
 	else:
 		switch['type']=3
-		processor = re.findall('(.*?),',r.text)
+		processor = re.findall('(.*?),', response.text)
 	return processor
 
 ''' Main Control Section '''
@@ -226,11 +222,10 @@ def hacki():
 	Type 2: takes input
 	Type 3: takes online enum '''
 def serv(processor):
-	global appendix, Faily, Resultee
-	Faily=Value('i',0)
+	Faily = Value('i', 0)
 	appendix = Queue()
-	Resultee=Value('d',0)
-	if switch['type']==0:
+	Resultee = Value('d', 0)
+	if switch['type'] == 0:
 		with open(processor, 'r') as f:
 			for line in f:
 				appendix.put(line.strip())
@@ -251,16 +246,16 @@ def serv(processor):
 		for process in processor:
 			appendix.put(process)
 		executor(appendix, Faily, Resultee)
+	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Faily.value) + ' ' + colors.ENDC )
+	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resultee.value) + ' ' + colors.ENDC)
 	print('')
-	print(' Failed Result : '  + colors.RED_BG + ' '+ str(Faily.value) +' '+ colors.ENDC )
-	print(' Success Result : ' + colors.GREEN_BG + ' '+ str(Resultee.value) + ' '+colors.ENDC)
 
 # Running Process
-def executor():
+def executor(appendix, Faily, Resultee):
 	total = []
 	for i in range(maxi):
 		appendix.put('ENDED')
-		p = Process(target=processor, args=(appendix,Resultee,Faily))
+		p = Process(target = processor, args = (appendix, Resultee, Faily))
 		p.start()
 		total.append(p)
 	for p in total:
@@ -268,31 +263,31 @@ def executor():
 	p.terminate()
 
 # Processing Main Process
-def processor(appendix,Resultee,Faily):
+def processor(appendix, Resultee, Faily):
 	while True:
 		onliner = appendix.get()
 		if onliner == 'ENDED':
 			break
 		try:
 			pinger()
-			if switch['bloc']==0:
-				grabber(online,Resultee,Faily)
-			elif switch['bloc']==1:
-				wsee(onliner,Resultee,Faily)
-			elif switch['bloc']==2:
-				wsrect(online,Resultee,Faily)
+			if switch['bloc'] == 0:
+				grabber(online, Resultee, Faily)
+			elif switch['bloc'] == 1:
+				wsee(onliner, Resultee, Faily)
+			elif switch['bloc'] == 2:
+				wsrect(online, Resultee, Faily)
 			else:
-				h2srect(online,Resultee,Faily)
+				h2srect(online, Resultee, Faily)
 		except(ssl.SSLError):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' NOT SSL '+colors.ENDC+']')
+			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' NOT SSL ' + colors.ENDC + ']')
 			with Faily.get_lock():
 				Faily.value +=1
 		except(socket.gaierror) or (socket.timeout):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' INVALID '+colors.ENDC+']')
+			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' INVALID ' + colors.ENDC + ']')
 			with Faily.get_lock():
 				Faily.value +=1
 		except(socket.error):
-			print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' + colors.RED_BG +' TIMEOUT '+colors.ENDC+']')
+			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' TIMEOUT ' + colors.ENDC + ']')
 			with Faily.get_lock():
 				Faily.value +=1
 		except Exception as e:
@@ -302,18 +297,19 @@ def processor(appendix,Resultee,Faily):
 ''' Main Process '''
 # Ping DNS over TCP to check connection
 def pinger():
+	global wsPayloads, customPayloads
 	while True:
 		try:
 			sock = socket.socket()
 			sock.connect(('zendesk4.grabtaxi.com', 80))
-			sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{webSocket}\r\n\r\n', encoding='utf-8'))
-			sock.recv(13)
+			sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{wsPayloads}\r\n\r\n', encoding='utf-8'))
+			line = sock.recv(13)
 			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 			if int(sock[0]) == 101:
 				break
 		except socket.error as e:
 			print(e)
-			print("["+colors.RED_BG+" Check Your Internet Connection! "+colors.ENDC+"]")
+			print("[" + colors.RED_BG + " Check Your Internet Connection! " + colors.ENDC + "]")
 			sleep(3)
 
 # Websocket SSL: Takes CDN/Local
@@ -321,21 +317,22 @@ def pinger():
 	Rot 1: Direct Mode
 	Rot 2: Rotate Host Mode
 	Rot 3: Normal Mode'''
-def wsee(onliner,Resultee,Faily):
+def wsee(onliner, Resultee, Faily):
+	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	cont = ssl.create_default_context()
 	cont.set_ciphers(cipher)
-	if switch['rot']==0:
+	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
 		sock.connect((onliner, 443))
 		sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
-	elif switch['rot']==1:
+	elif switch['rot'] == 1:
 		sock.connect((onliner, 80))
 		sock.sendall(bytes(f'GET ws://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
 	else:
-		if switch['rot']==2:
+		if switch['rot'] == 2:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
 			sock.connect((f'{payloads["Proxy"]}', 443))
 		else:
@@ -345,21 +342,22 @@ def wsee(onliner,Resultee,Faily):
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
-		print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-		print(onliner, file=open(f'{output}/{props["nametag"]}.txt', 'a'))
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
 		with Resultee.get_lock():
-			Resultee.value +=1
+			Resultee.value += 1
 	else:
-		print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		with Faily.get_lock():
-			Faily.value +=1
+			Faily.value += 1
 	sock.close()
 
 # Websocket Direct: Takes CDN/Local
 '''	Rot 1: Local Mode
 	Rot 0: Normal Mode '''
 
-def wsrect(onliner,Resultee,Faily):
+def wsrect(onliner, Resultee, Faily):
+	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -375,21 +373,22 @@ def wsrect(onliner,Resultee,Faily):
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
-		print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-		print(onliner, file=open(f'{output}/{props["nametag"]}.txt', 'a'))
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
 		with Resultee.get_lock():
-			Resultee.value +=1
+			Resultee.value += 1
 	else:
-		print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		with Faily.get_lock():
-			Faily.value +=1
+			Faily.value += 1
 	sock.close()
 
 # Websocket SSL: Takes CDN/Local
 '''	Rot 1: Local
 	Rot 0: Normal Mode '''
 
-def h2srect(onliner,Resultee,Faily):
+def h2srect(onliner, Resultee, Faily):
+	global h2Payloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -402,36 +401,37 @@ def h2srect(onliner,Resultee,Faily):
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
-		print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + onliner+ ' [' +colors.GREEN_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
-		print(onliner, file=open(f'{output}/{props["nametag"]}.txt', 'a'))
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
 		with Resultee.get_lock():
-			Resultee.value +=1
+			Resultee.value += 1
 	else:
-		print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner + ' [' +colors.RED_BG+' ' + str(resu[0]) + ' '+colors.ENDC+']')
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		with Faily.get_lock():
-			Faily.value +=1
+			Faily.value += 1
 	sock.close()
 
 # ZGrab Mode: Only Local; Takes 443/80
-def grabber(onliner,Resultee,Faily):
-	if switch['rot']==0:
-		commando=f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-	elif switch['rot']==1:
-		commando =f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-	elif switch['rot']==2:
-		commando=f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+def grabber(onliner, Resultee, Faily):
+	global h2Zgrab, wsZgrab
+	if switch['rot'] == 0:
+		commando = f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+	elif switch['rot'] == 1:
+		commando = f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+	elif switch['rot']== 2:
+		commando = f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	else:
-		commando =f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-	commando=subprocess.Popen(commando,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+		commando = f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+	commando = subprocess.Popen(commando, shell = True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 	commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 	rege = re.split(r'\n',commando)
-	if rege[0]==f'{expected_response}':
-		print(' ['+colors.GREEN_BG+' HIT '+colors.ENDC+'] ' + rege[1])
-		print(rege[1], file=open(f'{props["nametag"]}.txt', 'a'))
+	if rege[0] == f'{expected_response}':
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + rege[1])
+		print(rege[1], file = open(f'{props["nametag"]}.txt', 'a'))
 		with Resultee.get_lock():
 			Resultee.value +=1
 	else:
-		print(' ['+colors.RED_BG+' FAIL '+colors.ENDC+'] ' + onliner)
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner)
 		with Faily.get_lock():
 			Faily.value +=1
 
@@ -439,14 +439,13 @@ def grabber(onliner,Resultee,Faily):
 # Apply Updates
 def updater():
 	print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
-	print('1) Ignore Update')
-	print('2) Apply Update')
-	ans=input(' Choose : ')
-	if ans=='2':
+	inputs = { '1': 'Ignore Update', '2': 'Apply Update' }
+	inputs = user_input(inputs)
+	if inputs == '2':
 		os.remove('wsee.py')
-		upd = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
-		with open('wsee.py', 'a') as pd:
-			pd.write(upd.text)
+		response = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
+		with open('wsee.py', 'a') as f:
+			f.write(response.text)
 		print('[' + colors.GREEN_BG + ' Script Updated! ' + colors.ENDC + ']')
 		sleep(3)
 		exit()
@@ -482,131 +481,77 @@ __  _  ________ ____   ____
 	print('    [' + colors.RED_BG + ' Domain : Fronting ' + colors.ENDC + ']')
 	print('     ['+colors.RED_BG+' Author ' + colors.ENDC + ':' + colors.GREEN_BG + ' Kiynox ' + colors.ENDC + ']')
 	print('')
-	print('1. CDN Websocket')
-	print('2. Local Websocket')
-	print('3. HTTP/2 Socket')
-	print('')
-	ans=input(' Choose Modes : ').lower()
-	print('')
-	if ans=='1':
-		print('1. [Fronting] Websocket SSL')
-		print('2. [Fronting] Websocket Proxy Rotate')
-		print('3. [Fronting] Websocket Host Rotate')
-		print('4. [Fronting] Websocket Direct')
-		print('')
-		ans=input(' Choose Modes : ').lower()
-		print('')
-		if ans=='1':
-			switch['bloc']=1
-			switch['rot']=3
+	inputs = { '1': 'CDN Websocket', '2': 'Local Websocket', '3': 'HTTP/2 Socket' }
+	inputs = user_input(inputs)
+	if inputs == '1':
+		inputs = { '1': '[Fronting] Websocket SSL', '2': '[Fronting] Websocket Proxy Rotate', '3': '[Fronting] Websocket Host Rotate', '4': '[Fronting] Websocket Direct' }
+		inputs = user_input(inputs)
+		if inputs == '1':
+			switch['bloc'] = 1
+			switch['rot'] = 3
+		elif inputs == '2':
+			switch['bloc'] = 1
+			switch['rot'] = 0
+		elif inputs == '3':
+			switch['bloc'] = 1
+			switch['rot'] = 2
+		elif inputs == '4':
+			switch['bloc'] = 1
+			switch['rot'] = 1
+	elif inputs == '2':
+		inputs = { '1': '[Local] Websocket SSL', '2': '[Local] Websocket Direct', '3': '[Local] Websocket SSL ZGrab', '4': '[Local] Websocket Direct ZGrab' }
+		inputs = user_input(inputs)
+		if inputs == '1':
+			switch['bloc'] = 2
+			switch['rot'] = 0
 		elif ans=='2':
-			switch['bloc']=1
-			switch['rot']=0
+			switch['bloc'] = 2
+			switch['rot'] = 1
 		elif ans=='3':
-			switch['bloc']=1
-			switch['rot']=2
+			switch['bloc'] = 0
+			switch['rot'] = 0
 		elif ans=='4':
-			switch['bloc']=1
-			switch['rot']=1
-	elif ans=='2':
-		print('1. [Local] Websocket SSL')
-		print('2. [Local] Websocket Direct')
-		print('3. [Local] Websocket SSL ZGrab')
-		print('4. [Local] Websocket Direct ZGrab')
-		print('')
-		ans=input(' Choose Modes : ').lower()
-		print('')
-		if ans=='1':
-			switch['bloc']=2
-			switch['rot']=0
-		elif ans=='2':
-			switch['bloc']=2
-			switch['rot']=1
-		elif ans=='3':
-			switch['bloc']=0
-			switch['rot']=0
-		elif ans=='4':
-			switch['bloc']=0
-			switch['rot']=1
-		else:
-			uinput()
+			switch['bloc'] = 0
+			switch['rot'] = 1
 	elif ans=='3':
-		print('1. [Fronting] HTTP/2 Direct')
-		print('2. [Local] HTTP/2 Direct')
-		print('3. [Local] HTTP/2 Direct ZGrab')
-		print('')
-		ans=input(' Choose Modes : ').lower()
-		print('')
+		inputs = { '1': '[Fronting] HTTP/2 Direct', '2': '[Local] HTTP/2 Direct', '3': '[Local] HTTP/2 Direct ZGrab' }
+		inputs = user_input(inputs)
 		if ans=='1':
-			switch['bloc']=3
-			switch['rot']=0
+			switch['bloc'] = 3
+			switch['rot'] = 0
 		elif ans=='2':
-			switch['bloc']=3
-			switch['rot']=1
+			switch['bloc'] = 3
+			switch['rot'] = 1
 		elif ans == '3':
-			switch['bloc']=0
-			switch['rot']=3
-		else:
-			uinput()
-	else:
-		uinput()
-	print('1. Scan File (.txt)')
-	print('2. Scan Online (HackerTarget)')
-	print('3. Scan Custom Input')
-	print('')
-	ans=input(' Choose Scan Input :  ').lower()
-	print('')
-	if ans=='1':
-		print('1. Scan Local Files')
-		print('3. Scan Local Lines')
-		print()
-		ans=input(' Choose Scan Input :  ').lower()
-		print()
-		if ans == '1':
+			switch['bloc'] = 0
+			switch['rot'] = 3
+	inputs = { '1': 'Scan File (.txt)', '2': 'Scan Online (HackerTarget)', '3': 'Scan Custom Input' }
+	inputs = user_input(inputs)
+	if inputs == '1':
+		inputs = { '1': 'Scan Local Files', '2': 'Scan Local Lines' }
+		inputs = user_input(inputs)
+		if inputs == '1':
 			processor = filet()
-			outfile()
-		elif ans == '2':
+		elif inputs == '2':
 			processor = filet()
 			processor = liner(processor)
-			outfile()
-		else:
-			uinput()
-		if switch['bloc']==1:
-			doma()
-		option()
-		serv(processor)
-		uinput()
-	elif ans=='2':
-		if switch['bloc']==1:
-			doma()
+	elif inputs == '2':
 		processor = hacki()
-		outfile()
-		option()
-		serv(processor)
-		uinput()
-	elif ans=='3':
-		print('1. Scan Custom Hostname/SNI')
-		print('2. Scan Custom Proxy/IP')
-		print('')
-		ans = input(' Choose Scan Input: ')
-		print('')
-		if ans == '1':
-			cus = input(' Input Hostname : ')
-		elif ans == '2':
-			cus = input(' Input IP : ')
-		else:
-			uinput()
+	elif inputs == '3':
+		inputs = { '1': 'Scan Custom Hostname/SNI', '2': 'Scan Custom Proxy/IP' }
+		inputs = user_input(inputs)
+		if inputs == '1':
+			processor = input(' Input Hostname : ')
+		elif inputs == '2':
+			processor = input(' Input IP : ')
 		print()
-		processor=cus
 		switch['type']=2
-		outfile()
-		if switch['bloc']==1:
-			doma()
-		option()
-		serv(processor)
-		uinput()
-	else:
-		uinput()
+	if switch['bloc']==1:
+		doma()
+	outfile()
+	option()
+	serv(processor)
+	uinput()
 
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
