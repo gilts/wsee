@@ -35,15 +35,13 @@ from multiprocessing import Process, Manager, Value, Queue, cpu_count
 
 inpute = 'input'
 output = 'output'
+
 work_at_time = 20
 expected_response = 101
+maxi = cpu_count()
+
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
-
-txtfiles = []
-txtlines = []
-maxi = cpu_count()
-columns = defaultdict(list)
 
 customPayloads = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\r\nUpgrade-Insecure-Requests: 1\r\nAccept: */*'
 wsPayloads = 'Upgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nPragma: no-cache'
@@ -51,7 +49,7 @@ h2Payloads = 'Upgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Setti
 h2Zgrab = "--custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade'"
 wsZgrab = "--custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade'"
 
-payloads = { 'Host': '', 'SNI': '', 'Proxy': '' }
+headers = { 'Host': '', 'SNI': '', 'Proxy': '' }
 props = { 'nametag': 'result' }
 switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'type': 0 }
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
@@ -69,12 +67,12 @@ def doma():
 	if inputs == '1':
 		inputs = input(' inputs : ')
 		print('')
-		payloads['Host'] = domain
+		headers['Host'] = domain
 	elif inputs == '2':
-		payloads['Host'] = cfront_domain
+		headers['Host'] = cfront_domain
 	elif inputs == '3':
-		payloads['Host'] = cflare_domain
-	print(' Selected ['+colors.GREEN_BG+f' {payloads["Host"]} '+colors.ENDC+'] as Domain Fronting!')
+		headers['Host'] = cflare_domain
+	print(' Selected ['+colors.GREEN_BG+f' {headers["Host"]} '+colors.ENDC+'] as Domain Fronting!')
 	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
 	print('')
 
@@ -92,16 +90,16 @@ def option():
 		if switch['rot'] == 2:
 			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
 			inputs = input(' Input Proxy : ')
-			payloads['Proxy'] = inputs
+			headers['Proxy'] = inputs
 		elif switch['rot'] == 0:
 			print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
 			inputs = input(' Input Hostname : ')
-			payloads['SNI'] = bugger
+			headers['SNI'] = bugger
 	print('')
 
 # Outrange input as finish
 def uinput():
-	global switcher, payloads
+	global switcher, headers
 	print('')
 	print('['+colors.RED_BG+' Target Block Exceeded ' + colors.ENDC + ']' )
 	print('1. Go Back to Menu')
@@ -110,7 +108,7 @@ def uinput():
 	ans=input(' Choose Option: ')
 	if ans=='1':
 		print("\033c\033[3J\033[2J\033[0m\033[H")
-		payloads = {'Host': '', 'SNI': '', 'Proxy': ''}
+		headers = {'Host': '', 'SNI': '', 'Proxy': ''}
 		switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
 		menu()
 	elif ans=='2':
@@ -134,6 +132,7 @@ def user_input(inputs):
 ''' Reading List Section '''
 # Reading from Files
 def filet():
+	txtfiles = []
 	num_file = 1
 	inputs = { '1': 'Scan Files in Input Folder', '2': 'Scan Files in Current Folder', '3': 'Scan Files in Termux Host', '4': 'Scan Files in Termux', '5': 'Scan Custom Path' }
 	inputs = user_input(inputs)
@@ -185,6 +184,7 @@ def filet():
 def liner(processor):
 	switch['type']=2
 	num_line=1
+	txtlines = []
 	print('[' + colors.RED_BG + ' List of String based on Lines ' + colors.ENDC + ']')
 	with open(processor, 'r') as liner:
 		for f in liner:
@@ -215,6 +215,35 @@ def hacki():
 	return processor
 
 ''' Main Control Section '''
+def reserver(processor):
+	Faily = Value('i', 0)
+	appendix = Queue()
+	Resultee = Value('d', 0)
+	columns = defaultdict(list)
+	if switch['type'] == 0:
+		with open(processor, 'r') as f:
+			for line in f:
+				appendix.put(line.strip())
+		processor(appendix, Faily, Resultee)
+	elif switch['type']==1:
+		csv_file = open(processor, 'r').read()
+		reader = csv.reader(csv_file)
+		for row in reader:
+			for (i,v) in enumerate(row):
+				columns[i].append(v)
+		appendix.put(columns[9]+columns[3])
+		csv_file.close()
+		processor(appendix, Faily, Resultee)
+	elif switch['type']==2:
+		appendix.put(processor)
+		processor(appendix, Faily, Resultee)
+	else:
+		for process in processor:
+			appendix.put(process)
+		processor(appendix, Faily, Resultee)
+	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Faily.value) + ' ' + colors.ENDC )
+	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resultee.value) + ' ' + colors.ENDC)
+	print('')
 
 # Running Process and Reading text list
 ''' Type 0: takes txt
@@ -225,6 +254,7 @@ def serv(processor):
 	Faily = Value('i', 0)
 	appendix = Queue()
 	Resultee = Value('d', 0)
+	columns = defaultdict(list)
 	if switch['type'] == 0:
 		with open(processor, 'r') as f:
 			for line in f:
@@ -297,16 +327,16 @@ def processor(appendix, Resultee, Faily):
 ''' Main Process '''
 # Ping DNS over TCP to check connection
 def pinger():
-	global wsPayloads, customPayloads
+	global wsPayloads, cflare_domain
 	while True:
 		try:
-			sock = socket.socket()
-			sock.connect(('zendesk4.grabtaxi.com', 80))
-			sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{wsPayloads}\r\n\r\n', encoding='utf-8'))
-			line = sock.recv(13)
-			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-			if int(sock[0]) == 101:
-				break
+			with socket.socket() as sock:
+				sock.connect(('zendesk4.grabtaxi.com', 80))
+				sock.sendall(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{wsPayloads}\r\n\r\n'.encode())
+				line = str(sock.recv(13))
+				sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+				if int(sock[0]) == 101:
+					break
 		except socket.error as e:
 			print(e)
 			print("[" + colors.RED_BG + " Check Your Internet Connection! " + colors.ENDC + "]")
@@ -325,20 +355,20 @@ def wsee(onliner, Resultee, Faily):
 	cont = ssl.create_default_context()
 	cont.set_ciphers(cipher)
 	if switch['rot'] == 0:
-		sock = cont.wrap_socket(sock, server_hostname = f'{payloads["SNI"]}')
+		sock = cont.wrap_socket(sock, server_hostname = f'{headers["SNI"]}')
 		sock.connect((onliner, 443))
-		sock.sendall(bytes(f'GET wss://{payloads["SNI"]}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
+		sock.sendall(f'GET wss://{headers["SNI"]}/ HTTP/1.1\r\nHost: {headers["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
 	elif switch['rot'] == 1:
 		sock.connect((onliner, 80))
-		sock.sendall(bytes(f'GET ws://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {headers["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
 	else:
 		if switch['rot'] == 2:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
-			sock.connect((f'{payloads["Proxy"]}', 443))
+			sock.connect((f'{headers["Proxy"]}', 443))
 		else:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
 			sock.connect((onliner, 443))
-		sock.sendall(bytes(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
+		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {headers["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -366,10 +396,10 @@ def wsrect(onliner, Resultee, Faily):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{onliner}')
 		sock.connect((onliner, 443))
-		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
+		sock.sendall(f'GET wss://{headers["Host"]} HTTP/1.1\r\nHost: {onliner}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -394,10 +424,10 @@ def h2srect(onliner, Resultee, Faily):
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	sock.connect((onliner, 80))
 	if switch['rot']==0:
-		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {payloads["Host"]}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {headers["Host"]}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(bytes(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n', encoding='utf-8'))
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
