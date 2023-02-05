@@ -76,15 +76,11 @@ def doma():
 	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
 	print('')
 
-# Add Output
-def outfile(): 
+# Child Controller
+def option():
 	print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
 	inputs = input(' Input File Name : ')
 	props['nametag'] = inputs
-	print('')
-
-# Rot Switch control
-def option():
 	print('')
 	if switch['bloc'] == 1:
 		if switch['rot'] == 2:
@@ -123,11 +119,14 @@ def uinput():
 def user_input(inputs):
 	for i,j in inputs.items():
 		print(f'{i}). {j}')
-	prompts = chain(["Choose: "], repeat("Invalid Input, Try Again: "))
+	prompts = chain(["Choose: "], repeat("Invalid Input, Try Again: ", 2))
 	prompts = map(input, prompts)
-	prompts = next(filter(inputs.__contains__, prompts))
+	prompts = next(filter(inputs.__contains__, prompts), None)
 	print('')
-	return prompts
+	if prompts is None:
+		uinput()
+	else:
+		return prompts
 
 ''' Reading List Section '''
 # Reading from Files
@@ -218,13 +217,13 @@ def hacki():
 def reserver(processor):
 	Faily = Value('i', 0)
 	appendix = Queue()
-	Resultee = Value('d', 0)
+	Resulty = Value('d', 0)
 	columns = defaultdict(list)
 	if switch['type'] == 0:
 		with open(processor, 'r') as f:
 			for line in f:
 				appendix.put(line.strip())
-		processor(appendix, Faily, Resultee)
+		processor(appendix, Faily, Resulty)
 	elif switch['type']==1:
 		csv_file = open(processor, 'r').read()
 		reader = csv.reader(csv_file)
@@ -233,16 +232,16 @@ def reserver(processor):
 				columns[i].append(v)
 		appendix.put(columns[9]+columns[3])
 		csv_file.close()
-		processor(appendix, Faily, Resultee)
+		processor(appendix, Faily, Resulty)
 	elif switch['type']==2:
 		appendix.put(processor)
-		processor(appendix, Faily, Resultee)
+		processor(appendix, Faily, Resulty)
 	else:
 		for process in processor:
 			appendix.put(process)
-		processor(appendix, Faily, Resultee)
+		processor(appendix, Faily, Resulty)
 	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Faily.value) + ' ' + colors.ENDC )
-	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resultee.value) + ' ' + colors.ENDC)
+	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resulty.value) + ' ' + colors.ENDC)
 	print('')
 
 # Running Process and Reading text list
@@ -250,16 +249,19 @@ def reserver(processor):
 	Type 1: takes csv
 	Type 2: takes input
 	Type 3: takes online enum '''
-def serv(processor):
+def server(processor):
 	Faily = Value('i', 0)
-	appendix = Queue()
-	Resultee = Value('d', 0)
+	appendix = Queue(200)
+	Resulty = Value('d', 0)
 	columns = defaultdict(list)
 	if switch['type'] == 0:
-		with open(processor, 'r') as f:
-			for line in f:
-				appendix.put(line.strip())
-		executor(appendix, Faily, Resultee)
+		f = open(processor, 'r')
+		for line in f:
+			liner = [line] + list(islice(f, 4))
+			for i in liner:
+				appendix.put(i.strip())
+		f.close()
+		executor(appendix, Faily, Resulty)
 	elif switch['type']==1:
 		csv_file = open(processor, 'r').read()
 		reader = csv.reader(csv_file)
@@ -268,24 +270,25 @@ def serv(processor):
 				columns[i].append(v)
 		appendix.put(columns[9]+columns[3])
 		csv_file.close()
-		executor(appendix, Faily, Resultee)
+		executor(appendix, Faily, Resulty)
 	elif switch['type']==2:
 		appendix.put(processor)
-		executor(appendix, Faily, Resultee)
+		executor(appendix, Faily, Resulty)
 	else:
 		for process in processor:
 			appendix.put(process)
-		executor(appendix, Faily, Resultee)
+		executor(appendix, Faily, Resulty)
 	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Faily.value) + ' ' + colors.ENDC )
-	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resultee.value) + ' ' + colors.ENDC)
+	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resulty.value) + ' ' + colors.ENDC)
 	print('')
+	uinput()
 
 # Running Process
-def executor(appendix, Faily, Resultee):
+def executor(appendix, Faily, Resulty):
 	total = []
 	for i in range(maxi):
 		appendix.put('ENDED')
-		p = Process(target = processor, args = (appendix, Resultee, Faily))
+		p = Process(target = processor, args = (appendix, Resulty, Faily))
 		p.start()
 		total.append(p)
 	for p in total:
@@ -293,7 +296,7 @@ def executor(appendix, Faily, Resultee):
 	p.terminate()
 
 # Processing Main Process
-def processor(appendix, Resultee, Faily):
+def processor(appendix, Resulty, Faily):
 	while True:
 		onliner = appendix.get()
 		if onliner == 'ENDED':
@@ -301,13 +304,13 @@ def processor(appendix, Resultee, Faily):
 		try:
 			pinger()
 			if switch['bloc'] == 0:
-				grabber(online, Resultee, Faily)
+				grabber(online, Resulty, Faily)
 			elif switch['bloc'] == 1:
-				wsee(onliner, Resultee, Faily)
+				wsee(onliner, Resulty, Faily)
 			elif switch['bloc'] == 2:
-				wsrect(online, Resultee, Faily)
+				wsrect(online, Resulty, Faily)
 			else:
-				h2srect(online, Resultee, Faily)
+				h2srect(online, Resulty, Faily)
 		except(ssl.SSLError):
 			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' NOT SSL ' + colors.ENDC + ']')
 			with Faily.get_lock():
@@ -330,13 +333,15 @@ def pinger():
 	global wsPayloads, cflare_domain
 	while True:
 		try:
-			with socket.socket() as sock:
-				sock.connect(('zendesk4.grabtaxi.com', 80))
-				sock.sendall(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{wsPayloads}\r\n\r\n'.encode())
-				line = str(sock.recv(13))
-				sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-				if int(sock[0]) == 101:
-					break
+			sock = socket.socket()
+			sock.settimeout(3)
+			sock.connect(('zendesk4.grabtaxi.com', 80))
+			sock.sendall(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{wsPayloads}\r\n\r\n'.encode())
+			line = str(sock.recv(13))
+			sock.close()
+			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
+			if int(sock[0]) == 101:
+				break
 		except socket.error as e:
 			print(e)
 			print("[" + colors.RED_BG + " Check Your Internet Connection! " + colors.ENDC + "]")
@@ -347,7 +352,7 @@ def pinger():
 	Rot 1: Direct Mode
 	Rot 2: Rotate Host Mode
 	Rot 3: Normal Mode'''
-def wsee(onliner, Resultee, Faily):
+def wsee(onliner, Resulty, Faily):
 	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -374,8 +379,8 @@ def wsee(onliner, Resultee, Faily):
 	if int(resu[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		with Resultee.get_lock():
-			Resultee.value += 1
+		with Resulty.get_lock():
+			Resulty.value += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		with Faily.get_lock():
@@ -386,7 +391,7 @@ def wsee(onliner, Resultee, Faily):
 '''	Rot 1: Local Mode
 	Rot 0: Normal Mode '''
 
-def wsrect(onliner, Resultee, Faily):
+def wsrect(onliner, Resulty, Faily):
 	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -405,8 +410,8 @@ def wsrect(onliner, Resultee, Faily):
 	if int(resu[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		with Resultee.get_lock():
-			Resultee.value += 1
+		with Resulty.get_lock():
+			Resulty.value += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		with Faily.get_lock():
@@ -417,7 +422,7 @@ def wsrect(onliner, Resultee, Faily):
 '''	Rot 1: Local
 	Rot 0: Normal Mode '''
 
-def h2srect(onliner, Resultee, Faily):
+def h2srect(onliner, Resulty, Faily):
 	global h2Payloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -433,8 +438,8 @@ def h2srect(onliner, Resultee, Faily):
 	if int(resu[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		with Resultee.get_lock():
-			Resultee.value += 1
+		with Resulty.get_lock():
+			Resulty.value += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		with Faily.get_lock():
@@ -442,7 +447,7 @@ def h2srect(onliner, Resultee, Faily):
 	sock.close()
 
 # ZGrab Mode: Only Local; Takes 443/80
-def grabber(onliner, Resultee, Faily):
+def grabber(onliner, Resulty, Faily):
 	global h2Zgrab, wsZgrab
 	if switch['rot'] == 0:
 		commando = f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
@@ -458,8 +463,8 @@ def grabber(onliner, Resultee, Faily):
 	if rege[0] == f'{expected_response}':
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + rege[1])
 		print(rege[1], file = open(f'{props["nametag"]}.txt', 'a'))
-		with Resultee.get_lock():
-			Resultee.value +=1
+		with Resulty.get_lock():
+			Resulty.value +=1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner)
 		with Faily.get_lock():
@@ -578,10 +583,8 @@ __  _  ________ ____   ____
 		switch['type']=2
 	if switch['bloc']==1:
 		doma()
-	outfile()
 	option()
-	serv(processor)
-	uinput()
+	server(processor)
 
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
