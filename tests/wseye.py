@@ -21,16 +21,17 @@ Derived details <https://www.apache.org/licenses/LICENSE-2.0>
 import csv
 import ssl
 import json
+import ctypes
 import socket
 import subprocess
 import os, fnmatch
 import requests, re
 from time import sleep
-from itertools import islice, chain, repeat
 from threading import Thread
 from collections import defaultdict
 from os.path import abspath, dirname
 from pkg_resources import parse_version
+from itertools import islice, chain, repeat
 from multiprocessing import Process, Manager, Value, Queue, cpu_count
 
 inpute = 'input'
@@ -43,14 +44,7 @@ maxi = cpu_count()
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
 
-customPayloads = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\r\nUpgrade-Insecure-Requests: 1\r\nAccept: */*'
-wsPayloads = 'Upgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\nSec-Websocket-Version: 13\r\nSec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\nSec-WebSocket-Extensions: superspeed\r\nPragma: no-cache'
-h2Payloads = 'Upgrade: h2c\r\nConnection: Upgrade, HTTP2-Settings\r\nHTTP2-Settings: '
-h2Zgrab = "--custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade'"
-wsZgrab = "--custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade'"
-
-headers = { 'Host': '', 'SNI': '', 'Proxy': '' }
-props = { 'nametag': 'result' }
+props = { 'Host': '', 'SNI': '', 'Proxy': '', 'nametag': 'result'}
 switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'type': 0 }
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
@@ -67,12 +61,12 @@ def doma():
 	if inputs == '1':
 		inputs = input(' inputs : ')
 		print('')
-		headers['Host'] = domain
+		props['Host'] = domain
 	elif inputs == '2':
-		headers['Host'] = cfront_domain
+		props['Host'] = cfront_domain
 	elif inputs == '3':
-		headers['Host'] = cflare_domain
-	print(' Selected ['+colors.GREEN_BG+f' {headers["Host"]} '+colors.ENDC+'] as Domain Fronting!')
+		props['Host'] = cflare_domain
+	print(' Selected ['+colors.GREEN_BG+f' {props["Host"]} '+colors.ENDC+'] as Domain Fronting!')
 	print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
 	print('')
 
@@ -86,34 +80,27 @@ def option():
 		if switch['rot'] == 2:
 			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
 			inputs = input(' Input Proxy : ')
-			headers['Proxy'] = inputs
+			props['Proxy'] = inputs
 		elif switch['rot'] == 0:
 			print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
 			inputs = input(' Input Hostname : ')
-			headers['SNI'] = bugger
+			props['SNI'] = bugger
 	print('')
 
 # Outrange input as finish
 def uinput():
-	global switcher, headers
+	global switch, props
 	print('')
 	print('['+colors.RED_BG+' Target Block Exceeded ' + colors.ENDC + ']' )
-	print('1. Go Back to Menu')
-	print('2. Quit Instead')
-	print('')
-	ans=input(' Choose Option: ')
-	if ans=='1':
+	inputs = { '1': 'Go Back to Menu', '2': 'Quit Instead' }
+	inputs = user_input(inputs)
+	if inputs == '1':
+		props = { 'Host': '', 'SNI': '', 'Proxy': '', 'nametag': 'result'}
+		switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'type': 0 }
 		print("\033c\033[3J\033[2J\033[0m\033[H")
-		headers = {'Host': '', 'SNI': '', 'Proxy': ''}
-		switch = { 'bloc': '', 'rot': '', 'dir': '', 'type': '', 'loc': '', 'nametag': 'result'}
 		menu()
-	elif ans=='2':
-		print("\033c\033[3J\033[2J\033[0m\033[H")
+	elif inputs == '2':
 		exit()
-	else:
-		print('['+colors.RED_BG+' GGRRR! ' + colors.ENDC + '] Invalid INPUT!' )
-		print('')
-		menu()
 
 # Display Input
 def user_input(inputs):
@@ -181,8 +168,8 @@ def filet():
 
 # Reading Lines
 def liner(processor):
-	switch['type']=2
-	num_line=1
+	switch['type'] = 2
+	num_line = 1
 	txtlines = []
 	print('[' + colors.RED_BG + ' List of String based on Lines ' + colors.ENDC + ']')
 	with open(processor, 'r') as liner:
@@ -209,7 +196,7 @@ def hacki():
 	if response.text == 'error invalid host':
 		exit('ERR: error invalid host')
 	else:
-		switch['type']=3
+		switch['type'] = 3
 		processor = re.findall('(.*?),', response.text)
 	return processor
 
@@ -250,9 +237,16 @@ def reserver(processor):
 	Type 2: takes input
 	Type 3: takes online enum '''
 def server(processor):
+	if switch['bloc'] == 3:
+		with open('./bin/payloads/http2', 'r') as f:
+			payloads = f.read()
+	else:
+		with open('./bin/payloads/websocket', 'r') as f:
+			payloads = f.read()
 	Faily = Value('i', 0)
-	appendix = Queue(200)
 	Resulty = Value('d', 0)
+	payloads = Value(ctypes.c_wchar_p, payloads)
+	appendix = Queue(200)
 	columns = defaultdict(list)
 	if switch['type'] == 0:
 		f = open(processor, 'r')
@@ -261,7 +255,7 @@ def server(processor):
 			for i in liner:
 				appendix.put(i.strip())
 		f.close()
-		executor(appendix, Faily, Resulty)
+		executor(appendix, Faily, Resulty, payloads)
 	elif switch['type']==1:
 		csv_file = open(processor, 'r').read()
 		reader = csv.reader(csv_file)
@@ -270,10 +264,10 @@ def server(processor):
 				columns[i].append(v)
 		appendix.put(columns[9]+columns[3])
 		csv_file.close()
-		executor(appendix, Faily, Resulty)
+		executor(appendix, Faily, Resulty, payloads)
 	elif switch['type']==2:
 		appendix.put(processor)
-		executor(appendix, Faily, Resulty)
+		executor(appendix, Faily, Resulty, payloads)
 	else:
 		for process in processor:
 			appendix.put(process)
@@ -284,11 +278,11 @@ def server(processor):
 	uinput()
 
 # Running Process
-def executor(appendix, Faily, Resulty):
+def executor(appendix, Faily, Resulty, payloads):
 	total = []
 	for i in range(maxi):
 		appendix.put('ENDED')
-		p = Process(target = processor, args = (appendix, Resulty, Faily))
+		p = Process(target = processor, args = (appendix, Resulty, Faily, payloads))
 		p.start()
 		total.append(p)
 	for p in total:
@@ -296,7 +290,7 @@ def executor(appendix, Faily, Resulty):
 	p.terminate()
 
 # Processing Main Process
-def processor(appendix, Resulty, Faily):
+def processor(appendix, Resulty, Faily, payloads):
 	while True:
 		onliner = appendix.get()
 		if onliner == 'ENDED':
@@ -304,13 +298,13 @@ def processor(appendix, Resulty, Faily):
 		try:
 			pinger()
 			if switch['bloc'] == 0:
-				grabber(online, Resulty, Faily)
+				grabber(onliner, Resulty, Faily, payloads)
 			elif switch['bloc'] == 1:
-				wsee(onliner, Resulty, Faily)
+				wsee(onliner, Resulty, Faily, payloads)
 			elif switch['bloc'] == 2:
-				wsrect(online, Resulty, Faily)
+				wsrect(onliner, Resulty, Faily, payloads)
 			else:
-				h2srect(online, Resulty, Faily)
+				h2srect(onliner, Resulty, Faily, payloads)
 		except(ssl.SSLError):
 			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' NOT SSL ' + colors.ENDC + ']')
 			with Faily.get_lock():
@@ -330,13 +324,13 @@ def processor(appendix, Resulty, Faily):
 ''' Main Process '''
 # Ping DNS over TCP to check connection
 def pinger():
-	global wsPayloads, cflare_domain
+	global cflare_domain
 	while True:
 		try:
 			sock = socket.socket()
-			sock.settimeout(3)
+			sock.settimeout(5)
 			sock.connect(('zendesk4.grabtaxi.com', 80))
-			sock.sendall(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\n{wsPayloads}\r\n\r\n'.encode())
+			sock.sendall(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n'.encode())
 			line = str(sock.recv(13))
 			sock.close()
 			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -352,7 +346,7 @@ def pinger():
 	Rot 1: Direct Mode
 	Rot 2: Rotate Host Mode
 	Rot 3: Normal Mode'''
-def wsee(onliner, Resulty, Faily):
+def wsee(onliner, Resulty, Faily, payloads):
 	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -360,20 +354,20 @@ def wsee(onliner, Resulty, Faily):
 	cont = ssl.create_default_context()
 	cont.set_ciphers(cipher)
 	if switch['rot'] == 0:
-		sock = cont.wrap_socket(sock, server_hostname = f'{headers["SNI"]}')
+		sock = cont.wrap_socket(sock, server_hostname = f'{props["SNI"]}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{headers["SNI"]}/ HTTP/1.1\r\nHost: {headers["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET wss://{props["SNI"]}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
 	elif switch['rot'] == 1:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {headers["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
 	else:
 		if switch['rot'] == 2:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
-			sock.connect((f'{headers["Proxy"]}', 443))
+			sock.connect((f'{props["Proxy"]}', 443))
 		else:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
 			sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {headers["Host"]}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -391,7 +385,7 @@ def wsee(onliner, Resulty, Faily):
 '''	Rot 1: Local Mode
 	Rot 0: Normal Mode '''
 
-def wsrect(onliner, Resulty, Faily):
+def wsrect(onliner, Resulty, Faily, payloads):
 	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -401,10 +395,10 @@ def wsrect(onliner, Resulty, Faily):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{onliner}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{headers["Host"]} HTTP/1.1\r\nHost: {onliner}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET wss://{onliner} HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{wsPayloads}\r\n{customPayloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -422,17 +416,17 @@ def wsrect(onliner, Resulty, Faily):
 '''	Rot 1: Local
 	Rot 0: Normal Mode '''
 
-def h2srect(onliner, Resulty, Faily):
+def h2srect(onliner, Resulty, Faily, payloads):
 	global h2Payloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	sock.connect((onliner, 80))
 	if switch['rot']==0:
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {headers["Host"]}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{h2Payloads}\r\n{customPayloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -450,13 +444,13 @@ def h2srect(onliner, Resulty, Faily):
 def grabber(onliner, Resulty, Faily):
 	global h2Zgrab, wsZgrab
 	if switch['rot'] == 0:
-		commando = f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif switch['rot'] == 1:
-		commando = f"echo {onliner} | zgrab2 http {wsZgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif switch['rot']== 2:
-		commando = f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando = f"echo {onliner} | zgrab2 http --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	else:
-		commando = f"echo {onliner} | zgrab2 http {h2Zgrab} --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	commando = subprocess.Popen(commando, shell = True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 	commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 	rege = re.split(r'\n',commando)
@@ -539,25 +533,25 @@ __  _  ________ ____   ____
 		if inputs == '1':
 			switch['bloc'] = 2
 			switch['rot'] = 0
-		elif ans=='2':
+		elif inputs == '2':
 			switch['bloc'] = 2
 			switch['rot'] = 1
-		elif ans=='3':
+		elif inputs == '3':
 			switch['bloc'] = 0
 			switch['rot'] = 0
-		elif ans=='4':
+		elif inputs == '4':
 			switch['bloc'] = 0
 			switch['rot'] = 1
-	elif ans=='3':
+	elif inputs == '3':
 		inputs = { '1': '[Fronting] HTTP/2 Direct', '2': '[Local] HTTP/2 Direct', '3': '[Local] HTTP/2 Direct ZGrab' }
 		inputs = user_input(inputs)
-		if ans=='1':
+		if inputs == '1':
 			switch['bloc'] = 3
 			switch['rot'] = 0
-		elif ans=='2':
+		elif inputs == '2':
 			switch['bloc'] = 3
 			switch['rot'] = 1
-		elif ans == '3':
+		elif inputs == '3':
 			switch['bloc'] = 0
 			switch['rot'] = 3
 	inputs = { '1': 'Scan File (.txt)', '2': 'Scan Online (HackerTarget)', '3': 'Scan Custom Input' }
@@ -590,3 +584,4 @@ if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
 	checker()
 	menu()
+	exit()
