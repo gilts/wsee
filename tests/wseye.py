@@ -27,6 +27,7 @@ import subprocess
 import os, fnmatch
 import requests, re
 from time import sleep
+from jsonmerge import merge
 from threading import Thread
 from collections import defaultdict
 from os.path import abspath, dirname
@@ -43,6 +44,7 @@ maxi = cpu_count()
 
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
+customPayloads = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36','Upgrade-Insecure-Requests': '1','Accept': '*/*'}
 
 props = { 'Host': '', 'SNI': '', 'Proxy': '', 'nametag': 'result'}
 switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'type': 0 }
@@ -237,12 +239,18 @@ def reserver(processor):
 	Type 2: takes input
 	Type 3: takes online enum '''
 def server(processor):
+	global customPayloads
 	if switch['bloc'] == 3:
 		with open('./bin/payloads/http2', 'r') as f:
-			payloads = f.read()
+			payloads = json.load(f)
 	else:
 		with open('./bin/payloads/websocket', 'r') as f:
-			payloads = f.read()
+			payloads = json.load(f)
+	mergedPayloads = merge(payloads, customPayloads)
+	payloads = ''
+	for i, j in mergedPayloads.items():
+		payloads += f"'{i}': '{j}'\r\n"
+	print(payloads)
 	Faily = Value('i', 0)
 	Resulty = Value('d', 0)
 	payloads = Value(ctypes.c_wchar_p, payloads)
@@ -347,7 +355,6 @@ def pinger():
 	Rot 2: Rotate Host Mode
 	Rot 3: Normal Mode'''
 def wsee(onliner, Resulty, Faily, payloads):
-	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -356,10 +363,10 @@ def wsee(onliner, Resulty, Faily, payloads):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{props["SNI"]}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{props["SNI"]}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET wss://{props["SNI"]}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
 	elif switch['rot'] == 1:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
 	else:
 		if switch['rot'] == 2:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
@@ -367,7 +374,7 @@ def wsee(onliner, Resulty, Faily, payloads):
 		else:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
 			sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -386,7 +393,6 @@ def wsee(onliner, Resulty, Faily, payloads):
 	Rot 0: Normal Mode '''
 
 def wsrect(onliner, Resulty, Faily, payloads):
-	global wsPayloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -395,10 +401,10 @@ def wsrect(onliner, Resulty, Faily, payloads):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{onliner}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{onliner} HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET wss://{onliner} HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -417,16 +423,15 @@ def wsrect(onliner, Resulty, Faily, payloads):
 	Rot 0: Normal Mode '''
 
 def h2srect(onliner, Resulty, Faily, payloads):
-	global h2Payloads, customPayloads
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	sock.connect((onliner, 80))
 	if switch['rot']==0:
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if int(resu[0]) == expected_response:
@@ -442,7 +447,6 @@ def h2srect(onliner, Resulty, Faily, payloads):
 
 # ZGrab Mode: Only Local; Takes 443/80
 def grabber(onliner, Resulty, Faily):
-	global h2Zgrab, wsZgrab
 	if switch['rot'] == 0:
 		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif switch['rot'] == 1:
