@@ -44,7 +44,7 @@ maxi = cpu_count()
 
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
-customPayloads = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36','Upgrade-Insecure-Requests': '1','Accept': '*/*'}
+customPayloads = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36', 'Upgrade-Insecure-Requests': '1', 'Accept': '*/*' }
 
 props = { 'Host': '', 'SNI': '', 'Proxy': '', 'nametag': 'result'}
 switch = { 'bloc': 0, 'rot': 0, 'dir': 0, 'numtotal': 0, 'numline': 0, 'type': 0 }
@@ -63,7 +63,7 @@ def doma():
 	if inputs == '1':
 		inputs = input(' inputs : ')
 		print('')
-		props['Host'] = domain
+		props['Host'] = inputs
 	elif inputs == '2':
 		props['Host'] = cfront_domain
 	elif inputs == '3':
@@ -250,9 +250,9 @@ def server(processor):
 	payloads = ''
 	for i, j in mergedPayloads.items():
 		payloads += f"'{i}': '{j}'\r\n"
-	print(payloads)
-	Faily = Value('i', 0)
-	Resulty = Value('d', 0)
+	Resulty = Manager().dict()
+	Resulty['Success'] = 0
+	Resulty['Fail'] = 0
 	payloads = Value(ctypes.c_wchar_p, payloads)
 	appendix = Queue(200)
 	columns = defaultdict(list)
@@ -263,7 +263,7 @@ def server(processor):
 			for i in liner:
 				appendix.put(i.strip())
 		f.close()
-		executor(appendix, Faily, Resulty, payloads)
+		executor(appendix, Resulty, payloads)
 	elif switch['type']==1:
 		csv_file = open(processor, 'r').read()
 		reader = csv.reader(csv_file)
@@ -272,25 +272,25 @@ def server(processor):
 				columns[i].append(v)
 		appendix.put(columns[9]+columns[3])
 		csv_file.close()
-		executor(appendix, Faily, Resulty, payloads)
+		executor(appendix, Resulty, payloads)
 	elif switch['type']==2:
 		appendix.put(processor)
-		executor(appendix, Faily, Resulty, payloads)
+		executor(appendix, Resulty, payloads)
 	else:
 		for process in processor:
 			appendix.put(process)
-		executor(appendix, Faily, Resulty)
-	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Faily.value) + ' ' + colors.ENDC )
-	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resulty.value) + ' ' + colors.ENDC)
+		executor(appendix, Resulty, payloads)
+	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Resulty['Fail']) + ' ' + colors.ENDC )
+	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resulty['Success']) + ' ' + colors.ENDC)
 	print('')
 	uinput()
 
 # Running Process
-def executor(appendix, Faily, Resulty, payloads):
+def executor(appendix, Resulty, payloads):
 	total = []
 	for i in range(maxi):
 		appendix.put('ENDED')
-		p = Process(target = processor, args = (appendix, Resulty, Faily, payloads))
+		p = Process(target = processor, args = (appendix, Resulty, payloads))
 		p.start()
 		total.append(p)
 	for p in total:
@@ -298,47 +298,43 @@ def executor(appendix, Faily, Resulty, payloads):
 	p.terminate()
 
 # Processing Main Process
-def processor(appendix, Resulty, Faily, payloads):
+def processor(appendix, Resulty, payloads):
 	while True:
 		onliner = appendix.get()
 		if onliner == 'ENDED':
 			break
 		try:
-			pinger()
+			pinger(payloads)
 			if switch['bloc'] == 0:
-				grabber(onliner, Resulty, Faily, payloads)
+				grabber(onliner, Resulty)
 			elif switch['bloc'] == 1:
-				wsee(onliner, Resulty, Faily, payloads)
+				wsee(onliner, Resulty, payloads)
 			elif switch['bloc'] == 2:
-				wsrect(onliner, Resulty, Faily, payloads)
+				wsrect(onliner, Resulty, payloads)
 			else:
-				h2srect(onliner, Resulty, Faily, payloads)
+				h2srect(onliner, Resulty, payloads)
 		except(ssl.SSLError):
 			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' NOT SSL ' + colors.ENDC + ']')
-			with Faily.get_lock():
-				Faily.value +=1
+			Resulty['Fail'] += 1
 		except(socket.gaierror) or (socket.timeout):
 			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' INVALID ' + colors.ENDC + ']')
-			with Faily.get_lock():
-				Faily.value +=1
+			Resulty['Fail'] += 1
 		except(socket.error):
 			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' TIMEOUT ' + colors.ENDC + ']')
-			with Faily.get_lock():
-				Faily.value +=1
+			Resulty['Fail'] += 1
 		except Exception as e:
 			print(e)
 			pass
 
 ''' Main Process '''
 # Ping DNS over TCP to check connection
-def pinger():
-	global cflare_domain
+def pinger(payloads):
 	while True:
 		try:
 			sock = socket.socket()
 			sock.settimeout(5)
-			sock.connect(('zendesk4.grabtaxi.com', 80))
-			sock.sendall(f'GET / HTTP/1.1\r\nHost: {cflare_domain}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n'.encode())
+			sock.connect(('nghttp2.org', 80))
+			sock.sendall(f'GET / HTTP/1.1\r\nHost: nghttp2.org\r\nConnection: Upgrade, HTTP2-Settings\r\nUpgrade: h2c\r\nHTTP2-Settings: \r\n'.encode())
 			line = str(sock.recv(13))
 			sock.close()
 			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -354,7 +350,7 @@ def pinger():
 	Rot 1: Direct Mode
 	Rot 2: Rotate Host Mode
 	Rot 3: Normal Mode'''
-def wsee(onliner, Resulty, Faily, payloads):
+def wsee(onliner, Resulty, payloads):
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -380,19 +376,17 @@ def wsee(onliner, Resulty, Faily, payloads):
 	if int(resu[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		with Resulty.get_lock():
-			Resulty.value += 1
+		Resulty['Success'] += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
-		with Faily.get_lock():
-			Faily.value += 1
+		Resulty['Fail'] += 1
 	sock.close()
 
 # Websocket Direct: Takes CDN/Local
 '''	Rot 1: Local Mode
 	Rot 0: Normal Mode '''
 
-def wsrect(onliner, Resulty, Faily, payloads):
+def wsrect(onliner, Resulty, payloads):
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -410,19 +404,17 @@ def wsrect(onliner, Resulty, Faily, payloads):
 	if int(resu[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		with Resulty.get_lock():
-			Resulty.value += 1
+		Resulty['Success'] += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
-		with Faily.get_lock():
-			Faily.value += 1
+		Resulty['Fail'] += 1
 	sock.close()
 
 # Websocket SSL: Takes CDN/Local
 '''	Rot 1: Local
 	Rot 0: Normal Mode '''
 
-def h2srect(onliner, Resulty, Faily, payloads):
+def h2srect(onliner, Resulty, payloads):
 	sock = socket.socket()
 	sock.settimeout(5)
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -437,16 +429,14 @@ def h2srect(onliner, Resulty, Faily, payloads):
 	if int(resu[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
 		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		with Resulty.get_lock():
-			Resulty.value += 1
+		Resulty['Success'] += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
-		with Faily.get_lock():
-			Faily.value += 1
+		Resulty['Fail'] += 1
 	sock.close()
 
 # ZGrab Mode: Only Local; Takes 443/80
-def grabber(onliner, Resulty, Faily):
+def grabber(onliner, Resulty):
 	if switch['rot'] == 0:
 		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif switch['rot'] == 1:
@@ -461,12 +451,10 @@ def grabber(onliner, Resulty, Faily):
 	if rege[0] == f'{expected_response}':
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + rege[1])
 		print(rege[1], file = open(f'{props["nametag"]}.txt', 'a'))
-		with Resulty.get_lock():
-			Resulty.value +=1
+		Resulty['Success'] += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner)
-		with Faily.get_lock():
-			Faily.value +=1
+		Resulty['Fail'] += 1
 
 ''' Frontier Section '''
 # Apply Updates
