@@ -254,16 +254,16 @@ def server(processor):
 	Resulty['Success'] = 0
 	Resulty['Fail'] = 0
 	payloads = Value(ctypes.c_wchar_p, payloads)
-	appendix = Queue(200)
+	appendix = Queue(99)
 	columns = defaultdict(list)
 	if switch['type'] == 0:
 		f = open(processor, 'r')
 		for line in f:
-			liner = [line] + list(islice(f, 4))
+			liner = [line] + list(islice(f, 9))
 			for i in liner:
 				appendix.put(i.strip())
+			executor(appendix, Resulty, payloads)
 		f.close()
-		executor(appendix, Resulty, payloads)
 	elif switch['type']==1:
 		csv_file = open(processor, 'r').read()
 		reader = csv.reader(csv_file)
@@ -334,7 +334,7 @@ def pinger(payloads):
 			sock = socket.socket()
 			sock.settimeout(5)
 			sock.connect(('nghttp2.org', 80))
-			sock.sendall(f'GET / HTTP/1.1\r\nHost: nghttp2.org\r\nConnection: Upgrade, HTTP2-Settings\r\nUpgrade: h2c\r\nHTTP2-Settings: \r\n'.encode())
+			sock.sendall(f'GET / HTTP/1.1\r\nHost: nghttp2.org\r\nConnection: Upgrade, HTTP2-Settings\r\nUpgrade: h2c\r\nHTTP2-Settings: \r\n\r\n'.encode())
 			line = str(sock.recv(13))
 			sock.close()
 			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -359,10 +359,10 @@ def wsee(onliner, Resulty, payloads):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{props["SNI"]}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{props["SNI"]}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
+		sock.sendall(f'GET wss://{props["SNI"]}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	elif switch['rot'] == 1:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	else:
 		if switch['rot'] == 2:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
@@ -370,16 +370,20 @@ def wsee(onliner, Resulty, payloads):
 		else:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
 			sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
+		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-	if int(resu[0]) == expected_response:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
-		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		Resulty['Success'] += 1
-	else:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+	if not resu:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		Resulty['Fail'] += 1
+	else:
+		if int(resu[0]) == expected_response:
+			print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+			print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
+			Resulty['Success'] += 1
+		else:
+			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+			Resulty['Fail'] += 1
 	sock.close()
 
 # Websocket Direct: Takes CDN/Local
@@ -395,19 +399,23 @@ def wsrect(onliner, Resulty, payloads):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{onliner}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{onliner} HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
+		sock.sendall(f'GET wss://{onliner} HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads.value}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-	if int(resu[0]) == expected_response:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
-		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		Resulty['Success'] += 1
-	else:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+	if not resu:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		Resulty['Fail'] += 1
+	else:
+		if int(resu[0]) == expected_response:
+			print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+			print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
+			Resulty['Success'] += 1
+		else:
+			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+			Resulty['Fail'] += 1
 	sock.close()
 
 # Websocket SSL: Takes CDN/Local
@@ -420,19 +428,23 @@ def h2srect(onliner, Resulty, payloads):
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	sock.connect((onliner, 80))
 	if switch['rot']==0:
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads}\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads}\r\n'.encode())
+		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads.value}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-	if int(resu[0]) == expected_response:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
-		print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
-		Resulty['Success'] += 1
-	else:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+	if not resu:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		Resulty['Fail'] += 1
+	else:
+		if int(resu[0]) == expected_response:
+			print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + onliner + ' [' + colors.GREEN_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+			print(onliner, file = open(f'{output}/{props["nametag"]}.txt', 'a'))
+			Resulty['Success'] += 1
+		else:
+			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + onliner + ' [' + colors.RED_BG + ' ' + str(resu[0]) + ' ' + colors.ENDC + ']')
+			Resulty['Fail'] += 1
 	sock.close()
 
 # ZGrab Mode: Only Local; Takes 443/80
@@ -559,12 +571,7 @@ __  _  ________ ____   ____
 	elif inputs == '2':
 		processor = hacki()
 	elif inputs == '3':
-		inputs = { '1': 'Scan Custom Hostname/SNI', '2': 'Scan Custom Proxy/IP' }
-		inputs = user_input(inputs)
-		if inputs == '1':
-			processor = input(' Input Hostname : ')
-		elif inputs == '2':
-			processor = input(' Input IP : ')
+		processor = input(' Custom Input: ')
 		print()
 		switch['type']=2
 	if switch['bloc']==1:
