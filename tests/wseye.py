@@ -270,16 +270,18 @@ def server(processor):
 		for row in reader:
 			for (i,v) in enumerate(row):
 				columns[i].append(v)
-		appendix.put(columns[9]+columns[3])
+			appendix.put(columns[9]+columns[3])
+			executor(appendix, Resulty, payloads)
 		csv_file.close()
-		executor(appendix, Resulty, payloads)
 	elif switch['type']==2:
 		appendix.put(processor)
 		executor(appendix, Resulty, payloads)
 	else:
 		for process in processor:
-			appendix.put(process)
-		executor(appendix, Resulty, payloads)
+			liner = [process] + list(islice(processor, 9))
+			for i in liner:
+				appendix.put(i)
+			executor(appendix, Resulty, payloads)
 	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Resulty['Fail']) + ' ' + colors.ENDC )
 	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resulty['Success']) + ' ' + colors.ENDC)
 	print('')
@@ -304,7 +306,7 @@ def processor(appendix, Resulty, payloads):
 		if onliner == 'ENDED':
 			break
 		try:
-			pinger(payloads)
+			pinger()
 			if switch['bloc'] == 0:
 				grabber(onliner, Resulty)
 			elif switch['bloc'] == 1:
@@ -328,7 +330,7 @@ def processor(appendix, Resulty, payloads):
 
 ''' Main Process '''
 # Ping DNS over TCP to check connection
-def pinger(payloads):
+def pinger():
 	while True:
 		try:
 			sock = socket.socket()
