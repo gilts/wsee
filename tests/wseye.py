@@ -26,7 +26,9 @@ import socket
 import subprocess
 import os, fnmatch
 import requests, re
+import fsspec
 from time import sleep
+from pathlib import Path
 from jsonmerge import merge
 from threading import Thread
 from collections import defaultdict
@@ -336,7 +338,7 @@ def pinger():
 			sock = socket.socket()
 			sock.settimeout(5)
 			sock.connect(('nghttp2.org', 80))
-			sock.sendall(f'GET / HTTP/1.1\r\nHost: nghttp2.org\r\nConnection: Upgrade, HTTP2-Settings\r\nUpgrade: h2c\r\nHTTP2-Settings: \r\n\r\n'.encode())
+			sock.sendall(f'HEAD / HTTP/1.1\r\nHost: nghttp2.org\r\nConnection: Upgrade, HTTP2-Settings\r\nUpgrade: h2c\r\nHTTP2-Settings: \r\n\r\n'.encode())
 			line = str(sock.recv(13))
 			sock.close()
 			sock = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
@@ -361,10 +363,10 @@ def wsee(onliner, Resulty, payloads):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{props["SNI"]}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{props["SNI"]}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
+		sock.sendall(f'HEAD wss://{props["SNI"]}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	elif switch['rot'] == 1:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
+		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	else:
 		if switch['rot'] == 2:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
@@ -372,7 +374,7 @@ def wsee(onliner, Resulty, payloads):
 		else:
 			sock = cont.wrap_socket(sock, server_hostname = onliner)
 			sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{onliner}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
+		sock.sendall(f'HEAD wss://{onliner}/ HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if not resu:
@@ -401,10 +403,10 @@ def wsrect(onliner, Resulty, payloads):
 	if switch['rot'] == 0:
 		sock = cont.wrap_socket(sock, server_hostname = f'{onliner}')
 		sock.connect((onliner, 443))
-		sock.sendall(f'GET wss://{onliner} HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
+		sock.sendall(f'HEAD wss://{onliner} HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads.value}\r\n'.encode())
+		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {onliner}\r\n{payloads.value}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if not resu:
@@ -430,10 +432,10 @@ def h2srect(onliner, Resulty, payloads):
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	sock.connect((onliner, 80))
 	if switch['rot']==0:
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
+		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {props["Host"]}\r\n{payloads.value}\r\n'.encode())
 	else:
 		sock.connect((onliner, 80))
-		sock.sendall(f'GET / HTTP/1.1\r\nHost: {onliner}\r\n{payloads.value}\r\n'.encode())
+		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {onliner}\r\n{payloads.value}\r\n'.encode())
 	line = str(sock.recv(13))
 	resu = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
 	if not resu:
@@ -455,8 +457,6 @@ def grabber(onliner, Resulty):
 		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif switch['rot'] == 1:
 		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
-	elif switch['rot']== 2:
-		commando = f"echo {onliner} | zgrab2 http --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	else:
 		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	commando = subprocess.Popen(commando, shell = True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -471,16 +471,24 @@ def grabber(onliner, Resulty):
 		Resulty['Fail'] += 1
 
 ''' Frontier Section '''
-# Apply Updates
+# Script Updater
 def updater():
-	print('[' + colors.GREEN_BG + ' Update Available ' + colors.ENDC + ']')
+	print('[' + colors.GREEN_BG + ' Script Update Available ' + colors.ENDC + ']')
 	inputs = { '1': 'Ignore Update', '2': 'Apply Update' }
 	inputs = user_input(inputs)
 	if inputs == '2':
 		os.remove('wsee.py')
-		response = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/wsee.py')
-		with open('wsee.py', 'a') as f:
-			f.write(response.text)
+
+		destination = Path(__file__).resolve().parent / "wsee.py"
+		destination.mkdir(exist_ok=True, parents=True)
+		fs = fsspec.filesystem("github", org="Guild-Net", repo="wsee")
+		fs.get(fs.ls("wsee.py"), destination.as_posix())
+
+		destination = Path(__file__).resolve().parent / ".wsee"
+		destination.mkdir(exist_ok=True, parents=True)
+		fs = fsspec.filesystem("github", org="Guild-Net", repo="wsee")
+		fs.get(fs.ls(".wsee/"), destination.as_posix(), recursive=True)
+
 		print('[' + colors.GREEN_BG + ' Script Updated! ' + colors.ENDC + ']')
 		sleep(3)
 		exit()
@@ -559,7 +567,7 @@ __  _  ________ ____   ____
 			switch['rot'] = 1
 		elif inputs == '3':
 			switch['bloc'] = 0
-			switch['rot'] = 3
+			switch['rot'] = 2
 	inputs = { '1': 'Scan File (.txt)', '2': 'Scan Online (HackerTarget)', '3': 'Scan Custom Input' }
 	inputs = user_input(inputs)
 	if inputs == '1':
@@ -585,4 +593,3 @@ if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
 	checker()
 	menu()
-	exit()
