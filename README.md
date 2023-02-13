@@ -1,5 +1,5 @@
 # wsee
-A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific `protocol` or `frontable`, indicated via `101` or `200` statuses. Can be used for **Bug  Hunters** to find any delicate domain related to `CDN`, `Websocket`, `HTTP/2` and `domain-fronting`. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
+A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific `protocol`, indicated via `101`. Can be used for **Bug  Hunters** to find any delicate domain related to `CDN`, `Websocket`, and `HTTP/2`. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
 
 ## Features
 - `wsee: to go` an Easy to use, scans whenever needed with Clean interactive Python script. Usable across any device that supports for `python`. PS: Even work on `Termux` and `WSL`.
@@ -60,12 +60,11 @@ Latest releases introduce auto-update feature. It's a small feature but now, you
 # Installation
 **WSee** uses 3rd-party module, make sure to install `requests` before running, or else:
 ```
-apt install python3, python3-pip
-apt install git
+apt install python3, python3-pip, git
 git clone https://github.com/MC189/wsee
 cd wsee
 chmod +x *
-python3 -m pip install requests
+python3 -m pip -r requirements.txt
 python3 wsee.py
 ```
 
