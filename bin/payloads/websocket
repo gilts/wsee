@@ -1,0 +1,7 @@
+'Upgrade: websocket\r\n
+Connection: Upgrade\r\n
+Sec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\n
+Sec-Websocket-Version: 13\r\n
+Sec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n
+Sec-WebSocket-Extensions: superspeed\r\n
+Pragma: no-cache'
