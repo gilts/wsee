@@ -1,7 +1,8 @@
-'Upgrade: websocket\r\n
-Connection: Upgrade\r\n
-Sec-WebSocket-Key: dXP3jD9Ipw0B2EmWrMDTEw==\r\n
-Sec-Websocket-Version: 13\r\n
-Sec-Websocket-Accept: GLWt4W8Ogwo6lmX9ZGa314RMRr0=\r\n
-Sec-WebSocket-Extensions: superspeed\r\n
-Pragma: no-cache'
+{
+"Connection": "Upgrade",
+"Upgrade": "websocket",
+"Sec-Websocket-Version": "13",
+"Sec-WebSocket-Key": "dXP3jD9Ipw0B2EmWrMDTEw==",
+"Sec-Websocket-Accept": "GLWt4W8Ogwo6lmX9ZGa314RMRr0=",
+"Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
+}
