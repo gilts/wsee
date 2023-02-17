@@ -2,16 +2,16 @@
 
 '''
 Licensed Under Apache 2.0
-Copyright (C) MC874
-All rights Reserved
+Copyright (C) MC874/MC189/MC & Kiynox
+All Rights Reserved
 
 Commits preserved free as is;
 Permitted for Commercial Use or Private use.
-With other Circumstances such as free Distribution and Modification.
-All the state bounds with Conditions.
+With other Circumstances such as Free Distribution and Modification.
+All the State bounds with Conditions.
 
 Following states, it's conditions to indicate the changes
-As well mention it's License use and Copyright holders.
+As well mention it's License Use and Copyright Holders.
 
 Heavily forbid Trademark act.
 Provides NO WARRANTY; implies 'WITHOUT' to all it's related such as MERCHANTABILITY.
@@ -76,19 +76,27 @@ def doma():
 
 # Child Controller
 def option():
-	print('[' + colors.RED_BG + ' Output File Name ' + colors.ENDC + ']')
-	inputs = input(' Input File Name : ')
-	props['nametag'] = inputs
-	print('')
-	if switch['bloc'] == 1:
-		if switch['rot'] == 2:
-			print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
-			inputs = input(' Input Proxy : ')
-			props['Proxy'] = inputs
-		elif switch['rot'] == 0:
-			print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
-			inputs = input(' Input Hostname : ')
-			props['SNI'] = bugger
+	while True:
+		inputs = { '1': 'Done', '2': 'Output File Name',  }
+		if (switch['bloc'] == 1) and (switch['rot'] in [0,2]):
+			rotates = { '3': 'Use Rotate' }
+			inputs = merge(inputs, rotates)
+		inputs = user_input(inputs)
+		if inputs == '2':
+			inputs = input(' Input File Name : ')
+			print()
+			props['nametag'] = inputs
+		elif inputs == '3':
+			if switch['rot'] == 2:
+				print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
+				inputs = input(' Input Proxy : ')
+				props['Proxy'] = inputs
+			elif switch['rot'] == 0:
+				print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
+				inputs = input(' Input Hostname : ')
+				props['SNI'] = bugger
+		else:
+			break
 	print('')
 
 # Outrange input as finish
@@ -121,6 +129,11 @@ def user_input(inputs):
 
 ''' Reading List Section '''
 # Reading from Files
+'''	Dir 0 = takes from Input Folder
+	Dir 1 = takes from Current Script Folder
+	Dir 2 =	takes from Internal Storage Input Folder
+	Dir 3 =	takes from Internal Storage
+	Dir 4 =	takes from Custom Folder	'''
 def filet():
 	txtfiles = []
 	num_file = 1
@@ -205,36 +218,6 @@ def hacki():
 	return processor
 
 ''' Main Control Section '''
-def reserver(processor):
-	Faily = Value('i', 0)
-	appendix = Queue()
-	Resulty = Value('d', 0)
-	columns = defaultdict(list)
-	if switch['type'] == 0:
-		with open(processor, 'r') as f:
-			for line in f:
-				appendix.put(line.strip())
-		processor(appendix, Faily, Resulty)
-	elif switch['type']==1:
-		csv_file = open(processor, 'r').read()
-		reader = csv.reader(csv_file)
-		for row in reader:
-			for (i,v) in enumerate(row):
-				columns[i].append(v)
-		appendix.put(columns[9]+columns[3])
-		csv_file.close()
-		processor(appendix, Faily, Resulty)
-	elif switch['type']==2:
-		appendix.put(processor)
-		processor(appendix, Faily, Resulty)
-	else:
-		for process in processor:
-			appendix.put(process)
-		processor(appendix, Faily, Resulty)
-	print(' Failed Result : ' + colors.RED_BG + ' ' + str(Faily.value) + ' ' + colors.ENDC )
-	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(Resulty.value) + ' ' + colors.ENDC)
-	print('')
-
 # Running Process and Reading text list
 ''' Type 0: takes txt
 	Type 1: takes csv
@@ -302,6 +285,10 @@ def executor(appendix, Resulty, payloads):
 	p.terminate()
 
 # Processing Main Process
+'''	Block 0 = ZGrab
+	Block 1 = Websocket Fronting
+	Block 2 = Websocket Local
+	Block 3 = HTTP/2	'''
 def processor(appendix, Resulty, payloads):
 	while True:
 		onliner = appendix.get()
@@ -350,10 +337,10 @@ def pinger():
 			sleep(3)
 
 # Websocket SSL: Takes CDN/Local
-''' Rot 0: Rotate Proxy Mode
-	Rot 1: Direct Mode
-	Rot 2: Rotate Host Mode
-	Rot 3: Normal Mode'''
+''' Rot 0 = Websocket Fronting SSL Proxy Rotate
+	Rot 1 = Websocket Fronting Direct
+	Rot 2 = Websocket Fronting SSL Host Rotate
+	Rot 3 = Websocket Fronting SSL	'''
 def wsee(onliner, Resulty, payloads):
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -391,9 +378,8 @@ def wsee(onliner, Resulty, payloads):
 	sock.close()
 
 # Websocket Direct: Takes CDN/Local
-'''	Rot 1: Local Mode
-	Rot 0: Normal Mode '''
-
+'''	Rot 0 = Websocket Local Direct
+	Rot 1 = Websocket Local SSL	'''
 def wsrect(onliner, Resulty, payloads):
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -422,10 +408,9 @@ def wsrect(onliner, Resulty, payloads):
 			Resulty['Fail'] += 1
 	sock.close()
 
-# Websocket SSL: Takes CDN/Local
-'''	Rot 1: Local
-	Rot 0: Normal Mode '''
-
+# HTTP/2 Direct: Takes CDN/Local
+'''	Rot 0 = HTTP/2 Local Direct
+	Rot 1 = HTTP/2 Fronting Direct	'''
 def h2srect(onliner, Resulty, payloads):
 	sock = socket.socket()
 	sock.settimeout(5)
@@ -452,6 +437,9 @@ def h2srect(onliner, Resulty, payloads):
 	sock.close()
 
 # ZGrab Mode: Only Local; Takes 443/80
+'''	Rot 0 = Websocket Local SSL
+	Rot 1 = Websocket Local Direct
+	Rot 2 = HTTP/2 Local Direct	'''
 def grabber(onliner, Resulty):
 	if switch['rot'] == 0:
 		commando = f"echo {onliner} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
@@ -512,6 +500,20 @@ def checker():
 	print("\033c\033[3J\033[2J\033[0m\033[H")
 
 # Main Menu; Handles everything.
+'''	Block 0 Rot 2 = HTTP/2 Local Direct ZGrab
+	Block 0 Rot 1 = Websocket Local Direct ZGrab
+	Block 0 Rot 0 = Websocket Local SSL ZGrab
+
+	Block 1 Rot 3 = Websocket Fronting SSL
+	Block 1 Rot 2 = Websocket Fronting SSL Host Rotate
+	Block 1 Rot 1 = Websocket Fronting Direct
+	Block 1 Rot 0 = Websocket Fronting SSL Proxy Rotate
+
+	Block 2 Rot 1 = Websocket Local Direct
+	Block 2 Rot 0 = Websocket Local SSL
+
+	Block 3 Rot 1 = HTTP/2 Local Direct	
+	Block 3 Rot 0 = HTTP/2 Fronting Direct	'''
 def menu():
 	print('''
 __  _  ________ ____   ____  
@@ -583,8 +585,8 @@ __  _  ________ ____   ____
 	elif inputs == '3':
 		processor = input(' Custom Input: ')
 		print()
-		switch['type']=2
-	if switch['bloc']==1:
+		switch['type'] = 2
+	if switch['bloc'] == 1:
 		doma()
 	option()
 	server(processor)
