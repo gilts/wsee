@@ -80,7 +80,7 @@ def option():
 		elif inputs == '4':
 			custom_headers = input('Input Headers: ')
 			print('')
-			custom_headers = json.loads(custom_headers
+			custom_headers = json.loads(custom_headers)
 			customPayloads = merge(customPayloads, custom_headers)
 		elif inputs == '5':
 			inputs = { '1': 'Custom SSH Address', '2': 'Default CloudFront', '3': 'Default CloudFlare' }
@@ -346,36 +346,66 @@ def pinger():
 			print("[" + colors.RED_BG + " Check Your Internet Connection! " + colors.ENDC + "]")
 			sleep(3)
 
-def saver(response, server, location, results):
+def scope2_saver(response, results):
 	if not response:
-			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
-			results['Fail'] += 1
-	if switch['scope'] == 0:
-		if int(response[0]) == expected_response:
-			print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
-			results['Success'] += 1
-		else:
-			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			results['Fail'] += 1
-	elif switch['scope'] == 1:
-		if (int(response[0]) == expected_response) or (server == 'cloudflare') or ('server' == 'CloudFront'):
-			print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
-			results['Success'] += 1
-		else:
-			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			results['Fail'] += 1
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + '' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
+		results['Fail'] += 1
+	status = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", response)
+	server = re.search('Server\:\ (.*)', response)
+	if (server == 'cloudflare'):
+		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudflare.txt', 'a'))
+		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+	elif (server == 'CloudFront'):
+		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudfront.txt', 'a'))
+		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+	else:
+		server = ' ' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
+	if int(response[0]) == expected_response:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
+		results['Success'] += 1
+	elif int(response[0]) == 200:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		print(task, file = open(f'{output_folder}/{props["nametag"]}-fronted.txt', 'a'))
+		results['Success'] += 1
+	else:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		results['Fail'] += 1
 
-def properties(task):
-	sock = socket.socket()
-	sock.settimeout(5)
-	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-	sock.connect((f'{task}', 80))
-	response = sock.recv(1024).decode('utf-8')
-	server = re.search('Server\:\ (.*)', response).group(1)
-	location = re.search('Location\:\ (.*)', response).group(1)
-	return server, location
+def scope1_saver(response, results):
+	if not response:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + '' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
+		results['Fail'] += 1
+	status = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", response)
+	server = re.search('Server\:\ (.*)', response)
+	if (server == 'cloudflare'):
+		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudflare.txt', 'a'))
+		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+	elif (server == 'CloudFront'):
+		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudfront.txt', 'a'))
+		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+	else:
+		server = ' ' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
+	if int(response[0]) == expected_response:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
+		results['Success'] += 1
+	else:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		results['Fail'] += 1
+
+def scope0_saver(response, results):
+	if not response:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
+		results['Fail'] += 1
+	status = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", response)
+	if int(response[0]) == expected_response:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']')
+		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
+		results['Success'] += 1
+	else:
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']')
+		results['Fail'] += 1
 
 # Websocket SSL: Takes CDN/Local
 ''' Rot 0 = Websocket Fronting SSL Proxy Rotate
@@ -403,12 +433,13 @@ def ws(task, results, payloads):
 			sock = cont.wrap_socket(sock, server_hostname = task)
 			sock.connect((task, 443))
 		sock.sendall(f'HEAD wss://{task}/ HTTP/1.1\r\nHost: {props["fronting"]}\r\n{payloads.value}\r\n'.encode())
-	response = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", str(sock.recv(1024)))
+	response = str(sock.recv(1024))
 	if switch['scope'] == 0:
-		saver(response, server = None, location = None, results)
+		scope0_saver(response)
+	elif switch['scope'] == 1:
+		scope1_saver(response)
 	else:
-		server, location = properties(task)
-		saver(response, server, location, results)
+		scope2_saver(response)
 	sock.close()
 
 # Websocket Direct: Takes CDN/Local
@@ -427,19 +458,13 @@ def localws(task, results, payloads):
 	else:
 		sock.connect((task, 80))
 		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {task}\r\n{payloads.value}\r\n'.encode())
-	line = str(sock.recv(13))
-	response = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-	if not response:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
-		results['Fail'] += 1
+	response = str(sock.recv(1024))
+	if switch['scope'] == 0:
+		scope0_saver(response)
+	elif switch['scope'] == 1:
+		scope1_saver(response)
 	else:
-		if int(response[0]) == expected_response:
-			print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
-			results['Success'] += 1
-		else:
-			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			results['Fail'] += 1
+		scope2_saver(response)
 	sock.close()
 
 # HTTP/2 Direct: Takes CDN/Local
@@ -455,19 +480,13 @@ def h2c(task, results, payloads):
 	else:
 		sock.connect((task, 80))
 		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {task}\r\n{payloads.value}\r\n'.encode())
-	line = str(sock.recv(13))
-	response = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", line)
-	if not response:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
-		results['Fail'] += 1
+	response = str(sock.recv(1024))
+	if switch['scope'] == 0:
+		scope0_saver(response)
+	elif switch['scope'] == 1:
+		scope1_saver(response)
 	else:
-		if int(response[0]) == expected_response:
-			print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
-			results['Success'] += 1
-		else:
-			print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(response[0]) + ' ' + colors.ENDC + ']')
-			results['Fail'] += 1
+		scope2_saver(response)
 	sock.close()
 
 # ZGrab Mode: Only Local; Takes 443/80
@@ -483,8 +502,8 @@ def zgrab(task, results):
 		commando = f"echo {task} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	commando = subprocess.Popen(commando, shell = True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 	commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
-	rege = re.split(r'\n',commando)
-	if rege[0] == f'{expected_response}':
+	response = re.split(r'\n',commando)
+	if int(response[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + rege[1])
 		print(rege[1], file = open(f'{props["nametag"]}.txt', 'a'))
 		results['Success'] += 1
@@ -620,8 +639,6 @@ __  _  ________ ____   ____
 		processor = input(' Custom Input: ')
 		print()
 		switch['file_type'] = 2
-	if switch['function'] == 1:
-		doma()
 	option()
 	server(processor)
 
