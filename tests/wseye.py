@@ -346,12 +346,12 @@ def pinger():
 			print("[" + colors.RED_BG + " Check Your Internet Connection! " + colors.ENDC + "]")
 			sleep(3)
 
-def scope2_saver(response, results):
+def scope2_saver(response, task, results):
 	if not response:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + '' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		results['Fail'] += 1
 	status = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", response)
-	server = re.search('Server\:\ (.*)', response)
+	server = re.search('Server\:\ (.*)\r\n', response).group(1)
 	if (server == 'cloudflare'):
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudflare.txt', 'a'))
 		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
@@ -360,11 +360,11 @@ def scope2_saver(response, results):
 		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
 	else:
 		server = ' ' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
-	if int(response[0]) == expected_response:
+	if int(status[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
 		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
 		results['Success'] += 1
-	elif int(response[0]) == 200:
+	elif int(status[0]) == 200:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-fronted.txt', 'a'))
 		results['Success'] += 1
@@ -372,12 +372,12 @@ def scope2_saver(response, results):
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
 		results['Fail'] += 1
 
-def scope1_saver(response, results):
+def scope1_saver(response, task, results):
 	if not response:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + '' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		results['Fail'] += 1
 	status = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", response)
-	server = re.search('Server\:\ (.*)', response)
+	server = re.search('Server\:\ (.*)\r\n', response).group(1)
 	if (server == 'cloudflare'):
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudflare.txt', 'a'))
 		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
@@ -386,7 +386,7 @@ def scope1_saver(response, results):
 		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
 	else:
 		server = ' ' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
-	if int(response[0]) == expected_response:
+	if int(status[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
 		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
 		results['Success'] += 1
@@ -394,12 +394,12 @@ def scope1_saver(response, results):
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
 		results['Fail'] += 1
 
-def scope0_saver(response, results):
+def scope0_saver(response, task, results):
 	if not response:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		results['Fail'] += 1
 	status = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", response)
-	if int(response[0]) == expected_response:
+	if int(status[0]) == expected_response:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']')
 		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
 		results['Success'] += 1
@@ -435,11 +435,11 @@ def ws(task, results, payloads):
 		sock.sendall(f'HEAD wss://{task}/ HTTP/1.1\r\nHost: {props["fronting"]}\r\n{payloads.value}\r\n'.encode())
 	response = str(sock.recv(1024))
 	if switch['scope'] == 0:
-		scope0_saver(response)
+		scope0_saver(response, task, results)
 	elif switch['scope'] == 1:
-		scope1_saver(response)
+		scope1_saver(response, task, results)
 	else:
-		scope2_saver(response)
+		scope2_saver(response, task, results)
 	sock.close()
 
 # Websocket Direct: Takes CDN/Local
@@ -460,11 +460,11 @@ def localws(task, results, payloads):
 		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {task}\r\n{payloads.value}\r\n'.encode())
 	response = str(sock.recv(1024))
 	if switch['scope'] == 0:
-		scope0_saver(response)
+		scope0_saver(response, task, results)
 	elif switch['scope'] == 1:
-		scope1_saver(response)
+		scope1_saver(response, task, results)
 	else:
-		scope2_saver(response)
+		scope2_saver(response, task, results)
 	sock.close()
 
 # HTTP/2 Direct: Takes CDN/Local
@@ -482,11 +482,11 @@ def h2c(task, results, payloads):
 		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {task}\r\n{payloads.value}\r\n'.encode())
 	response = str(sock.recv(1024))
 	if switch['scope'] == 0:
-		scope0_saver(response)
+		scope0_saver(response, task, results)
 	elif switch['scope'] == 1:
-		scope1_saver(response)
+		scope1_saver(response, task, results)
 	else:
-		scope2_saver(response)
+		scope2_saver(response, task, results)
 	sock.close()
 
 # ZGrab Mode: Only Local; Takes 443/80
