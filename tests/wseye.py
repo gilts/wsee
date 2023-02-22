@@ -263,7 +263,7 @@ def server(processor):
 				tasker.put(i.strip())
 			executor(tasker, results, payloads)
 		f.close()
-	elif switch['file_type']==1:
+	elif switch['file_type'] == 1:
 		csv_file = open(processor, 'r').read()
 		reader = csv.reader(csv_file)
 		for row in reader:
@@ -272,7 +272,7 @@ def server(processor):
 			tasker.put(columns[9] + columns[3])
 			executor(tasker, results, payloads)
 		csv_file.close()
-	elif switch['file_type']==2:
+	elif switch['file_type'] == 2:
 		tasker.put(processor)
 		executor(tasker, results, payloads)
 	else:
@@ -330,6 +330,7 @@ def processor(tasker, results, payloads):
 		except Exception as e:
 			print(e)
 			pass
+
 ''' Main Process '''
 # Ping DNS over TCP to check connection
 def pinger():
@@ -353,61 +354,61 @@ def scope2_saver(response, task, results):
 	if not response:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + '' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		results['Fail'] += 1
-	status = re.search('^HTTP\/1\.1\ (.*)\ ', response).group(1)
-	server = re.search('Server\:\ (.*)', response).group(1)
-	if (server == 'cloudflare'):
+	status = re.search('^HTTP\/1\.1\ ([0-9]*)\ ', response).group(1).rstrip()
+	server = re.search('Server\:\ (.*)', response).group(1).rstrip()
+	if server == 'cloudflare':
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudflare.txt', 'a'))
-		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
-	elif (server == 'CloudFront'):
+		server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+	elif server == 'CloudFront':
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudfront.txt', 'a'))
-		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+		server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
 	else:
-		server = ' ' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
-	if int(status[0]) == expected_response:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		server = ' [' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
+	if int(status) == expected_response:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
 		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
 		results['Success'] += 1
-	elif int(status[0]) == 200:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+	elif int(status) == 200:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-fronted.txt', 'a'))
 		results['Success'] += 1
 	else:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
 		results['Fail'] += 1
 
 def scope1_saver(response, task, results):
 	if not response:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + '' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		results['Fail'] += 1
-	status = re.search('^HTTP\/1\.1\ (.*)\ ', response).group(1)
-	server = re.search('Server\:\ (.*)', response).group(1)
-	if (server == 'cloudflare'):
+	status = re.search('^HTTP\/1\.1\ ([0-9]*)\ ', response).group(1).rstrip()
+	server = re.search('Server\:\ (.*)', response).group(1).rstrip()
+	if server == 'cloudflare':
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudflare.txt', 'a'))
-		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
-	elif (server == 'CloudFront'):
+		server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+	elif server == 'CloudFront':
 		print(task, file = open(f'{output_folder}/{props["nametag"]}-cloudfront.txt', 'a'))
-		server = ' ' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+		server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
 	else:
-		server = ' ' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
-	if int(status[0]) == expected_response:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		server = ' [' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
+	if int(status) == expected_response:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
 		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
 		results['Success'] += 1
 	else:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']' + server)
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
 		results['Fail'] += 1
 
 def scope0_saver(response, task, results):
 	if not response:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		results['Fail'] += 1
-	status = re.search('^HTTP\/1\.1\ (.*)\ ', response).group(1)
-	if int(status[0]) == expected_response:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']')
+	status = re.search('^HTTP\/1\.1\ ([0-9]*)\ ', response).group(1).rstrip()
+	if int(status) == expected_response:
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']')
 		print(task, file = open(f'{output_folder}/{props["nametag"]}.txt', 'a'))
 		results['Success'] += 1
 	else:
-		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status[0]) + ' ' + colors.ENDC + ']')
+		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status) + ' ' + colors.ENDC + ']')
 		results['Fail'] += 1
 
 # Websocket SSL: Takes CDN/Local
