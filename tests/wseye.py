@@ -39,14 +39,11 @@ from multiprocessing import Process, Manager, Value, Queue, cpu_count
 input_folder = 'input'
 output_folder = 'output'
 
-expected_response = 101
-maxi = cpu_count()
-
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
 customPayloads = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36', 'Upgrade-Insecure-Requests': '1', 'Accept': '*/*' }
 
-props = { 'fronting': '', 'hostname': '', 'proxy': '', 'nametag': 'result'}
+props = { 'fronting': '', 'hostname': '', 'proxy': '', 'nametag': 'result', 'process': cpu_count(), 'timeout': 5}
 switch = { 'function': 0, 'rotate': 0, 'locator': 0, 'file_type': 0, 'scope': 0 }
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
@@ -60,15 +57,15 @@ class colors:
 def option():
 	global customPayloads
 	while True:
-		inputs = { '1': 'Done', '2': 'Output File' }
+		inputs = { '1': 'Done', '2': 'Output File', '3': 'Process Count', '4': 'Timeout' }
 		if not switch['function'] == 0:
-			general = { '3': 'Scope Level', '4': 'Custom Headers' }
+			general = { '5': 'Scope Level', '6': 'Custom Headers' }
 			inputs = merge(inputs, general)
 		if (switch['function'] == 1) or (switch['function'] == 3 and switch['rotate'] == 0):
-			fronting_domain = { '5': 'Fronting Domain' }
+			fronting_domain = { '7': 'Fronting Domain' }
 			inputs = merge(inputs, fronting_domain)
 		if (switch['function'] == 1) and (switch['rotate'] in [0, 2]):
-			rotates = { '6': 'Use Rotate' }
+			rotates = { '8': 'Use Rotate' }
 			inputs = merge(inputs, rotates)
 		inputs = user_input(inputs)
 		if inputs == '2':
@@ -76,6 +73,14 @@ def option():
 			print()
 			props['nametag'] = inputs
 		elif inputs == '3':
+			inputs = input('How Many Process?: ')
+			print()
+			props['process'] = inputs
+		elif inputs == '4':
+			inputs = input('Timeout in Seconds: ')
+			print()
+			props['timeout'] = inputs
+		elif inputs == '5':
 			inputs = { '0': 'Only 101 Upgrade Status', '1': 'Include Server Properties', '2': 'Include Domain Fronted' }
 			inputs = user_input(inputs)
 			if inputs == '0':
@@ -84,12 +89,12 @@ def option():
 				switch['scope'] = 1
 			else:
 				switch['scope'] = 2
-		elif inputs == '4':
+		elif inputs == '6':
 			custom_headers = input('Input Headers: ')
 			print('')
 			custom_headers = json.loads(custom_headers)
 			customPayloads = merge(customPayloads, custom_headers)
-		elif inputs == '5':
+		elif inputs == '7':
 			inputs = { '1': 'Custom SSH Address', '2': 'Default CloudFront', '3': 'Default CloudFlare' }
 			inputs = user_input(inputs)
 			if inputs == '1':
@@ -103,7 +108,7 @@ def option():
 			print(' Selected [' + colors.GREEN_BG + f' {props["fronting"]} ' + colors.ENDC + '] as Domain Fronting!')
 			print(' ['+ colors.RED_BG + ' INVALID ' + colors.ENDC + '] SSH Will Give 0 Result!' )
 			print('')
-		elif inputs == '6':
+		elif inputs == '8':
 			if switch['rotate'] == 2:
 				print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
 				inputs = input(' Input Proxy : ')
@@ -260,12 +265,12 @@ def server(processor):
 		results[i] = j
 	for i, j in switch.items():
 		results[i] = j
-	tasker = Queue(99)
+	tasker = Queue(props['process']*10)
 	columns = defaultdict(list)
 	if switch['file_type'] == 0:
 		f = open(processor, 'r')
 		for line in f:
-			liner = [line] + list(islice(f, 9))
+			liner = [line] + list(islice(f, props['process']))
 			for i in liner:
 				tasker.put(i.strip())
 			executor(tasker, results)
@@ -284,7 +289,7 @@ def server(processor):
 		executor(tasker, results)
 	else:
 		for process in processor:
-			liner = [process] + list(islice(processor, 9))
+			liner = [process] + list(islice(processor, props['process']))
 			for i in liner:
 				tasker.put(i)
 			executor(tasker, results)
@@ -296,7 +301,7 @@ def server(processor):
 # Running Process
 def executor(tasker, results):
 	total = []
-	for i in range(maxi):
+	for i in range(props['process']):
 		tasker.put('ENDED')
 		p = Process(target = processor, args = (tasker, results))
 		p.start()
@@ -372,7 +377,7 @@ def saver(task, response, results):
 			server = ' [' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
 	else:
 		server = ''
-	if int(status) == expected_response:
+	if int(status) == 101:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
 		print(task, file = open(f'{output_folder}/{results["nametag"]}.txt', 'a'))
 		results['Success'] += 1
@@ -391,7 +396,7 @@ def saver(task, response, results):
 	Rot 3 = Websocket Fronting SSL	'''
 def ws(task, results):
 	sock = socket.socket()
-	sock.settimeout(5)
+	sock.settimeout(results['timeout'])
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	cont = ssl.create_default_context()
 	cont.set_ciphers(cipher)
@@ -419,7 +424,7 @@ def ws(task, results):
 	Rot 1 = Websocket Local SSL	'''
 def localws(task, results):
 	sock = socket.socket()
-	sock.settimeout(5)
+	sock.settimeout(results['timeout'])
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	cont = ssl.create_default_context()
 	cont.set_ciphers(cipher)
@@ -439,7 +444,7 @@ def localws(task, results):
 	Rot 1 = HTTP/2 Fronting Direct	'''
 def h2c(task, results):
 	sock = socket.socket()
-	sock.settimeout(5)
+	sock.settimeout(results['timeout'])
 	sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 	sock.connect((task, 80))
 	if results['rot']==0:
@@ -457,15 +462,15 @@ def h2c(task, results):
 	Rot 2 = HTTP/2 Local Direct	'''
 def zgrab(task, results):
 	if results['rotate'] == 0:
-		commando = f"echo {task} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects 10 --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando = f"echo {task} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --use-https --port 443 --max-redirects {results['timeout']} --retry-https --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	elif results['rotate'] == 1:
-		commando = f"echo {task} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando = f"echo {task} | zgrab2 http --custom-headers-names='Upgrade,Sec-WebSocket-Key,Sec-WebSocket-Version,Connection' --custom-headers-values='websocket,dXP3jD9Ipw0B2EmWrMDTEw==,13,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t {results['timeout']} | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	else:
-		commando = f"echo {task} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t 10 | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
+		commando = f"echo {task} | zgrab2 http --custom-headers-names='Upgrade,HTTP2-Settings,Connection' --custom-headers-values='h2c,AAMAAABkAARAAAAAAAIAAAAA,Upgrade' --remove-accept-header --dynamic-origin --port 80 --max-redirects 10 --cipher-suite= portable -t {results['timeout']} | jq '.data.http.result.response.status_code,.domain' | grep -A 1 -E --line-buffered '^101'"
 	commando = subprocess.Popen(commando, shell = True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 	commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 	response = re.split(r'\n',commando)
-	if int(response[0]) == expected_response:
+	if response[0] == '101':
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task)
 		print(task, file = open(f'./output/{results["nametag"]}.txt', 'a'))
 		results['Success'] += 1
