@@ -60,7 +60,10 @@ class colors:
 def option():
 	global customPayloads
 	while True:
-		inputs = { '1': 'Done', '2': 'Output File', '3': 'Scope Level', '4': 'Custom Headers' }
+		inputs = { '1': 'Done', '2': 'Output File' }
+		if not switch['function'] == 0:
+			general = { '3': 'Scope Level', '4': 'Custom Headers' }
+			inputs = merge(inputs, general)
 		if (switch['function'] == 1) or (switch['function'] == 3 and switch['rotate'] == 0):
 			fronting_domain = { '5': 'Fronting Domain' }
 			inputs = merge(inputs, fronting_domain)
@@ -463,8 +466,8 @@ def zgrab(task, results):
 	commando = commando.stdout.read().decode('utf-8') + commando.stderr.read().decode('utf-8')
 	response = re.split(r'\n',commando)
 	if int(response[0]) == expected_response:
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + rege[1])
-		print(rege[1], file = open(f'{results["nametag"]}.txt', 'a'))
+		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task)
+		print(task, file = open(f'./output/{results["nametag"]}.txt', 'a'))
 		results['Success'] += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task)
