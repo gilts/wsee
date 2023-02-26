@@ -43,7 +43,7 @@ cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
 customPayloads = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36', 'Upgrade-Insecure-Requests': '1', 'Accept': '*/*' }
 
-props = { 'fronting': '', 'hostname': '', 'proxy': '', 'nametag': 'result', 'process': cpu_count(), 'timeout': 5}
+props = { 'fronting': '', 'hostname': '', 'proxy': '', 'nametag': 'result', 'count': cpu_count(), 'timeout': 5}
 switch = { 'function': 0, 'rotate': 0, 'locator': 0, 'file_type': 0, 'scope': 0 }
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
@@ -75,7 +75,7 @@ def option():
 		elif inputs == '3':
 			inputs = input('How Many Process?: ')
 			print()
-			props['process'] = inputs
+			props['count'] = inputs
 		elif inputs == '4':
 			inputs = input('Timeout in Seconds: ')
 			print()
@@ -265,12 +265,12 @@ def server(processor):
 		results[i] = j
 	for i, j in switch.items():
 		results[i] = j
-	tasker = Queue(props['process']*10)
+	tasker = Queue(props['count']*10)
 	columns = defaultdict(list)
 	if switch['file_type'] == 0:
 		f = open(processor, 'r')
 		for line in f:
-			liner = [line] + list(islice(f, props['process']))
+			liner = [line] + list(islice(f, props['count']))
 			for i in liner:
 				tasker.put(i.strip())
 			executor(tasker, results)
@@ -289,7 +289,7 @@ def server(processor):
 		executor(tasker, results)
 	else:
 		for process in processor:
-			liner = [process] + list(islice(processor, props['process']))
+			liner = [process] + list(islice(processor, props['count']))
 			for i in liner:
 				tasker.put(i)
 			executor(tasker, results)
@@ -301,14 +301,13 @@ def server(processor):
 # Running Process
 def executor(tasker, results):
 	total = []
-	for i in range(props['process']):
-		tasker.put('ENDED')
-		p = Process(target = processor, args = (tasker, results))
+	for i in range(props['count']):
+		tasker.put(None)
+	procs = [Process(target=processor, args=(tasker, results)) for _ in range(props['count'])]
+	for p in procs:
 		p.start()
-		total.append(p)
 	for p in total:
 		p.join()
-	p.terminate()
 
 # Processing Main Process
 '''	Block 0 = ZGrab
@@ -318,7 +317,7 @@ def executor(tasker, results):
 def processor(tasker, results):
 	while True:
 		task = tasker.get()
-		if task == 'ENDED':
+		if task is None:
 			break
 		try:
 			if results['function'] == 0:
