@@ -30,10 +30,11 @@ import fsspec
 from time import sleep
 from pathlib import Path
 from jsonmerge import merge
+from threading import Thread
 from collections import defaultdict
 from os.path import abspath, dirname
 from pkg_resources import parse_version
-from itertools import islice, chain, repeat
+from itertools import chain, repeat
 from multiprocessing import Process, Manager, Value, Queue, cpu_count
 
 input_folder = 'input'
@@ -245,7 +246,32 @@ def hacki():
 	Type 1: takes csv
 	Type 2: takes input
 	Type 3: takes online enum '''
-def server(processor):
+def server(tasker, processor):
+	columns = defaultdict(list)
+	if switch['file_type'] == 0:
+		f = open(processor, 'r')
+		for line in f:
+			tasker.put(line.strip())
+		f.close()
+	elif switch['file_type'] == 1:
+		csv_file = open(processor, 'r').read()
+		reader = csv.reader(csv_file)
+		for row in reader:
+			for (i,v) in enumerate(row):
+				columns[i].append(v)
+			tasker.put(columns[9] + columns[3])
+		csv_file.close()
+	elif switch['file_type'] == 2:
+		tasker.put(processor)
+		executor(tasker, results)
+	else:
+		for process in processor:
+			tasker.put(process.strip())
+	for i in range(cpu_count()):
+		tasker.put(None)
+
+# Running Process
+def executor(process):
 	global customPayloads
 	if switch['function'] == 3:
 		with open('./bin/payloads/http2', 'r') as f:
@@ -266,50 +292,22 @@ def server(processor):
 	for i, j in switch.items():
 		results[i] = j
 	tasker = Queue(switch['count']*10)
-	columns = defaultdict(list)
-	if switch['file_type'] == 0:
-		f = open(processor, 'r')
-		for line in f:
-			liner = [line] + list(islice(f, switch['count']))
-			for i in liner:
-				tasker.put(i.strip())
-			executor(tasker, results)
-		f.close()
-	elif switch['file_type'] == 1:
-		csv_file = open(processor, 'r').read()
-		reader = csv.reader(csv_file)
-		for row in reader:
-			for (i,v) in enumerate(row):
-				columns[i].append(v)
-			tasker.put(columns[9] + columns[3])
-			executor(tasker, results)
-		csv_file.close()
-	elif switch['file_type'] == 2:
-		tasker.put(processor)
-		executor(tasker, results)
-	else:
-		for process in processor:
-			liner = [process] + list(islice(processor, switch['count']))
-			for i in liner:
-				tasker.put(i)
-			executor(tasker, results)
-	print(' Failed Result : ' + colors.RED_BG + ' ' + str(results['Fail']) + ' ' + colors.ENDC )
-	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(results['Success']) + ' ' + colors.ENDC)
-	print('')
-	uinput()
 
-# Running Process
-def executor(tasker, results):
 	total = []
+	task_producer = Thread(target = server, args = (tasker, process, ))
+	task_producer.start()
 	for i in range(switch['count']):
-		print(total)
 		tasker.put(None)
 		p = Process(target = processor, args = (tasker, results))
 		p.start()
 		total.append(p)
 	for p in total:
-		print(total)
 		p.join()
+	task_producer.join()
+	print(' Failed Result : ' + colors.RED_BG + ' ' + str(results['Fail']) + ' ' + colors.ENDC )
+	print(' Success Result : ' + colors.GREEN_BG + ' ' + str(results['Success']) + ' ' + colors.ENDC)
+	print('')
+	uinput()
 
 # Processing Main Process
 '''	Block 0 = ZGrab
@@ -608,7 +606,7 @@ __  _  ________ ____   ____
 		print()
 		switch['file_type'] = 2
 	option()
-	server(processor)
+	executor(processor)
 
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
