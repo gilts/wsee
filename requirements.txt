@@ -1,5 +1,4 @@
 fsspec
 requests
-itertools
 jsonmerge
 setuptools

@@ -7,7 +7,6 @@ A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple t
 - Has a `Local WebSocket` finder; that allows you to discover more websocket possibilities without `domain-fronting` restriction.
 - More vary technique such as `ZGrab` to accurately find more `Local Websocket` for your endpoint.
 - ***Don't have a wordlist?*** : `wsee` got you covered with `Online Subdomain Enumeration` feature using `HackerTarget` as source.
-- Accept `.csv` as wordlist, breaking the barrier of must used `.txt` and made it compatible for other Enumeration Tool Output.
 - Supports for Internal Storage for `Termux` users.
 - Supports for `HTTP/2` Protocol (clear-text only).
 - `Rotate Proxy` feature that will brute list of Proxy against single Hostname. Currently only Supports for Proxy that runs on `443`or `80` port (Based on CloudFlare Proxy)
@@ -15,6 +14,8 @@ A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple t
 - Auto script updater handled with config located in `.wsee/CONFIG`
 - Also include `Normal` mode, to find SSL/Direct bugs without protocol or domain fronting.
 - `HeartBeat` when attempt to send a request, this prevent connection lost interrupt in mid-scan.
+- `Custom Headers` to Include important headers required for some `endpoint`.
+- Has `scope` feature to include supplementary Status Codes such as: `301`, `302`, `4xx`.
 - New Enhancement each Updates
 
 # How it works
@@ -28,7 +29,7 @@ Even though it uses a basic header, some Endpoint are Headers dependant. In `web
 ##### **SSL Failure**
 In the newer version of `OpenSSL`; it doesn't support `Legacy Connection` and consider it as an exception. Due to this, you need to install custom OpenSSL Config by simply define it into your environment variable:
 ```
-export OPENSSL_CONF=/openssl.cnf
+export OPENSSL_CONF=./.wsee/openssl.cnf
 ```
 
 ##### **ZGrab Resolution**
@@ -61,7 +62,7 @@ Latest releases introduce auto-update feature. It's a small feature but now, you
 **WSee** uses 3rd-party module, make sure to install `requests` before running, or else:
 ```
 apt install python3, python3-pip, git
-git clone https://github.com/MC189/wsee
+git clone https://github.com/Gilts/wsee
 cd wsee
 chmod +x *
 python3 -m pip -r requirements.txt
