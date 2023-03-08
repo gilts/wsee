@@ -291,7 +291,6 @@ def server(tasker, processor):
 		csv_file.close()
 	elif switch['file_type'].value == 2:
 		tasker.put(processor)
-		executor(tasker)
 	else:
 		for process in processor:
 			tasker.put(process.strip())
@@ -403,26 +402,29 @@ def saver(task, response):
 	if not response:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + '' + colors.RED_BG + ' EMPTY ' + colors.ENDC + ']')
 		switch['Fail'].value += 1
-	status = re.search('^HTTP\/1\.1\ ([0-9]*)\ ', response).group(1).rstrip()
+	status = re.search("^b\'HTTP\/1\.[0-1]\ ([0-9]*)\ ", str(response)).group(1).rstrip()
 	if switch['scope'].value in [1, 2]:
-		server = re.search('Server\:\ (.*)', response).group(1).rstrip()
-		if server == 'cloudflare':
-			print(task, file = open(f'{props["output"]}/{props["nametag"].value}-cloudflare.txt', 'a'))
-			server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
-		elif server == 'CloudFront':
-			print(task, file = open(f'{props["output"]}/{props["nametag"].value}-cloudfront.txt', 'a'))
-			server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
-		else:
-			server = ' [' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
+		try:
+			server = re.search('Server\:\ (.*)', response.decode('utf-8')).group(1).rstrip()
+			if server == 'cloudflare':
+				print(task, file = open(f'{props["output"].value}-cloudflare.txt', 'a'))
+				server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+			elif server == 'CloudFront':
+				print(task, file = open(f'{props["output"].value}-cloudfront.txt', 'a'))
+				server = ' [' + colors.GREEN_BG + f' {server} ' + colors.ENDC + ']'
+			else:
+				server = ' [' + colors.RED_BG + f' {server} ' + colors.ENDC + ']'
+		except:
+			server = ' [' + colors.RED_BG + ' None ' + colors.ENDC + ']'
 	else:
 		server = ''
 	if int(status) == 101:
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
-		print(task, file = open(f'{props["output"]}/{props["nametag"].value}.txt', 'a'))
+		print(task, file = open(f'{props["output"].value}/{props["nametag"].value}.txt', 'a'))
 		switch['Success'].value += 1
 	elif (int(status) == 200) and (switch['scope'].value == 2):
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
-		print(task, file = open(f'{props["output"]}/{props["nametag"].value}-fronted.txt', 'a'))
+		print(task, file = open(f'{props["output"].value}/{props["nametag"].value}-fronted.txt', 'a'))
 		switch['Success'].value += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
@@ -454,7 +456,7 @@ def ws(task):
 			sock = cont.wrap_socket(sock, server_hostname = task)
 			sock.connect((task, 443))
 		sock.sendall(f'HEAD wss://{task}/ HTTP/1.1\r\nHost: {props["fronting"].value}\r\n{props["payload"].value}\r\n'.encode())
-	response = sock.recv(1024).decode('utf-8')
+	response = sock.recv(1024)
 	status = saver(task, response)
 	sock.close()
 	return status
@@ -475,7 +477,7 @@ def localws(task):
 	else:
 		sock.connect((task, 80))
 		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {task}\r\n{props["payload"].value}\r\n'.encode())
-	response = sock.recv(1024).decode('utf-8')
+	response = sock.recv(1024)
 	saver(task, response)
 	sock.close()
 
@@ -492,7 +494,7 @@ def h2c(task):
 	else:
 		sock.connect((task, 80))
 		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {task}\r\n{props["payload"].value}\r\n'.encode())
-	response = sock.recv(1024).decode('utf-8')
+	response = sock.recv(1024)
 	saver(task, response)
 	sock.close()
 
@@ -512,7 +514,7 @@ def zgrab(task):
 	response = re.split(r'\n',commando)
 	if response[0] == '101':
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task)
-		print(task, file = open(f'{props["output"]}/{props["nametag"].value}.txt', 'a'))
+		print(task, file = open(f'{props["output"].value}/{props["nametag"].value}.txt', 'a'))
 		switch['Success'].value += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task)
