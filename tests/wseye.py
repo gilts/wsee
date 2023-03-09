@@ -44,8 +44,8 @@ cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
 customPayloads = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36', 'Upgrade-Insecure-Requests': '1', 'Accept': '*/*' }
 
-props = { 'fronting': Value(ctypes.c_wchar_p, '', lock = False), 'hostname': Value(ctypes.c_wchar_p, '', lock = False), 'proxy': Value(ctypes.c_wchar_p, '', lock = False), 'nametag': Value(ctypes.c_wchar_p, 'result', lock = False), 'payload': Value(ctypes.c_wchar_p, '', lock = False), 'output': Value(ctypes.c_wchar_p, output_folder, lock = False), 'input': Value(ctypes.c_wchar_p, input_folder, lock = False)}
-switch = { 'function': Value('i', 0, lock = False), 'rotate': Value('i', 0, lock = False), 'locator': Value('i', 0, lock = False), 'file_type': Value('i', 0, lock = False), 'scope': Value('i', 0, lock = False), 'count': Value('i', cpu_count(), lock = False), 'timeout': Value('i', 5, lock = False), 'pinger': Value('i', 1, lock = False), 'retry': Value('i', 2, lock = False), 'deep': Value('i', 0, lock = False), 'Fail': Value('i', 0, lock = False), 'Success': Value('i', 0, lock = False)}
+
+
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
 class colors:
@@ -142,6 +142,12 @@ def option():
 			break
 	print('')
 
+# Iterate Global Var
+def global_var():
+	global props, switch
+	props = { 'fronting': Value(ctypes.c_wchar_p, cflare_domain, lock = False), 'hostname': Value(ctypes.c_wchar_p, '', lock = False), 'proxy': Value(ctypes.c_wchar_p, '', lock = False), 'nametag': Value(ctypes.c_wchar_p, 'result', lock = False), 'payload': Value(ctypes.c_wchar_p, '', lock = False), 'output': Value(ctypes.c_wchar_p, output_folder, lock = False), 'input': Value(ctypes.c_wchar_p, input_folder, lock = False)}
+	switch = { 'function': Value('i', 0, lock = False), 'rotate': Value('i', 0, lock = False), 'locator': Value('i', 0, lock = False), 'file_type': Value('i', 0, lock = False), 'scope': Value('i', 0, lock = False), 'count': Value('i', cpu_count(), lock = False), 'timeout': Value('i', 5, lock = False), 'pinger': Value('i', 2, lock = False), 'retry': Value('i', 2, lock = False), 'deep': Value('i', 0, lock = False), 'Fail': Value('i', 0, lock = False), 'Success': Value('i', 0, lock = False)}
+
 # Outrange input as finish
 def uinput():
 	global switch, props
@@ -150,8 +156,7 @@ def uinput():
 	inputs = { '1': 'Go Back to Menu', '2': 'Quit Instead' }
 	inputs = user_input(inputs)
 	if inputs == '1':
-		props = { 'fronting': Value(ctypes.c_wchar_p, '', lock = False), 'hostname': Value(ctypes.c_wchar_p, '', lock = False), 'proxy': Value(ctypes.c_wchar_p, '', lock = False), 'nametag': Value(ctypes.c_wchar_p, 'result', lock = False), 'payload': Value(ctypes.c_wchar_p, '', lock = False)}
-		switch = { 'function': Value('i', 0, lock = False), 'rotate': Value('i', 0, lock = False), 'locator': Value('i', 0, lock = False), 'file_type': Value('i', 0, lock = False), 'scope': Value('i', 0, lock = False), 'count': Value('i', cpu_count(), lock = False), 'timeout': Value('i', 5, lock = False), 'pinger': Value('i', 1, lock = False), 'retry': Value('i', 2, lock = False), 'deep': Value('i', 0, lock = False), 'Fail': Value('i', 0, lock = False), 'Success': Value('i', 0, lock = False)}
+		global_var()
 		print("\033c\033[3J\033[2J\033[0m\033[H")
 		menu()
 	elif inputs == '2':
