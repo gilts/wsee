@@ -42,10 +42,8 @@ output_folder = 'output'
 
 cflare_domain = 'id3.sshws.me'
 cfront_domain = 'd20bqb0z6saqqh.cloudfront.net'
+
 customPayloads = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36', 'Upgrade-Insecure-Requests': '1', 'Accept': '*/*' }
-
-
-
 cipher = (':ECDHE-RSA-AES128-GCM-SHA256:DES-CBC3-SHA:AES256-SHA:AES128-SHA:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256:ECDHE-RSA-DES-CBC3:EDH-RSA-DES-CBC3:EECDH+AESGCM:EDH-RSA-DES-CBC3-SHA:EDH-AESGCM:AES256+EECDH:ECHDE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECHDE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-A$:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK')
 
 class colors:
@@ -102,7 +100,7 @@ def option():
 			else:
 				switch['deep'].value = 0
 		elif inputs == '8':
-			inputs = { '0': 'Only 101 Upgrade Status', '1': 'Include Server Properties', '2': 'Include Domain Fronted' }
+			inputs = { '0': 'Only Proper Status', '1': 'Include Domain Fronted', '2': 'Include Anything Connect' }
 			inputs = user_input(inputs)
 			if inputs == '0':
 				switch['scope'].value = 0
@@ -423,17 +421,17 @@ def saver(task, response):
 			server = ' [' + colors.RED_BG + ' None ' + colors.ENDC + ']'
 	else:
 		server = ''
-	if int(status) == 101:
+	if status == '101':
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
-		print(task, file = open(f'{props["output"].value}/{props["nametag"].value}.txt', 'a'))
-		switch['Success'].value += 1
-	elif (int(status) == 200) and (switch['scope'].value == 2):
-		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task + ' [' + colors.GREEN_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
-		print(task, file = open(f'{props["output"].value}/{props["nametag"].value}-fronted.txt', 'a'))
+		print(task, file = open(f'{props["output"].value}.txt', 'a'))
 		switch['Success'].value += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task + ' [' + colors.RED_BG + ' ' + str(status) + ' ' + colors.ENDC + ']' + server)
 		switch['Fail'].value += 1
+	if (switch['scope'].value == 1) and (status in ['200', '301', '302', '403', '400']):
+		print(task, file = open(f'{props["output"].value}-fronted.txt', 'a'))
+	if (switch['scope'].value == 2) and status:
+		print(task, file = open(f'{props["output"].value}-connect.txt', 'a'))
 
 # Websocket SSL: Takes CDN/Local
 ''' Rot 0 = Websocket Fronting SSL Proxy Rotate
@@ -659,4 +657,5 @@ __  _  ________ ____   ____
 if __name__ == '__main__':
 	os.chdir(dirname(abspath(__file__)))
 	checker()
+	global_var()
 	menu()
