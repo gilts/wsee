@@ -23,10 +23,10 @@ import ssl
 import json
 import ctypes
 import socket
+import fsspec
 import subprocess
 import os, fnmatch
 import requests, re
-import fsspec
 from time import sleep
 from pathlib import Path
 from jsonmerge import merge
@@ -53,7 +53,7 @@ class colors:
 
 ''' User-Input Section '''
 # Child Controller
-def option():
+def option(processor):
 	global customPayloads
 	while True:
 		inputs = { '1': 'Done', '2': 'Output File', '3': 'Process Count', '4': 'Timeout', '5': 'Pinger', '6': 'Retry', '7': 'Deep Level' }
@@ -68,9 +68,20 @@ def option():
 			inputs = merge(inputs, rotates)
 		inputs = user_input(inputs)
 		if inputs == '2':
-			inputs = input(' Input File Name : ')
-			print()
-			props['nametag'].value = inputs
+			inputs = { '1': 'Save to Output Folder', '2': 'Custom Folder' }
+			if switch['file_type'].value in [0, 1, 2]:
+				current = { '3': 'Save to the Same Folder as Input' }
+				inputs = merge(inputs, current)
+			inputs = user_input(inputs)
+			outname = input('Output File Name: ')
+			print('')
+			if inputs == 2:
+				print('[' + colors.RED_BG + ' Add Full Path! (./tst.txt) ' +  colors.ENDC + ']')
+				output_folder = input('Output Folder Location: ')
+				print('')
+			elif inputs == 3:
+				output_folder = re.search('(.*)\/.*$', str(processor)).group(1)
+			props['output'].value = f'{output_folder}/{outname}'
 		elif inputs == '3':
 			inputs = input('How Many Process?: ')
 			print()
@@ -216,14 +227,13 @@ def filet():
 	print('')
 	print(' Chosen File : ' + colors.RED_BG + ' ' + txtfiles[int(inputs)-1] + ' ' + colors.ENDC)
 	print('')
-	direct = switch['locator'].value
-	if direct == 0:
-		processor = input_folder + '/' + str(txtfiles[int(inputs)-1])
-	elif direct == 1:
-		processor = str(txtfiles[int(inputs)-1])
-	elif direct == 2:
+	if switch['locator'].value == 0:
+		processor = './' + input_folder + '/' + str(txtfiles[int(inputs)-1])
+	elif switch['locator'].value == 1:
+		processor = './' + str(txtfiles[int(inputs)-1])
+	elif switch['locator'].value == 2:
 		processor = './storage/shared/' + input_folder + '/' + str(txtfiles[int(inputs)-1])
-	elif direct == 3:
+	elif switch['locator'].value == 3:
 		processor = './storage/shared/' + str(txtfiles[int(inputs)-1])
 	else:
 		processor = path
@@ -517,7 +527,7 @@ def zgrab(task):
 	response = re.split(r'\n',commando)
 	if response[0] == '101':
 		print(' [' + colors.GREEN_BG + ' HIT ' + colors.ENDC + '] ' + task)
-		print(task, file = open(f'{props["output"].value}/{props["nametag"].value}.txt', 'a'))
+		print(task, file = open(f'{props["output"].value}.txt', 'a'))
 		switch['Success'].value += 1
 	else:
 		print(' [' + colors.RED_BG + ' FAIL ' + colors.ENDC + '] ' + task)
@@ -554,7 +564,7 @@ def checker():
 		data = json.load(f)
 	if data['config']['update-wsee'] == True:
 		print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
-		resp = requests.get('https://raw.githubusercontent.com/MC874/wsee/main/VERSION')
+		resp = requests.get('https://raw.githubusercontent.com/Gilts/wsee/main/.wsee/VERSION')
 		with open('./.wsee/VERSION') as f:
 			verlocal = f.read()
 		if parse_version(resp.text) > parse_version(verlocal):
@@ -651,7 +661,7 @@ __  _  ________ ____   ____
 		processor = input(' Custom Input: ')
 		print()
 		switch['file_type'].value = 2
-	option()
+	option(processor)
 	executor(processor)
 
 if __name__ == '__main__':
