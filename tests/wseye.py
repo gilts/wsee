@@ -142,11 +142,10 @@ def option(processor):
 			if switch['rotate'].value == 2:
 				print('[' + colors.RED_BG + ' Proxy/IP for Host Rotate ' + colors.ENDC + ']')
 				inputs = input(' Input Proxy : ')
-				props['proxy'].value = inputs
 			elif switch['rotate'].value == 0:
 				print('[' + colors.RED_BG + ' Hostname/SNI for Proxy Rotate' + colors.ENDC + ']')
 				inputs = input(' Input Hostname : ')
-				props['hostname'].value = inputs
+			props['rotate'].value = inputs
 		else:
 			break
 	print('')
@@ -154,8 +153,8 @@ def option(processor):
 # Iterate Global Var
 def global_var():
 	global props, switch
-	props = { 'fronting': Value(ctypes.c_wchar_p, cflare_domain, lock = False), 'hostname': Value(ctypes.c_wchar_p, '', lock = False), 'proxy': Value(ctypes.c_wchar_p, '', lock = False), 'nametag': Value(ctypes.c_wchar_p, 'result', lock = False), 'payload': Value(ctypes.c_wchar_p, '', lock = False), 'output': Value(ctypes.c_wchar_p, output_folder, lock = False), 'input': Value(ctypes.c_wchar_p, input_folder, lock = False)}
-	switch = { 'function': Value('i', 0, lock = False), 'rotate': Value('i', 0, lock = False), 'locator': Value('i', 0, lock = False), 'file_type': Value('i', 0, lock = False), 'scope': Value('i', 0, lock = False), 'count': Value('i', cpu_count(), lock = False), 'timeout': Value('i', 5, lock = False), 'pinger': Value('i', 2, lock = False), 'retry': Value('i', 2, lock = False), 'deep': Value('i', 0, lock = False), 'Fail': Value('i', 0, lock = False), 'Success': Value('i', 0, lock = False)}
+	props = { 'fronting': Value(ctypes.c_wchar_p, cflare_domain, lock = False), 'rotate': Value(ctypes.c_wchar_p, '', lock = False), 'proxy': Value(ctypes.c_wchar_p, '', lock = False), 'payload': Value(ctypes.c_wchar_p, '', lock = False), 'output': Value(ctypes.c_wchar_p, f'{output_folder}/result', lock = False)}
+	switch = { 'function': Value('i', 0, lock = False), 'rotate': Value('i', 0, lock = False), 'file_type': Value('i', 0, lock = False), 'scope': Value('i', 0, lock = False), 'count': Value('i', cpu_count(), lock = False), 'timeout': Value('i', 5, lock = False), 'pinger': Value('i', 2, lock = False), 'retry': Value('i', 2, lock = False), 'deep': Value('i', 0, lock = False), 'Fail': Value('i', 0, lock = False), 'Success': Value('i', 0, lock = False)}
 
 # Outrange input as finish
 def uinput():
@@ -198,20 +197,20 @@ def filet():
 	inputs = user_input(inputs)
 	if inputs == '1':
 		files = os.listdir(input_folder)
-		switch['locator'].value = 0
+		locator = 0
 	elif inputs == '2':
 		files = [f for f in os.listdir('.') if os.path.isfile(f)]
-		switch['locator'].value = 1
+		locator = 1
 	elif inputs == '3':
 		files = os.listdir('$home/storage/shared/' + input_folder)
-		switch['locator'].value = 2
+		locator = 2
 	elif inputs == '4':
 		files = os.listdir('$home/storage/shared/')
-		switch['locator'].value = 3
+		locator = 3
 	elif inputs == '5':
 		path = input(' Input your Folder: ')
 		files = os.listdir(path)
-		switch['locator'].value = 4
+		locator = 4
 	print(' [' + colors.RED_BG + ' Files Found ' + colors.ENDC + '] ')
 	for f in files:
 		if fnmatch.fnmatch(f, '*.txt'):
@@ -227,13 +226,13 @@ def filet():
 	print('')
 	print(' Chosen File : ' + colors.RED_BG + ' ' + txtfiles[int(inputs)-1] + ' ' + colors.ENDC)
 	print('')
-	if switch['locator'].value == 0:
+	if locator == 0:
 		processor = './' + input_folder + '/' + str(txtfiles[int(inputs)-1])
-	elif switch['locator'].value == 1:
+	elif locator == 1:
 		processor = './' + str(txtfiles[int(inputs)-1])
-	elif switch['locator'].value == 2:
+	elif locator == 2:
 		processor = './storage/shared/' + input_folder + '/' + str(txtfiles[int(inputs)-1])
-	elif switch['locator'].value == 3:
+	elif locator == 3:
 		processor = './storage/shared/' + str(txtfiles[int(inputs)-1])
 	else:
 		processor = path
@@ -280,18 +279,11 @@ def hacki():
 	Type 2: takes input
 	Type 3: takes online enum '''
 
-def check_tasker(tasker):
-	while True:
-		if tasker.empty():
-			break
-		pass
-
 def server(tasker, processor):
 	columns = defaultdict(list)
 	if switch['file_type'].value == 0:
 		f = open(processor, 'r')
 		for line in f:
-			check_tasker(tasker)
 			tasker.put(line.strip())
 		f.close()
 	elif switch['file_type'].value == 1:
@@ -389,7 +381,7 @@ def processor(tasker):
 				else:
 					retry = 0
 					switch['Fail'].value += 1
-			except Exception as e:
+			except Exception and OSError as e:
 				print(e)
 				retry = 0
 ''' Main Process '''
@@ -404,9 +396,9 @@ def pinger():
 			response = str(sock.recv(13))
 			response = re.findall("b'HTTP\/[1-9]\.[1-9]\ (.*?)\ ", response)
 			sock.close()
-			if int(response[0]) == 101:
+			if response[0] == '101':
 				break
-		except socket.error as e:
+		except Exception and OSError as e:
 			print(e)
 			print("[" + colors.RED_BG + " Check Your Internet Connection! " + colors.ENDC + "]")
 			sleep(3)
@@ -455,16 +447,16 @@ def ws(task):
 	cont = ssl.create_default_context()
 	cont.set_ciphers(cipher)
 	if switch['rotate'].value == 0:
-		sock = cont.wrap_socket(sock, server_hostname = f'{props["hostname"].value}')
+		sock = cont.wrap_socket(sock, server_hostname = f'{props["rotate"].value}')
 		sock.connect((task, 443))
-		sock.sendall(f'HEAD wss://{props["hostname"].value}/ HTTP/1.1\r\nHost: {props["fronting"].value}\r\n{props["payload"].value}\r\n'.encode())
+		sock.sendall(f'HEAD wss://{props["rotate"].value}/ HTTP/1.1\r\nHost: {props["fronting"].value}\r\n{props["payload"].value}\r\n'.encode())
 	elif switch['rotate'].value == 1:
 		sock.connect((task, 80))
 		sock.sendall(f'HEAD / HTTP/1.1\r\nHost: {props["fronting"].value}\r\n{props["payload"].value}\r\n'.encode())
 	else:
 		if switch['rotate'].value == 2:
 			sock = cont.wrap_socket(sock, server_hostname = task)
-			sock.connect((f'{props["proxy"].value}', 443))
+			sock.connect((f'{props["rotate"].value}', 443))
 		else:
 			sock = cont.wrap_socket(sock, server_hostname = task)
 			sock.connect((task, 443))
@@ -537,6 +529,7 @@ def zgrab(task):
 # Script Updater
 def updater():
 	print('[' + colors.GREEN_BG + ' Script Update Available ' + colors.ENDC + ']')
+	print('')
 	inputs = { '1': 'Ignore Update', '2': 'Apply Update' }
 	inputs = user_input(inputs)
 	if inputs == '2':
@@ -563,7 +556,9 @@ def checker():
 	with open('.wsee/CONFIG') as f:
 		data = json.load(f)
 	if data['config']['update-wsee'] == True:
+		print('')
 		print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
+		print('')
 		resp = requests.get('https://raw.githubusercontent.com/Gilts/wsee/main/.wsee/VERSION')
 		with open('./.wsee/VERSION') as f:
 			verlocal = f.read()
@@ -571,6 +566,7 @@ def checker():
 			updater()
 		else:
 			print('[' + colors.RED_BG + ' No Update Available ' +  colors.ENDC + ']')
+			print('')
 			sleep(3)
 	print("\033c\033[3J\033[2J\033[0m\033[H")
 
