@@ -1,5 +1,5 @@
 {
 	"config":{
-		"update-wsee": false,
-		"update-database": false
+		"update-wsee": true,
+		"update-database": true
 }}

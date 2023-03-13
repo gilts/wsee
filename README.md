@@ -1,8 +1,7 @@
 # wsee
-A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific `protocol`, indicated via `101`. Can be used for **Bug  Hunters** to find any delicate domain related to `CDN`, `Websocket`, and `HTTP/2`. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
+A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple technique to ensure target endpoint can fall under specific `protocol` or statuses, indicated via `101` or `200` or even Any!. Can be used for **Bug  Hunters** to find any delicate domain related to `CDN`, `Websocket`, `HTTP/2`, or Bug-Host in general. Should work on any CDN but only featured `Cloudflare` and `Cloudfront` as in-built ready to use.
 
 ## Features
-- `wsee: to go` an Easy to use, scans whenever needed with Clean interactive Python script. Usable across any device that supports for `python`. PS: Even work on `Termux` and `WSL`.
 - A Fast domain queries using `Multiprocessing` to interlude all cpu cores, shorten your time.
 - Has a `Local WebSocket` finder; that allows you to discover more websocket possibilities without `domain-fronting` restriction.
 - More vary technique such as `ZGrab` to accurately find more `Local Websocket` for your endpoint.
@@ -15,16 +14,16 @@ A CDN Domain Fronting Tool or Websocket Discovery. This tool provides multiple t
 - Also include `Normal` mode, to find SSL/Direct bugs without protocol or domain fronting.
 - `HeartBeat` when attempt to send a request, this prevent connection lost interrupt in mid-scan.
 - `Custom Headers` to Include important headers required for some `endpoint`.
-- Has `scope` feature to include supplementary Status Codes such as: `301`, `302`, `4xx`.
+- Has `scope` feature to include supplementary Status Codes such as: `301`, `302`, `4xx`, or Any.
 - New Enhancement each Updates
 
 # How it works
 ##### **Main Propose**
-The tool works; is by following the general idea of Upgrading protocol indicated in `101` HTTP Status code, which assume that the Endpoint supports the target protocol:
+The tool works; is by following the general idea of Upgrading protocol indicated in `101` Status or anything that returns a Status Code, which assume that the Endpoint supports the target protocol:
 ```
 headers = { "Connection": "Upgrade", "Upgrade": protocol }
 ```
-Even though it uses a basic header, some Endpoint are Headers dependant. In `websocket` for example; it may require `X-SS` or `Sec-` or `User-Agent` entry in order upgrade connection to be accepted by the server, this usually happen on `Amazon` endpoints. Make sure to add those manually into the headers and the script will do the rest.
+Even though it uses a basic header, some Endpoint are Headers dependant. In `websocket` for example; it may require `X-SS` or `Sec-` or `User-Agent` entry in order upgrade connection to be accepted by the server, this usually happen on `Amazon` endpoints. Make sure to add those manually in Custom Headers and the script will do the rest.
 
 ##### **SSL Failure**
 In the newer version of `OpenSSL`; it doesn't support `Legacy Connection` and consider it as an exception. Due to this, you need to install custom OpenSSL Config by simply define it into your environment variable:
@@ -56,6 +55,11 @@ Latest releases introduce auto-update feature. It's a small feature but now, you
 		"update-wsee": false,
 		"update-database": false
 }}
+```
+##### **Custom Headers**
+Adding Custom Headers must in `Dict`ionary format. The new headers will override the Default Payloads mentioned in `./bin/payloads`.
+```
+{'X-API-Key': 'blah123', 'X-Forwarded-For': 'blah.com'}
 ```
 
 # Installation
