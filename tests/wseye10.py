@@ -54,7 +54,7 @@ class colors:
 ''' User-Input Section '''
 # Child Controller
 def option(processor):
-	global customPayloads
+	global customPayloads, output_folder
 	while True:
 		inputs = { '1': 'Done', '2': 'Output File', '3': 'Process Count', '4': 'Timeout', '5': 'Pinger', '6': 'Retry', '7': 'Deep Level' }
 		if not switch['function'].value == 0:
@@ -81,6 +81,7 @@ def option(processor):
 				print('')
 			elif inputs == 3:
 				output_folder = re.search('(.*)\/.*$', str(processor)).group(1)
+			print(output_folder)
 			props['output'].value = f'{output_folder}/{outname}'
 		elif inputs == '3':
 			inputs = input('How Many Process?: ')
@@ -153,6 +154,7 @@ def option(processor):
 # Iterate Global Var
 def global_var():
 	global props, switch
+	print(output_folder)
 	props = { 'fronting': Value(ctypes.c_wchar_p, cflare_domain, lock = False), 'rotate': Value(ctypes.c_wchar_p, '', lock = False), 'proxy': Value(ctypes.c_wchar_p, '', lock = False), 'payload': Value(ctypes.c_wchar_p, '', lock = False), 'output': Value(ctypes.c_wchar_p, f'{output_folder}/result', lock = False)}
 	switch = { 'function': Value('i', 0, lock = False), 'rotate': Value('i', 0, lock = False), 'file_type': Value('i', 0, lock = False), 'scope': Value('i', 0, lock = False), 'count': Value('i', cpu_count(), lock = False), 'timeout': Value('i', 5, lock = False), 'pinger': Value('i', 2, lock = False), 'retry': Value('i', 2, lock = False), 'deep': Value('i', 0, lock = False), 'Fail': Value('i', 0, lock = False), 'Success': Value('i', 0, lock = False)}
 
@@ -559,7 +561,7 @@ def checker():
 		print('')
 		print('[' + colors.RED_BG + ' Checking for update... ' +  colors.ENDC + ']')
 		print('')
-		resp = requests.get('https://raw.githubusercontent.com/Gilts/wsee/main/.wsee/VERSION')
+		resp = requests.get('https://raw.githubusercontent.com/gilts/wsee/main/.wsee/VERSION')
 		with open('./.wsee/VERSION') as f:
 			verlocal = f.read()
 		if parse_version(resp.text) > parse_version(verlocal):
